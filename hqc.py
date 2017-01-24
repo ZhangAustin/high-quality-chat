@@ -1,59 +1,59 @@
-import base64
-import os
-import random
-import socket
+# This is sample code retrieved from
+# http://pythonhosted.org/linphone/getting_started.html#running-some-code
+# It sets up and tears down a linphone.Core object
 
-import bcrypt  # dependency, pip install bcrypt
+# WINDOWS DEPENDENCIES
+# pip install linphone
+# Select the proper PyQt version
+#   cpXX = python version X.X
+#   win32 vs win_amd64 = architecture of Python (not OS or CPU)
+# pip install PyQt4-*.whl
+
+import logging
+import sys
+
+import linphone
+from PyQt4.QtCore import QTimer
+from PyQt4.QtGui import QApplication
 
 
 def main():
-    # Do some things
-    main_gui()
+    logging.basicConfig(level=logging.INFO)
+
+    app = QApplication(sys.argv)
+
+    def log_handler(level, msg):
+        method = getattr(logging, level)
+        method(msg)
+
+    def global_state_changed(*args, **kwargs):
+        logging.warning("global_state_changed: %r %r" % (args, kwargs))
+
+    def registration_state_changed(core, call, state, message):
+        logging.warning("registration_state_changed: " + str(state) + ", " + message)
+
+    callbacks = {
+        'global_state_changed': global_state_changed,
+        'registration_state_changed': registration_state_changed,
+    }
+
+    linphone.set_log_handler(log_handler)
+    core = linphone.Core.new(callbacks, None, None)
+    proxy_cfg = core.create_proxy_config()
+    proxy_cfg.identity = "sip:test@test.linphone.org"
+    proxy_cfg.server_addr = "sip:test.linphone.org"
+    proxy_cfg.register_enabled = True
+    core.add_proxy_config(proxy_cfg)
+
+    iterate_timer = QTimer()
+    iterate_timer.timeout.connect(core.iterate)
+    stop_timer = QTimer()
+    stop_timer.timeout.connect(app.quit)
+    iterate_timer.start(20)
+    stop_timer.start(5000)
+
+    exitcode = app.exec_()
+    sys.exit(exitcode)
 
 
-def main_gui():
-    # Deal with the three user select screen (interested party, artist, or producer)
-    user = raw_input('[[i]nterested] party, [a]rtist, [p]roducer:  ')
-
-    if user == 'p' or user == 'producer':
-        server_create()
-    else:
-        server_connect()
-
-
-def server_connect():
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    port = random.randint(1025, 65534)
-    s.bind(('', port))
-    conn_str = raw_input('Please enter the connection string provided by the producer:  ')
-    # server = parse_conn_string(conn_str)
-
-
-# def parse_conn_string(str):
-
-
-def server_create():
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    port = 5432
-    s.bind(('', port))
-
-    hash = bcrypt.hashpw(os.urandom(56), bcrypt.gensalt())
-    print "Please send all users the following connection string:"
-    # print connection_string([ip_address, port, hash])
-
-    handle_clients(s)
-
-
-def connection_string(arr):
-    string = ''
-    for i in arr:
-        string += i + ';'
-    return base64.b64encode(string)
-
-
-def handle_clients(s):
-    s.listen(5)
-
-
-if __name__ == '__main__':
-    main()
+main()
