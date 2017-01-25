@@ -1,14 +1,3 @@
-# This is sample code retrieved from
-# http://pythonhosted.org/linphone/getting_started.html#running-some-code
-# It sets up and tears down a linphone.Core object
-
-# WINDOWS DEPENDENCIES
-# pip install linphone
-# Select the proper PyQt version
-#   cpXX = python version X.X
-#   win32 vs win_amd64 = architecture of Python (not OS or CPU)
-# pip install PyQt4-*.whl
-
 import ConfigParser
 import base64
 import logging
@@ -27,6 +16,7 @@ def main():
     config_username = confparse.get('ConnectionDetails', 'user')
     config_password = confparse.get('ConnectionDetails', 'password')
     config_server = confparse.get('ConnectionDetails', 'server')
+    config_capture = confparse.get('Settings', 'mic')
 
     # Create the conn_string.
     # This is for testing only.  Eventually only the producer will be able to do this.
@@ -64,23 +54,30 @@ def main():
     core = linphone.Core.new(callbacks, None, None)
     core.video_capture_enabled = False  # remove both of these if we get video implemented
     core.video_display_enabled = False
+    core.capture_device = config_capture
     proxy_cfg = core.create_proxy_config()
     proxy_cfg.identity_address = proxy_cfg.normalize_sip_uri("sip:" + username + "@" + server)
     proxy_cfg.server_addr = "sip:" + server
     proxy_cfg.register_enabled = True
 
     auth_info = linphone.Core.create_auth_info(core, username, None, password, None, None, server)
+    # References to linphone_auth_destroy() in api to securely delete auth_info?
 
     core.add_proxy_config(proxy_cfg)
     core.add_auth_info(auth_info)
 
-    # Below this is timeout code.  Will sys.exit after some time
+    make_call(core, 1001, server)
+
+    # Below this is timeout code.  Will sys.exit after some time.
+    # Inherited from sample code, remove later.
+    # Tried to remove this whole block and the call didn't work anymore.
+    # I think everything is non blocking so we have to force the call to stay open.
     iterate_timer = QTimer()
     iterate_timer.timeout.connect(core.iterate)
     stop_timer = QTimer()
     stop_timer.timeout.connect(app.quit)
     iterate_timer.start(20)
-    stop_timer.start(5000)
+    stop_timer.start(50000)
 
     exitcode = app.exec_()
     sys.exit(exitcode)
@@ -102,6 +99,18 @@ def make_conn_string(username, password, server):
     # If the b64 encoded conn_strings get too long, we can try compressing them
     conn_string = username + ';' + password + ";" + server
     return base64.b64encode(conn_string)
+
+
+def make_call(core, number, server):
+    params = core.create_call_params(None)
+    params.record_file = './recording.snd'  # I have no idea what format it will dump into
+    # Start recording with linphone.Call.start_recording()
+    params.audio_enabled = True
+    params.video_enabled = False
+
+    url = 'sip:' + str(number) + '@' + server
+
+    core.invite_with_params(url, params)
 
 
 main()
