@@ -9,6 +9,7 @@
 #   win32 vs win_amd64 = architecture of Python (not OS or CPU)
 # pip install PyQt4-*.whl
 
+import ConfigParser
 import logging
 import sys
 
@@ -18,6 +19,13 @@ from PyQt4.QtGui import QApplication
 
 
 def main():
+    confparse = ConfigParser.SafeConfigParser()
+    confparse.read('conn.conf')
+    # Currently, config contains username, password, and server address
+    username = confparse.get('ConnectionDetails', 'user')
+    password = confparse.get('ConnectionDetails', 'password')
+    server = confparse.get('ConnectionDetails', 'server')
+
     logging.basicConfig(level=logging.INFO)
 
     app = QApplication(sys.argv)
@@ -40,10 +48,17 @@ def main():
     linphone.set_log_handler(log_handler)
     core = linphone.Core.new(callbacks, None, None)
     proxy_cfg = core.create_proxy_config()
-    proxy_cfg.identity = "sip:test@test.linphone.org"
-    proxy_cfg.server_addr = "sip:test.linphone.org"
+    proxy_cfg.identity_address = proxy_cfg.normalize_sip_uri("sip:" + username + "@" + server)
+    proxy_cfg.server_addr = "sip:" + server
     proxy_cfg.register_enabled = True
+
+    auth_info = linphone.Core.create_auth_info(core, username, None, password, None, None, server)
+    # auth_info.username = username
+    # auth_info.password = password
+    # auth_info.domain = server
+
     core.add_proxy_config(proxy_cfg)
+    core.add_auth_info(auth_info)
 
     iterate_timer = QTimer()
     iterate_timer.timeout.connect(core.iterate)
