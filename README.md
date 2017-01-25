@@ -23,7 +23,7 @@ It should work with all SIP servers, though it was built and tested with FreePBX
 Python 2.7, precompiled binaries coming later.
 
 liblinphone
-* [Windows] pip install liblinphone
+* [Windows] pip install linphone
 * [OS X] pip install [linphone-3.10.2_379_g85ffd1e-cp27-none-macosx_10_7_x86_64.whl](https://www.linphone.org/snapshots/linphone-python/macosx/linphone-3.10.2_379_g85ffd1e-cp27-none-macosx_10_7_x86_64.whl)
 
 PyQt4
