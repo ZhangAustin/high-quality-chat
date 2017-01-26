@@ -1,37 +1,62 @@
-#:kivy 1.9.1
-
+#:kivy 1.0
+#:import FadeTransition kivy.uix.screenmanager.FadeTransition
 <MainScreen>:
-    spacing: 10
-    Button:
-        text: "Quit"
-        on_press: root.callback(self)
-
+    name: "main"
     Label:
-
+        id: title
+        text: 'High Quality Chat'
+        text_size: root.width, None
+        halight: 'center'
+        size: self.texture_size
+        font_size: '70sp'
+        pos: (135, 175)
+        bold: True
+        markup: True
+    BoxLayout:
+        spacing: '5'
+        padding: [150, 225, 150, 150]
+        Button:
+            id: producer
+            text: "I'm a Producer"
+            on_release: root.manager.current = 'sessionjoining'
+            size_hint: (.33, 1)
+            font_size: '20sp'
+        Button:
+            id: producer
+            text: "I'm an artist"
+            on_release: root.manager.current = 'sessionjoining'
+            size_hint: (.33, 1)
+            font_size: '20sp'
+        Button:
+            id: producer
+            text: "I'm a Listener"
+            on_release: root.manager.current = 'sessionjoining'
+            size_hint: (.33, 1)
+            font_size: '20sp'
+<SessionJoiningScreen>
+    name: "sessionjoining"
     Button:
-        text: "Settings"
-        on_press: root.callback(self)
-
+        id: joinsess
+        text: "Join Session"
+        font_size: 16
+        font_color: [1, 1, 1, 1]
+        text_size: cm(15), cm(12)
+        on_release: root.manager.current = 'session'
+<SessionScreen>:
+    name: "session"
     Button:
-        text: "I'm an artist"
-        on_press: root.callback(self)
-
-    Button:
-        text: "I'm a producer"
-        on_press: root.callback(self)
-
-    Button:
-        text: "I'm an interested party"
-        on_press: root.callback(self)
-
-    Label:
-
-    Label:
-
-    Label:
-
-<SettingsScreen>:
-    spacing: 10
-
-<ConnectionScreen>:
-    spacing: 10
+        id: producer
+        text: "Leave Session"
+        font_size: 16
+        font_color: [1, 1, 1, 1]
+        text_size: cm(15), cm(12)
+        on_release: root.manager.current = 'main'
+<RootScreen>:
+    id: screen_manager
+    tranisition: FadeTransition()
+    MainScreen:
+        name: "main"
+    SessionJoiningScreen:
+        name: "sessionjoining"
+    SessionScreen:
+        name: "session"
