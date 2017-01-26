@@ -5,7 +5,7 @@ from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 
 
-class HighQualityChat(App):
+class HQC(App):
     def build(self):
         self.load_kv("HQC.kv")
         return RootScreen()
@@ -19,4 +19,4 @@ class SessionJoiningScreen(Screen):
     pass
 
 if __name__ == '__main__':
-    HQCApp().run()
+    HQC().run()
