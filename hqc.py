@@ -7,7 +7,23 @@ import linphone
 from PyQt4.QtCore import QTimer
 from PyQt4.QtGui import QApplication
 
+import kivy
+kivy.require('1.0.7')
 
+from kivy.app import App
+from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
+class HighQualityChat(App):
+    def build(self):
+        self.load_kv("mainscreen.kv")
+        return RootScreen()
+class MainScreen(Screen):
+    pass
+class RootScreen(ScreenManager):
+    pass
+class SessionScreen(Screen):
+    pass
+class SessionJoiningScreen(Screen):
+    pass
 def main():
     # Parse and load the config
     # This is for ease of testing and will be replaced with a GUI conn_string input
@@ -34,6 +50,8 @@ def main():
     logging.basicConfig(level=logging.INFO)
 
     app = QApplication(sys.argv)
+    if __name__ == '__main__':
+        HighQualityChat().run()
 
     def log_handler(level, msg):
         method = getattr(logging, level)
