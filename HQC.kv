@@ -35,12 +35,37 @@
             font_size: '20sp'
 <SessionJoiningScreen>
     name: "sessionjoining"
+    BoxLayout:
+        spacing: '5'
+        padding: [150, 225, 150, 150]
+        orientation: 'vertical'
+        TextInput:
+            text: ''
+            hint_text: 'IP'
+            multiline: 'False:'
+            focus: 'True'
+        TextInput:
+            text: ''
+            hint_text: 'Port Number:'
+            multiline: 'False'
+            focus: 'True'
+        TextInput:
+            text: ''
+            hint_text: 'Session Name:'
+            multiline: 'False'
+            focus: 'True'
+        TextInput:
+            id: password
+            text: 'on_text'
     Button:
         id: joinsess
-        text: "Join Session"
-        font_size: 16
-        font_color: [1, 1, 1, 1]
-        text_size: cm(15), cm(12)
+        text: 'Join Session'
+        halign: 'center'
+        valign: 'middle'
+        size_hint: (.25, .15)
+        text_size: root.width, None
+        font_size: '25sp'
+        pos: (450, 20)
         on_release: root.manager.current = 'session'
 <SessionScreen>:
     name: "session"
