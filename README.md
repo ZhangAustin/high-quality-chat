@@ -29,3 +29,7 @@ liblinphone
 PyQt4
 * [Windows] pip install [PyQt4-\*.whl](http://stackoverflow.com/questions/22640640/how-to-install-pyqt4-on-windows-using-pip#22651895)
 * [OS X] ##TODO##
+
+Kivy
+* [Windows] https://kivy.org/docs/installation/installation-windows.html
+* [OS X] ##TODO##
