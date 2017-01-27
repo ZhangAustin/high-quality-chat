@@ -1,5 +1,34 @@
 #:kivy 1.0
 #:import FadeTransition kivy.uix.screenmanager.FadeTransition
+ScreenManager:
+    id: screen_manager
+    transition: FadeTransition()
+    MainScreen:
+    SessionJoiningScreen:
+        TextInput:
+            id: servername
+            size_hint: (.5, .15)
+            text_size: root.width, None
+            font_size: '35sp'
+            multi_line: False
+            pos: (350, 400)
+        TextInput:
+            id: username
+            size_hint: (.5, .15)
+            text_size: root.width, None
+            font_size: '35sp'
+            multi_line: False
+            pos: (350, 300)
+        TextInput:
+            id: password
+            size_hint: (.5, .15)
+            text_size: root.width, None
+            font_size: '35sp'
+            multi_line: False
+            password: True
+            pos: (350, 200)
+
+    SessionScreen:
 <MainScreen>:
     name: "main"
     Label:
@@ -18,45 +47,44 @@
         Button:
             id: producer
             text: "I'm a Producer"
-            on_release: root.manager.current = 'sessionjoining'
+            on_release: app.root.current = "sessionjoining"
             size_hint: (.33, 1)
             font_size: '20sp'
         Button:
             id: producer
             text: "I'm an artist"
-            on_release: root.manager.current = 'sessionjoining'
+            on_release: app.root.current = "sessionjoining"
             size_hint: (.33, 1)
             font_size: '20sp'
         Button:
             id: producer
             text: "I'm a Listener"
-            on_release: root.manager.current = 'sessionjoining'
+            on_release: app.root.current = "sessionjoining"
             size_hint: (.33, 1)
             font_size: '20sp'
 <SessionJoiningScreen>
     name: "sessionjoining"
-    BoxLayout:
-        spacing: '5'
-        padding: [150, 225, 150, 150]
-        orientation: 'vertical'
-        TextInput:
-            text: ''
-            hint_text: 'IP'
-            multiline: 'False:'
-            focus: 'True'
-        TextInput:
-            text: ''
-            hint_text: 'Port Number:'
-            multiline: 'False'
-            focus: 'True'
-        TextInput:
-            text: ''
-            hint_text: 'Session Name:'
-            multiline: 'False'
-            focus: 'True'
-        TextInput:
-            id: password
-            text: 'on_text'
+    Label:
+        text: 'Server Address:'
+        text_size: root.width, None
+        size: self.texture_size
+        font_size: '35sp'
+        pos: (90, 150)
+        bold: True
+    Label:
+        text: 'User Name:'
+        text_size: root.width, None
+        size: self.texture_size
+        font_size: '35sp'
+        pos: (153, 50)
+        bold: True
+    Label:
+        text: 'Password:'
+        text_size: root.width, None
+        size: self.texture_size
+        font_size: '35sp'
+        pos: (170, -50)
+        bold: True
     Button:
         id: joinsess
         text: 'Join Session'
@@ -66,7 +94,7 @@
         text_size: root.width, None
         font_size: '25sp'
         pos: (450, 20)
-        on_release: root.manager.current = 'session'
+        on_release: app.root.current = "session"
 <SessionScreen>:
     name: "session"
     Button:
@@ -75,13 +103,4 @@
         font_size: 16
         font_color: [1, 1, 1, 1]
         text_size: cm(15), cm(12)
-        on_release: root.manager.current = 'main'
-<RootScreen>:
-    id: screen_manager
-    tranisition: FadeTransition()
-    MainScreen:
-        name: "main"
-    SessionJoiningScreen:
-        name: "sessionjoining"
-    SessionScreen:
-        name: "session"
+        on_release: app.root.current = "main"
