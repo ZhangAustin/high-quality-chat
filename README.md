@@ -33,3 +33,9 @@ PyQt4
 Kivy
 * [Windows] https://kivy.org/docs/installation/installation-windows.html
 * [OS X] ##TODO##
+
+PyDub
+* Requires ffmpeg or libav (We are using ffmpeg)
+  * [Windows] ffmpeg installation- http://www.wikihow.com/Install-FFmpeg-on-Windows
+PyAudio
+* [Windows] pip install pyaudio
