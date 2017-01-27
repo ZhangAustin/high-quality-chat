@@ -34,8 +34,8 @@ Kivy
 * [Windows] https://kivy.org/docs/installation/installation-windows.html
 * [OS X] ##TODO##
 
-PyDub
+PyDub and PyAudio
 * Requires ffmpeg or libav (We are using ffmpeg)
-  * [Windows] ffmpeg installation- http://www.wikihow.com/Install-FFmpeg-on-Windows
-PyAudio
+  * [Windows] Install [ffmpeg](https://ffmpeg.zeranoe.com/builds/) and add it to path
 * [Windows] pip install pyaudio
+* [Windows] pip install pydub
