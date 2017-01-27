@@ -37,6 +37,12 @@ Kivy
 
 PyDub and PyAudio
 * Requires ffmpeg or libav (We are using ffmpeg)
-  * [Windows] Install [ffmpeg](https://ffmpeg.zeranoe.com/builds/) and add it to path
-* [Windows] pip install pyaudio
-* [Windows] pip install pydub
+* Windows
+	* Install [ffmpeg](https://ffmpeg.zeranoe.com/builds/) and add it to path
+	* pip install pyaudio
+	* pip install pydub
+* OSX
+	* brew install ffmpeg
+	* brew install portaudio
+	* pip install pyaudio
+	* pip install pydub
