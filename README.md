@@ -33,6 +33,7 @@ PyQt4
 Kivy
 * [Windows] https://kivy.org/docs/installation/installation-windows.html
 * [OS X] https://kivy.org/docs/installation/installation-osx.html#using-homebrew-with-pip
+	* pip install pygame
 
 PyDub and PyAudio
 * Requires ffmpeg or libav (We are using ffmpeg)
