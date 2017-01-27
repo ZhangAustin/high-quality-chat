@@ -1,4 +1,5 @@
 import kivy
+import audio
 kivy.require('1.0.7')
 
 from kivy.app import App
@@ -15,10 +16,12 @@ class MainScreen(Screen):
 class ScreenManager(ScreenManager):
     pass
 class SessionScreen(Screen):
-    pass
+    def record_audio(self):
+        filename = "audio.mp3"
+        audio.record_audio(filename)
+        audio.split_audio(filename, 2)
 class SessionJoiningScreen(Screen):
-    def get_text(self, *args):
-        textinput= self.ids.user_text
-        user = textinput.text
-        print(user)
+    def gettext(self, servername, username, password):
+        print(password, username, servername)
+        self.parent.current = 'session'
 HQC().run()
