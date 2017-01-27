@@ -10,24 +10,33 @@ ScreenManager:
             size_hint: (.5, .15)
             text_size: root.width, None
             font_size: '35sp'
-            multi_line: False
+            multiline: False
             pos: (350, 400)
         TextInput:
             id: username
             size_hint: (.5, .15)
             text_size: root.width, None
             font_size: '35sp'
-            multi_line: False
+            multiline: False
             pos: (350, 300)
         TextInput:
             id: password
             size_hint: (.5, .15)
             text_size: root.width, None
             font_size: '35sp'
-            multi_line: False
+            multiline: False
             password: True
             pos: (350, 200)
-
+        Button:
+            id: joinsess
+            text: 'Join Session'
+            halign: 'center'
+            valign: 'middle'
+            size_hint: (.25, .15)
+            text_size: root.width, None
+            font_size: '25sp'
+            pos: (450, 20)
+            on_release: self.parent.gettext(servername.text, username.text, password.text)
     SessionScreen:
 <MainScreen>:
     name: "main"
@@ -85,22 +94,18 @@ ScreenManager:
         font_size: '35sp'
         pos: (170, -50)
         bold: True
-    Button:
-        id: joinsess
-        text: 'Join Session'
-        halign: 'center'
-        valign: 'middle'
-        size_hint: (.25, .15)
-        text_size: root.width, None
-        font_size: '25sp'
-        pos: (450, 20)
-        on_release: app.root.current = "session"
 <SessionScreen>:
     name: "session"
     Button:
+        id: record
+        text: "Record"
+        font_size: '25sp'
+        size_hint: (.5, .5)
+        pos: (400, 0)
+        on_press: root.record_audio()
+    Button:
         id: producer
         text: "Leave Session"
-        font_size: 16
-        font_color: [1, 1, 1, 1]
-        text_size: cm(15), cm(12)
+        font_size: '25sp'
+        size_hint: (.5, .5)
         on_release: app.root.current = "main"
