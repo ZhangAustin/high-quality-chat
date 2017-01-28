@@ -15,7 +15,8 @@ def split_audio(filename, secs):
     test_sound = AudioSegment.from_mp3(filename)
     chunk_list = make_chunks(test_sound, secs*1000)
     for i, chunk in enumerate(chunk_list):
-        chunk_name = "test{}".format(i) + ".mp3"
+
+        chunk_name = "{}{}".format(filename, i) + ".mp3"
         chunk.export(chunk_name, format="mp3")
 
 #  TODO: parameterize and test outputting different settings
