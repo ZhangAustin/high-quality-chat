@@ -22,6 +22,26 @@ class SessionScreen(Screen):
         audio.split_audio(filename, 2)
 class SessionJoiningScreen(Screen):
     def gettext(self, servername, username, password):
-        print(password, username, servername)
+        config = open("conn.conf", 'a')
+        config.write("[ConnectionDetails] \n")
+        config.write("user=")
+        config.write(username)
+        config.write("\n")
+        config.write("password=")
+        config.write(password)
+        config.write("\n")
+        config.write("server=")
+        config.write(servername)
+        config.write("\n")
+        config.write("[Settings] \n")
+        config.write("mic=")
+        config.write("None")
+        config.write("\n")
+        config.write("speakers=")
+        config.write("None")
+        config.write("\n")
+        config.close()
+
         self.parent.current = 'session'
 HQC().run()
+
