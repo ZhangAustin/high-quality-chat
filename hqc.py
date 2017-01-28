@@ -7,7 +7,6 @@ import linphone
 from PyQt4.QtCore import QTimer
 from PyQt4.QtGui import QApplication
 
-
 def main():
     # Parse and load the config
     # This is for ease of testing and will be replaced with a GUI conn_string input

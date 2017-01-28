@@ -23,9 +23,26 @@ It should work with all SIP servers, though it was built and tested with FreePBX
 Python 2.7, precompiled binaries coming later.
 
 liblinphone
-* [Windows] pip install liblinphone
+* [Windows] pip install linphone
 * [OS X] pip install [linphone-3.10.2_379_g85ffd1e-cp27-none-macosx_10_7_x86_64.whl](https://www.linphone.org/snapshots/linphone-python/macosx/linphone-3.10.2_379_g85ffd1e-cp27-none-macosx_10_7_x86_64.whl)
 
 PyQt4
 * [Windows] pip install [PyQt4-\*.whl](http://stackoverflow.com/questions/22640640/how-to-install-pyqt4-on-windows-using-pip#22651895)
 * [OS X] ##TODO##
+
+Kivy
+* [Windows] https://kivy.org/docs/installation/installation-windows.html
+* [OS X] https://kivy.org/docs/installation/installation-osx.html#using-homebrew-with-pip
+	* `pip install pygame`
+
+PyDub and PyAudio
+* Requires ffmpeg or libav (We are using ffmpeg)
+* Windows
+	* Install [ffmpeg](https://ffmpeg.zeranoe.com/builds/) and add it to path
+	* `pip install pyaudio`
+	* `pip install pydub`
+* OSX
+	* `brew install ffmpeg`
+	* `brew install portaudio`
+	* `pip install pyaudio`
+	* `pip install pydub`
