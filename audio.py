@@ -9,18 +9,20 @@ import wave
 
 
 #  TODO: add file location and support for other files(get file extension)
-#  Splits an mp3 file into sections based on time
+#  Splits a wav file into sections based on time
 def split_audio(filename, secs):
     #  Need conditionals to handle other file types
-    test_sound = AudioSegment.from_mp3(filename)
+    test_sound = AudioSegment.from_wav(filename)
     chunk_list = make_chunks(test_sound, secs*1000)
+    name = filename.split(".")
     for i, chunk in enumerate(chunk_list):
-        chunk_name = "test{}".format(i) + ".mp3"
-        chunk.export(chunk_name, format="mp3")
+        chunk_name = "{}{}".format(name[0], i) + ".wav"
+        chunk.export(chunk_name, format="wav")
 
-#  TODO: parameterize and test outputting different settings
+
+#  TODO: parametrize and test outputting different settings
 #  Records audio for 5 seconds to disk
-def record_audio(filename):
+def record_audio(filename, secs):
     #  Sample sizing and format
     FORMAT = pyaudio.paInt16
     # Number of channels
@@ -29,7 +31,7 @@ def record_audio(filename):
     RATE = 44100
     #
     CHUNK = 1024
-    RECORD_SECONDS = 5
+    RECORD_SECONDS = secs
     WAVE_OUTPUT_FILENAME = filename
 
     #  Create PyAudio object
@@ -61,3 +63,6 @@ def record_audio(filename):
     waveFile.writeframes(b''.join(frames))
     #  Close file handle
     waveFile.close()
+
+record_audio("testing.wav", 5)
+split_audio("testing.wav", 2.5)

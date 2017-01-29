@@ -1,78 +1,194 @@
 import ConfigParser
 import base64
 import logging
+import os.path
 import sys
 
 import linphone
 from PyQt4.QtCore import QTimer
 from PyQt4.QtGui import QApplication
 
-def main():
-    # Parse and load the config
-    # This is for ease of testing and will be replaced with a GUI conn_string input
+
+class HQCPhone:
+    core = ''
+    config = ''
+    def __init__(self, config):
+        self.config = config
+        logging.basicConfig(level=logging.INFO)
+
+        def log_handler(level, msg):
+            method = getattr(logging, level)
+            method(msg)
+
+        def global_state_changed(*args, **kwargs):
+            logging.warning("global_state_changed: %r %r" % (args, kwargs))
+
+        def registration_state_changed(core, call, state, message):
+            logging.warning("registration_state_changed: " + str(state) + ", " + message)
+
+        callbacks = {
+            'global_state_changed': global_state_changed,
+            'registration_state_changed': registration_state_changed,
+        }
+
+        linphone.set_log_handler(log_handler)
+        self.core = linphone.Core.new(callbacks, None, None)
+        self.core.video_capture_enabled = False  # remove both of these if we get video implemented
+        self.core.video_display_enabled = False
+        self.core.capture_device = config.get('Settings', 'mic')
+        self.core.playback_device = config.get('Settings', 'speakers')
+
+    def parse_conn_string(self, conn_string):
+        decoded = base64.b64decode(conn_string)
+        mark1 = decoded.find(';')
+        mark2 = decoded.rfind(';')
+        username = decoded[:mark1]
+        password = decoded[mark1 + 1:mark2]
+        server = decoded[mark2 + 1:]
+        return [username, password, server]
+
+    def make_conn_string(self, username, password, server):
+        # For now, conn_string will be sourced from conn.conf
+        # Eventually, it will be passed in through the GUI
+        # If the b64 encoded conn_strings get too long, we can try compressing them
+        conn_string = username + ';' + password + ";" + server
+        return base64.b64encode(conn_string)
+
+    def make_call(self, number, server):
+        params = self.core.create_call_params(None)
+        params.record_file = './recording.snd'  # I have no idea what format it will dump into
+        # Start recording with linphone.Call.start_recording()
+        params.audio_enabled = True
+        params.video_enabled = False
+
+        url = 'sip:' + str(number) + '@' + server
+
+        self.core.invite_with_params(url, params)
+
+        # HOLD CALL OPEN
+        # REPLACE WITH SOMETHING ELSE TO REMOVE PYQT DEPENDS
+        app = QApplication(sys.argv)
+        iterate_timer = QTimer()
+        iterate_timer.timeout.connect(self.core.iterate)
+        stop_timer = QTimer()
+        stop_timer.timeout.connect(app.quit)
+        iterate_timer.start(20)
+        stop_timer.start(50000)
+
+        exitcode = app.exec_()
+        sys.exit(exitcode)
+
+    # There is no separate array in core for recording and playback devices
+    # Just this mega one.  At least there are checks for capabilities
+    def get_playback_devices(self):
+        arr = []
+        for device in self.core.sound_devices:
+            if self.core.sound_device_can_playback(device):
+                arr += [device]
+        return arr
+
+    def get_recording_devices(self):
+        arr = []
+        for device in self.core.sound_devices:
+            if self.core.sound_device_can_capture(device):
+                arr += [device]
+
+        return arr
+
+    def add_proxy_config(self):
+        proxy_cfg = self.core.create_proxy_config()
+        proxy_cfg.identity_address = proxy_cfg.normalize_sip_uri("sip:" +
+                                                                 self.config.get('ConnectionDetails', 'user') +
+                                                                 "@" +
+                                                                 self.config.get('ConnectionDetails', 'server'))
+        proxy_cfg.server_addr = "sip:" + self.config.get('ConnectionDetails', 'server')
+        proxy_cfg.register_enabled = True
+        self.core.add_proxy_config(proxy_cfg)
+        print "Added proxy config"
+
+    def add_auth_info(self):
+        auth_info = self.core.create_auth_info(self.config.get('ConnectionDetails', 'user'),
+                                               None,
+                                               self.config.get('ConnectionDetails', 'password'),
+                                               None,
+                                               None,
+                                               self.config.get('ConnectionDetails', 'server'))
+        # References to linphone_auth_destroy() in api to securely delete auth_info?
+
+        self.core.add_auth_info(auth_info)
+        print "Added auth info"
+
+
+class Config:
     confparse = ConfigParser.SafeConfigParser()
-    confparse.read('conn.conf')
-    config_username = confparse.get('ConnectionDetails', 'user')
-    config_password = confparse.get('ConnectionDetails', 'password')
-    config_server = confparse.get('ConnectionDetails', 'server')
-    config_capture = confparse.get('Settings', 'mic')
+    file = None
 
-    # Create the conn_string.
-    # This is for testing only.  Eventually only the producer will be able to do this.
-    # We will also probably have to revise what 'starting a server' looks like.
-    # We will probably have to give the client config files that matches his infrastructure.
-    # We might have this server in the cloud or installed locally, depending on how the client feels.
-    conn_string = make_conn_string(config_username, config_password, config_server)
+    def __init__(self, file):
+        self.file = file
+        if not os.path.isfile(file):
+            print "Creating config"
+            f = open(file, 'w+')
+            f.close()
 
-    # Parse the conn string
-    values = parse_conn_string(conn_string)
-    username = values[0]
-    password = values[1]  # There is an option to pass a pre-hashed password into create_auth_info
-    server = values[2]
+        self.confparse.read(file)
 
-    logging.basicConfig(level=logging.INFO)
+        if not self.confparse.has_section('ConnectionDetails'):
+            self.confparse.add_section('ConnectionDetails')
 
+        if not self.confparse.has_section('Settings'):
+            self.confparse.add_section('Settings')
+
+        if not self.confparse.has_option('ConnectionDetails', 'user'):
+            self.confparse.set('ConnectionDetails', 'user', 'None')
+
+        # Risky stuff, best to remove in production
+        if not self.confparse.has_option('ConnectionDetails', 'password'):
+            self.confparse.set('ConnectionDetails', 'password', 'None')
+
+        if not self.confparse.has_option('ConnectionDetails', 'server'):
+            self.confparse.set('ConnectionDetails', 'server', 'None')
+
+        if not self.confparse.has_option('Settings', 'mic'):
+            self.confparse.set('Settings', 'mic', 'None')
+
+        if not self.confparse.has_option('Settings', 'speakers'):
+            self.confparse.set('Settings', 'speakers', 'None')
+
+        f = open(file, 'r+')
+        self.confparse.write(f)
+        f.close()
+        self.confparse.read(file)
+
+    def write(self, section, option, value):
+        self.confparse.set(section, option, value)
+        f = open(self.file, 'r+')
+        self.confparse.write(f)
+        f.close()
+        self.confparse.read(self.file)
+
+    def get(self, section, option):
+        return self.confparse.get(section, option)
+
+if __name__ == '__main__':
+    print "Making config object"
+    config = Config('conn.conf')
+
+    print "Making LinPhone.Core"
+    phone = HQCPhone(config)
+    '''
+    print "Adding proxy config"
+    phone.add_proxy_config()
+
+    print "Adding authentication info"
+    phone.add_auth_info()
+
+    print "Dialing..."
+    phone.make_call(1001, config.get('ConnectionDetails', 'server'))
+    '''
+    # Need linphone.core or gui.py to signal time to close
     app = QApplication(sys.argv)
-
-    def log_handler(level, msg):
-        method = getattr(logging, level)
-        method(msg)
-
-    def global_state_changed(*args, **kwargs):
-        logging.warning("global_state_changed: %r %r" % (args, kwargs))
-
-    def registration_state_changed(core, call, state, message):
-        logging.warning("registration_state_changed: " + str(state) + ", " + message)
-
-    callbacks = {
-        'global_state_changed': global_state_changed,
-        'registration_state_changed': registration_state_changed,
-    }
-
-    linphone.set_log_handler(log_handler)
-    core = linphone.Core.new(callbacks, None, None)
-    core.video_capture_enabled = False  # remove both of these if we get video implemented
-    core.video_display_enabled = False
-    core.capture_device = config_capture
-    proxy_cfg = core.create_proxy_config()
-    proxy_cfg.identity_address = proxy_cfg.normalize_sip_uri("sip:" + username + "@" + server)
-    proxy_cfg.server_addr = "sip:" + server
-    proxy_cfg.register_enabled = True
-
-    auth_info = linphone.Core.create_auth_info(core, username, None, password, None, None, server)
-    # References to linphone_auth_destroy() in api to securely delete auth_info?
-
-    core.add_proxy_config(proxy_cfg)
-    core.add_auth_info(auth_info)
-
-    make_call(core, 1001, server)
-
-    # Below this is timeout code.  Will sys.exit after some time.
-    # Inherited from sample code, remove later.
-    # Tried to remove this whole block and the call didn't work anymore.
-    # I think everything is non blocking so we have to force the call to stay open.
     iterate_timer = QTimer()
-    iterate_timer.timeout.connect(core.iterate)
+    iterate_timer.timeout.connect(phone.core.iterate)
     stop_timer = QTimer()
     stop_timer.timeout.connect(app.quit)
     iterate_timer.start(20)
@@ -80,36 +196,3 @@ def main():
 
     exitcode = app.exec_()
     sys.exit(exitcode)
-
-
-def parse_conn_string(conn_string):
-    decoded = base64.b64decode(conn_string)
-    mark1 = decoded.find(';')
-    mark2 = decoded.rfind(';')
-    username = decoded[:mark1]
-    password = decoded[mark1 + 1:mark2]
-    server = decoded[mark2 + 1:]
-    return [username, password, server]
-
-
-def make_conn_string(username, password, server):
-    # For now, conn_string will be sourced from conn.conf
-    # Eventually, it will be passed in through the GUI
-    # If the b64 encoded conn_strings get too long, we can try compressing them
-    conn_string = username + ';' + password + ";" + server
-    return base64.b64encode(conn_string)
-
-
-def make_call(core, number, server):
-    params = core.create_call_params(None)
-    params.record_file = './recording.snd'  # I have no idea what format it will dump into
-    # Start recording with linphone.Call.start_recording()
-    params.audio_enabled = True
-    params.video_enabled = False
-
-    url = 'sip:' + str(number) + '@' + server
-
-    core.invite_with_params(url, params)
-
-
-main()
