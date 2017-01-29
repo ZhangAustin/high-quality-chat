@@ -5,6 +5,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 
 import audio
 from hqc import Config
+from hqc import HQCPhone
 
 kivy.require('1.0.7')
 
@@ -31,12 +32,23 @@ class SessionScreen(Screen):
 
 
 class SessionJoiningScreen(Screen):
+    # TODO: Have GUI fill in pre-entered values
+    #       Currently a blank field means use existing values, even if none exists
     def gettext(self, servername, username, password):
         config = Config('conn.conf')
-        config.write('ConnectionDetails', 'server', servername)
-        config.write('ConnectionDetails', 'user', username)
-        config.write('ConnectionDetails', 'password', password)
+        if servername != '':
+            config.write('ConnectionDetails', 'server', servername)
+        if username != '':
+            config.write('ConnectionDetails', 'user', username)
+        if password != '':
+            config.write('ConnectionDetails', 'password', password)
 
         self.parent.current = 'session'
+
+        phone = HQCPhone(config)
+        phone.add_proxy_config()
+        phone.add_auth_info()
+        phone.make_call(1001, config.get('ConnectionDetails', 'server'))
+
 HQC().run()
 
