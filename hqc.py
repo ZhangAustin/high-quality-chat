@@ -1,11 +1,13 @@
 import ConfigParser
 import base64
 import logging
+import os.path
 import sys
 
 import linphone
 from PyQt4.QtCore import QTimer
 from PyQt4.QtGui import QApplication
+
 
 class HQCPhone:
     core = ''
@@ -103,14 +105,52 @@ class HQCPhone:
 
 
 class Config:
+    confparse = ConfigParser.SafeConfigParser()
+    file = None
     def __init__(self, file):
-        confparse = ConfigParser.SafeConfigParser()
-        confparse.read(file)
-        self.username = confparse.get('ConnectionDetails', 'user')
-        self.password = confparse.get('ConnectionDetails', 'password')
-        self.server = confparse.get('ConnectionDetails', 'server')
-        self.input = confparse.get('Settings', 'mic')
-        self.output = confparse.get('Settings', 'speakers')
+        self.file = file
+        if not os.path.isfile(file):
+            print "Creating config"
+            f = open(file, 'w+')
+            f.close()
+
+        self.confparse.read(file)
+        print 'Config contains '
+        print self.confparse.items('ConnectionDetails')
+
+        if not self.confparse.has_section('ConnectionDetails'):
+            self.confparse.add_section('ConnectionDetails')
+
+        if not self.confparse.has_section('Settings'):
+            self.confparse.add_section('Settings')
+
+        if not self.confparse.has_option('ConnectionDetails', 'username'):
+            self.confparse.set('ConnectionDetails', 'username', 'None')
+
+        # Risky stuff, best to remove in production
+        if not self.confparse.has_option('ConnectionDetails', 'password'):
+            self.confparse.set('ConnectionDetails', 'password', 'None')
+
+        if not self.confparse.has_option('ConnectionDetails', 'server'):
+            self.confparse.set('ConnectionDetails', 'server', 'None')
+
+        if not self.confparse.has_option('Settings', 'mic'):
+            self.confparse.set('Settings', 'mic', 'None')
+
+        if not self.confparse.has_option('Settings', 'speakers'):
+            self.confparse.set('Settings', 'speakers', 'None')
+
+        f = open(file, 'r+')
+        self.confparse.write(f)
+        f.close()
+        self.confparse.read(file)
+
+    def write(self, section, option, value):
+        self.confparse.set(section, option, value)
+        f = open(self.file, 'r+')
+        self.confparse.write(f)
+        f.close()
+        self.confparse.read(self.file)
 
 
 if __name__ == '__main__':
