@@ -7,7 +7,6 @@ import linphone
 from PyQt4.QtCore import QTimer
 from PyQt4.QtGui import QApplication
 
-
 class HQCPhone:
     core = ''
 

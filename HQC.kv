@@ -1,0 +1,111 @@
+#:kivy 1.0
+#:import FadeTransition kivy.uix.screenmanager.FadeTransition
+ScreenManager:
+    id: screen_manager
+    transition: FadeTransition()
+    MainScreen:
+    SessionJoiningScreen:
+        TextInput:
+            id: servername
+            size_hint: (.5, .15)
+            text_size: root.width, None
+            font_size: '35sp'
+            multiline: False
+            pos: (350, 400)
+        TextInput:
+            id: username
+            size_hint: (.5, .15)
+            text_size: root.width, None
+            font_size: '35sp'
+            multiline: False
+            pos: (350, 300)
+        TextInput:
+            id: password
+            size_hint: (.5, .15)
+            text_size: root.width, None
+            font_size: '35sp'
+            multiline: False
+            password: True
+            pos: (350, 200)
+        Button:
+            id: joinsess
+            text: 'Join Session'
+            halign: 'center'
+            valign: 'middle'
+            size_hint: (.25, .15)
+            text_size: root.width, None
+            font_size: '25sp'
+            pos: (450, 20)
+            on_release: self.parent.gettext(servername.text, username.text, password.text)
+    SessionScreen:
+<MainScreen>:
+    name: "main"
+    Label:
+        id: title
+        text: 'High Quality Chat'
+        text_size: root.width, None
+        halight: 'center'
+        size: self.texture_size
+        font_size: '70sp'
+        pos: (135, 175)
+        bold: True
+        markup: True
+    BoxLayout:
+        spacing: '5'
+        padding: [150, 225, 150, 150]
+        Button:
+            id: producer
+            text: "I'm a Producer"
+            on_release: app.root.current = "sessionjoining"
+            size_hint: (.33, 1)
+            font_size: '20sp'
+        Button:
+            id: producer
+            text: "I'm an artist"
+            on_release: app.root.current = "sessionjoining"
+            size_hint: (.33, 1)
+            font_size: '20sp'
+        Button:
+            id: producer
+            text: "I'm a Listener"
+            on_release: app.root.current = "sessionjoining"
+            size_hint: (.33, 1)
+            font_size: '20sp'
+<SessionJoiningScreen>
+    name: "sessionjoining"
+    Label:
+        text: 'Server Address:'
+        text_size: root.width, None
+        size: self.texture_size
+        font_size: '35sp'
+        pos: (90, 150)
+        bold: True
+    Label:
+        text: 'User Name:'
+        text_size: root.width, None
+        size: self.texture_size
+        font_size: '35sp'
+        pos: (153, 50)
+        bold: True
+    Label:
+        text: 'Password:'
+        text_size: root.width, None
+        size: self.texture_size
+        font_size: '35sp'
+        pos: (170, -50)
+        bold: True
+<SessionScreen>:
+    name: "session"
+    Button:
+        id: record
+        text: "Record"
+        font_size: '25sp'
+        size_hint: (.5, .5)
+        pos: (400, 0)
+        on_press: root.record_audio()
+    Button:
+        id: producer
+        text: "Leave Session"
+        font_size: '25sp'
+        size_hint: (.5, .5)
+        on_release: app.root.current = "main"
