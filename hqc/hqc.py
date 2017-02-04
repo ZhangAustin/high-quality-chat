@@ -1,17 +1,18 @@
-import ConfigParser
+from PyQt4.QtCore import QTimer
+from PyQt4.QtGui import QApplication
+
 import base64
+import ConfigParser
+import linphone
 import logging
 import os.path
 import sys
-
-import linphone
-from PyQt4.QtCore import QTimer
-from PyQt4.QtGui import QApplication
 
 
 class HQCPhone:
     core = ''
     config = ''
+
     def __init__(self, config):
         self.config = config
         logging.basicConfig(level=logging.INFO)
@@ -131,8 +132,8 @@ class Config:
             f.close()
 
         self.confparse.read(file)
-        print 'Config contains '
-        print self.confparse.items('ConnectionDetails')
+        # print 'Config contains '
+        # print self.confparse.items('ConnectionDetails')
 
         if not self.confparse.has_section('ConnectionDetails'):
             self.confparse.add_section('ConnectionDetails')

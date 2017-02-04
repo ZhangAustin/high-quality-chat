@@ -1,6 +1,8 @@
 # Manual enteries
 .idea/
 conn.conf
+**/conn.conf
+
 
 # Created by .ignore support plugin (hsz.mobi)
 ### Python template
