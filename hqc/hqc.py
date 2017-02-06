@@ -1,12 +1,10 @@
-from PyQt4.QtCore import QTimer
-from PyQt4.QtGui import QApplication
-
-import base64
 import ConfigParser
-import linphone
+import base64
 import logging
 import os.path
-import sys
+import time
+
+import linphone
 
 
 class HQCPhone:
@@ -66,18 +64,12 @@ class HQCPhone:
 
         self.core.invite_with_params(url, params)
 
-        # HOLD CALL OPEN
-        # REPLACE WITH SOMETHING ELSE TO REMOVE PYQT DEPENDS
-        app = QApplication(sys.argv)
-        iterate_timer = QTimer()
-        iterate_timer.timeout.connect(self.core.iterate)
-        stop_timer = QTimer()
-        stop_timer.timeout.connect(app.quit)
-        iterate_timer.start(20)
-        stop_timer.start(50000)
+        while True:  # Replace this with a status callback check
+            self.hold_open()
 
-        exitcode = app.exec_()
-        sys.exit(exitcode)
+    def hold_open(self):
+        self.core.iterate()
+        time.sleep(0.03)  # I don't know why this value but it's what is used in RPi Example Code
 
     # There is no separate array in core for recording and playback devices
     # Just this mega one.  At least there are checks for capabilities
@@ -187,15 +179,3 @@ if __name__ == '__main__':
 
     print "Dialing..."
     phone.make_call(1001, config.get('ConnectionDetails', 'server'))
-
-    # Need linphone.core or gui.py to signal time to close
-    app = QApplication(sys.argv)
-    iterate_timer = QTimer()
-    iterate_timer.timeout.connect(phone.core.iterate)
-    stop_timer = QTimer()
-    stop_timer.timeout.connect(app.quit)
-    iterate_timer.start(20)
-    stop_timer.start(50000)
-
-    exitcode = app.exec_()
-    sys.exit(exitcode)
