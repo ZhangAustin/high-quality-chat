@@ -23,12 +23,9 @@ It should work with all SIP servers, though it was built and tested with FreePBX
 Python 2.7, precompiled binaries coming later.
 
 liblinphone
-* [Windows] pip install linphone
-* [OS X] pip install [linphone-3.10.2_379_g85ffd1e-cp27-none-macosx_10_7_x86_64.whl](https://www.linphone.org/snapshots/linphone-python/macosx/linphone-3.10.2_379_g85ffd1e-cp27-none-macosx_10_7_x86_64.whl)
-
-PyQt4
-* [Windows] pip install [PyQt4-\*.whl](http://stackoverflow.com/questions/22640640/how-to-install-pyqt4-on-windows-using-pip#22651895)
-* [OS X] ##TODO##
+* [Windows] `pip install linphone`
+* [OS X] `pip install `[linphone.whl](https://www.linphone.org/snapshots/linphone-python/macosx/linphone-3.10.2_379_g85ffd1e-cp27-none-macosx_10_7_x86_64.whl)
+    * We could not get a newer version to install on 10.10.
 
 Kivy
 * [Windows] https://kivy.org/docs/installation/installation-windows.html
@@ -36,13 +33,11 @@ Kivy
 	* `pip install pygame`
 
 PyDub and PyAudio
-* Requires ffmpeg or libav (We are using ffmpeg)
+* Requires ffmpeg or libav (we are using ffmpeg)
 * Windows
 	* Install [ffmpeg](https://ffmpeg.zeranoe.com/builds/) and add it to path
-	* `pip install pyaudio`
-	* `pip install pydub`
+	* `pip install pyaudio pydub`
 * OSX
 	* `brew install ffmpeg`
 	* `brew install portaudio`
-	* `pip install pyaudio`
-	* `pip install pydub`
+	* `pip install pyaudio pydub`
