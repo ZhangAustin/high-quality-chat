@@ -10,6 +10,8 @@ import linphone
 class HQCPhone:
     core = ''
     config = ''
+    mic_gain = 0
+    call = ''
 
     def __init__(self, config):
         self.config = config
@@ -37,7 +39,8 @@ class HQCPhone:
         self.core.capture_device = config.get('Settings', 'mic')
         self.core.playback_device = config.get('Settings', 'speakers')
 
-    def parse_conn_string(self, conn_string):
+    @staticmethod
+    def parse_conn_string(conn_string):
         decoded = base64.b64decode(conn_string)
         mark1 = decoded.find(';')
         mark2 = decoded.rfind(';')
@@ -46,7 +49,8 @@ class HQCPhone:
         server = decoded[mark2 + 1:]
         return [username, password, server]
 
-    def make_conn_string(self, username, password, server):
+    @staticmethod
+    def make_conn_string(username, password, server):
         # For now, conn_string will be sourced from conn.conf
         # Eventually, it will be passed in through the GUI
         # If the b64 encoded conn_strings get too long, we can try compressing them
@@ -62,10 +66,14 @@ class HQCPhone:
 
         url = 'sip:' + str(number) + '@' + server
 
-        self.core.invite_with_params(url, params)
+        self.call = self.core.invite_with_params(url, params)
 
-        while True:  # Replace this with a status callback check
-            self.hold_open()
+    def mute_mic(self):
+        self.mic_gain = self.call.microphone_volume_gain
+        self.call.microphone_volume_gain = -1000.0
+
+    def unmute_mic(self):
+        self.call.microphone_volume_gain = self.mic_gain
 
     def hold_open(self):
         self.core.iterate()
@@ -179,3 +187,6 @@ if __name__ == '__main__':
 
     print "Dialing..."
     phone.make_call(1001, config.get('ConnectionDetails', 'server'))
+
+    while True:
+        phone.hold_open()
