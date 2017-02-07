@@ -40,7 +40,6 @@ def save_audio_chunks(chunk_list, base_name, file_extension, file_path):
         chunk_name = "{}_{}".format(base_name, i) + str(file_extension)
         #  TODO: check for unsupported file types
         save_path = str(file_path) + str(chunk_name)
-        print(save_path)
         #  indexing removes "." at beginning of file extension
         chunk.export(save_path, format=file_extension[1:])
 
@@ -48,20 +47,21 @@ def save_audio_chunks(chunk_list, base_name, file_extension, file_path):
 #  TODO: parametrize and test outputting different settings
 #  Records audio for 5 seconds to disk
 def record_audio(filename, secs):
+    file_base_name, file_extension = os.path.splitext(filename)
+
     #  Sample sizing and format
     FORMAT = pyaudio.paInt16
     # Number of channels
     CHANNELS = 2
     #  Sampling rate. 44.1 KHz is what's used for CD's
     RATE = 44100
-    #
+    # Number of samples in each frame
     CHUNK = 1024
     RECORD_SECONDS = secs
-    WAVE_OUTPUT_FILENAME = filename
+    WAVE_OUTPUT_FILENAME = file_base_name + ".wav"
 
     #  Create PyAudio object
     audio = pyaudio.PyAudio()
-
     # Open audio stream with given parameters
     stream = audio.open(format=FORMAT, channels=CHANNELS,
                         rate=RATE, input=True,
@@ -80,14 +80,21 @@ def record_audio(filename, secs):
     stream.close()
     #  Close PyAudio session
     audio.terminate()
-    #  File handle for output file
-    waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-    waveFile.setnchannels(CHANNELS)
-    waveFile.setsampwidth(audio.get_sample_size(FORMAT))
-    waveFile.setframerate(RATE)
-    waveFile.writeframes(b''.join(frames))
-    #  Close file handle
-    waveFile.close()
 
-#  segment_list = split_audio_file("hqc/test/test.mp3", 20)
-#  save_audio_chunks(segment_list, "hello", ".mp3", (os.getcwd() + "/hqc/"))
+    #  File handle for output file
+    wave_file = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+    wave_file.setnchannels(CHANNELS)
+    wave_file.setsampwidth(audio.get_sample_size(FORMAT))
+    wave_file.setframerate(RATE)
+    wave_file.writeframes(b''.join(frames))
+    #  Close file handle
+    wave_file.close()
+    print("converting wav to mp3")
+    if file_extension == ".mp3":
+        audio_file = AudioSegment.from_wav(WAVE_OUTPUT_FILENAME)
+        file_handle = audio_file.export(filename, format="mp3")
+
+
+#record_audio("test.mp3", 5)
+#segment_list = split_audio_file("test.mp3", 2.5)
+#save_audio_chunks(segment_list, "hello", ".mp3", (os.getcwd() + "/"))

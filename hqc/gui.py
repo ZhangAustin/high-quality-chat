@@ -7,6 +7,8 @@ import audio
 from hqc import Config
 from hqc import HQCPhone
 
+import os
+
 kivy.require('1.0.7')
 
 
@@ -27,8 +29,9 @@ class ScreenManager(ScreenManager):
 class SessionScreen(Screen):
     def record_audio(self):
         filename = "audio.mp3"
-        audio.record_audio(filename)
-        audio.split_audio(filename, 2)
+        audio.record_audio(filename, 5)
+        chunk_list = audio.split_audio_file(filename, 2.5)
+        audio.save_audio_chunks(chunk_list, "audio", ".mp3", (os.getcwd() + "/"))
 
 
 class SessionJoiningScreen(Screen):
@@ -50,5 +53,6 @@ class SessionJoiningScreen(Screen):
         phone.add_auth_info()
         phone.make_call(1001, config.get('ConnectionDetails', 'server'))
 
-HQC().run()
+if __name__ == '__main__':
+    HQC().run()
 
