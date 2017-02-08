@@ -1,6 +1,8 @@
 import ConfigParser
 import base64
 import logging
+import logging.handlers
+from logging.config import fileConfig
 import os.path
 import time
 
@@ -15,11 +17,6 @@ class HQCPhone:
 
     def __init__(self, config):
         self.config = config
-        logging.basicConfig(level=logging.INFO)
-
-        def log_handler(level, msg):
-            method = getattr(logging, level)
-            method(msg)
 
         def global_state_changed(*args, **kwargs):
             logging.warning("global_state_changed: %r %r" % (args, kwargs))
@@ -31,8 +28,8 @@ class HQCPhone:
             'global_state_changed': global_state_changed,
             'registration_state_changed': registration_state_changed,
         }
-
-        linphone.set_log_handler(log_handler)
+        #  TODO: figure out linphone logging
+        #  linphone.set_log_handler(log_handler)
         self.core = linphone.Core.new(callbacks, None, None)
         self.core.video_capture_enabled = False  # remove both of these if we get video implemented
         self.core.video_display_enabled = False
@@ -105,7 +102,7 @@ class HQCPhone:
         proxy_cfg.server_addr = "sip:" + self.config.get('ConnectionDetails', 'server')
         proxy_cfg.register_enabled = True
         self.core.add_proxy_config(proxy_cfg)
-        print "Added proxy config"
+        logging.info("Added proxy config")
 
     def add_auth_info(self):
         auth_info = self.core.create_auth_info(self.config.get('ConnectionDetails', 'user'),
@@ -117,7 +114,7 @@ class HQCPhone:
         # References to linphone_auth_destroy() in api to securely delete auth_info?
 
         self.core.add_auth_info(auth_info)
-        print "Added auth info"
+        logging.info("Added auth info")
 
 
 class Config:
@@ -127,7 +124,7 @@ class Config:
     def __init__(self, file):
         self.file = file
         if not os.path.isfile(file):
-            print "Creating config"
+            logging.warning("Creating config")
             f = open(file, 'w+')
             f.close()
 
@@ -173,19 +170,25 @@ class Config:
         return self.confparse.get(section, option)
 
 if __name__ == '__main__':
-    print "Making config object"
+    #  Load logging configuration from file
+    logging.config.fileConfig('hqc/logging.conf')
+
+    #  Reference logger
+    debug_logger = logging.getLogger('debugLog')
+
+    logging.info("Making config object")
     config = Config('conn.conf')
 
-    print "Making LinPhone.Core"
+    debug_logger.info("Making LinPhone.Core")
     phone = HQCPhone(config)
 
-    print "Adding proxy config"
+    logging.info("Adding proxy config")
     phone.add_proxy_config()
 
-    print "Adding authentication info"
+    logging.info("Adding authentication info")
     phone.add_auth_info()
 
-    print "Dialing..."
+    logging.info("Dialing...")
     phone.make_call(1001, config.get('ConnectionDetails', 'server'))
 
     while True:

@@ -53,6 +53,10 @@ class SessionJoiningScreen(Screen):
         phone.add_auth_info()
         phone.make_call(1001, config.get('ConnectionDetails', 'server'))
 
+#
+class SettingsScreen(Screen):
+    pass
+
 if __name__ == '__main__':
     HQC().run()
 
