@@ -1,6 +1,9 @@
 # Manual enteries
 .idea/
 conn.conf
+*.wav
+*.mp3
+
 
 # Created by .ignore support plugin (hsz.mobi)
 ### Python template
