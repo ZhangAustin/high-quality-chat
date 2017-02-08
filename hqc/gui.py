@@ -2,7 +2,8 @@ import kivy
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
-
+from kivy.uix.popup import Popup
+from kivy.uix.label import Label
 import audio
 import base64
 from hqc import Config
@@ -59,26 +60,33 @@ class ArtistJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
     def gettext(self, constring):
-        config = Config('conn.conf')
-        decoded = base64.b64decode(constring)
-        mark1 = decoded.find(';')
-        mark2 = decoded.rfind(';')
-        username = decoded[:mark1]
-        password = decoded[mark1 + 1:mark2]
-        server = decoded[mark2 + 1:]
-        if server != '':
-            config.write('ConnectionDetails', 'server', server)
-        if username != '':
-            config.write('ConnectionDetails', 'user', username)
-        if password != '':
-            config.write('ConnectionDetails', 'password', password)
+        try:
+            decoded = base64.b64decode(constring)
+            config = Config('conn.conf')
+            mark1 = decoded.find(';')
+            mark2 = decoded.rfind(';')
+            username = decoded[:mark1]
+            password = decoded[mark1 + 1:mark2]
+            server = decoded[mark2 + 1:]
+            if server != '':
+                config.write('ConnectionDetails', 'server', server)
+            if username != '':
+                config.write('ConnectionDetails', 'user', username)
+            if password != '':
+                config.write('ConnectionDetails', 'password', password)
 
-        self.parent.current = 'session'
+            self.parent.current = 'session'
 
-        phone = HQCPhone(config)
-        phone.add_proxy_config()
-        phone.add_auth_info()
-        phone.make_call(1001, config.get('ConnectionDetails', 'server'))
+            phone = HQCPhone(config)
+            phone.add_proxy_config()
+            phone.add_auth_info()
+            phone.make_call(1001, config.get('ConnectionDetails', 'server'))
+        except:
+            errormessage = 'Sorry, that string is not valid'
+            popup = Popup(title='Connection String Error',
+                          content=Label(text=errormessage),
+                          size_hint=(None, None), size=(400, 400))
+            popup.open()
 
 if __name__ == '__main__':
     HQC().run()
