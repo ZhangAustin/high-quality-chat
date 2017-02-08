@@ -129,19 +129,36 @@ ScreenManager:
         bold: True
 <SessionScreen>:
     name: "session"
+    ActionBar:
+        ActionView:
+            ActionPrevious:
+                title: 'HQC: Session Name'
+                with_previous: False
+            ActionOverflow:
+            ActionButton:
+                background_down: 'atlas://data/images/defaulttheme/audio-volume-high'
+                background_normal: 'atlas://data/images/defaulttheme/audio-volume-low'
+            ActionButton:
+                background_down: '../img/muted.png'
+                background_normal: '../img/microphone.png'
+            ActionButton:
+                text: 'Btn3'
+            ActionButton:
+                text: 'Btn4'
+            ActionGroup:
+                text: 'Group1'
+                ActionButton:
+                    text: 'Btn5'
+                ActionButton:
+                    text: 'Leave Session'
+                    on_release: app.root.current = "main"
     Button:
         id: record
         text: "Record"
         font_size: '25sp'
-        size_hint: (.5, .5)
-        pos: (400, 0)
+        size_hint: (.25, .25)
+        pos: (300, 100)
         on_press: root.record_audio()
-    Button:
-        id: producer
-        text: "Leave Session"
-        font_size: '25sp'
-        size_hint: (.5, .5)
-        on_release: app.root.current = "main"
 <SettingsScreen>
     name: "settings"
     Button:
