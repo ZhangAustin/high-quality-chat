@@ -56,8 +56,41 @@ ScreenManager:
             pos: (450, 20)
             on_release: self.parent.gettext(artconnection.text)
     SessionScreen:
+    SettingsScreen:
+        TextInput:
+            id: setting1
+            size_hint: (.5, .15)
+            text_size: root.width, None
+            font_size: '35sp'
+            multiline: False
+            pos: (350, 400)
+        TextInput:
+            id: setting2
+            size_hint: (.5, .15)
+            text_size: root.width, None
+            font_size: '35sp'
+            multiline: False
+            pos: (350, 300)
+        TextInput:
+            id: setting3
+            size_hint: (.5, .15)
+            text_size: root.width, None
+            font_size: '35sp'
+            multiline: False
+            password: True
+            pos: (350, 200)
 <MainScreen>:
     name: "main"
+    Button:
+        id: settings
+        text: 'Settings'
+        halign: 'center'
+        valign: 'middle'
+        size_hint: (.15, .10)
+        text_size: root.width, None
+        font_size: '25sp'
+        pos: (650, 525)
+        on_release: app.root.current = 'settings'
     Label:
         id: title
         text: 'High Quality Chat'
@@ -136,3 +169,47 @@ ScreenManager:
         font_size: '25sp'
         size_hint: (.5, .5)
         on_release: app.root.current = "main"
+<SettingsScreen>
+    name: "settings"
+    Button:
+        id: main_menu
+        text: 'Main Menu'
+        halign: 'center'
+        valign: 'middle'
+        size_hint: (.20, .10)
+        text_size: root.width, None
+        font_size: '25sp'
+        pos: (625, 525)
+        on_release: app.root.current = 'main'
+    Label:
+        text: 'Setting 1'
+        text_size: root.width, None
+        size: self.texture_size
+        font_size: '35sp'
+        pos: (170, 150)
+        bold: True
+    Label:
+        text: 'Setting 2'
+        text_size: root.width, None
+        size: self.texture_size
+        font_size: '35sp'
+        pos: (170, 50)
+        bold: True
+    Label:
+        text: 'Setting 3'
+        text_size: root.width, None
+        size: self.texture_size
+        font_size: '35sp'
+        pos: (170, -50)
+        bold: True
+    Button:
+        id: save_settings
+        text: 'Save Settings'
+        halign: 'center'
+        valign: 'middle'
+        size_hint: (.25, .15)
+        text_size: root.width, None
+        font_size: '25sp'
+        pos: (450, 20)
+        on_release: app.root.current = 'main'
+
