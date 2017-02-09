@@ -1,6 +1,7 @@
 import kivy
 from kivy.app import App
 from kivy.lang import Builder
+from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.screenmanager import ScreenManager, Screen
 
 import audio
@@ -10,7 +11,6 @@ from hqc import HQCPhone
 import os
 
 kivy.require('1.0.7')
-
 
 class HQC(App):
     def build(self):

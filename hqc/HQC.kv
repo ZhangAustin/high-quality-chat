@@ -135,9 +135,12 @@ ScreenManager:
                 title: 'HQC: Session Name'
                 with_previous: False
             ActionOverflow:
-            ActionButton:
-                background_down: 'atlas://data/images/defaulttheme/audio-volume-high'
+            ActionToggleButton:
+                background_normal: 'atlas://data/images/defaulttheme/audio-volume-high'
+                group: 'volume'
+            ActionToggleButton:
                 background_normal: 'atlas://data/images/defaulttheme/audio-volume-low'
+                group: 'volume'
             ActionButton:
                 background_down: '../img/muted.png'
                 background_normal: '../img/microphone.png'
@@ -152,9 +155,35 @@ ScreenManager:
                 ActionButton:
                     text: 'Leave Session'
                     on_release: app.root.current = "main"
+    TabbedPanel:
+        size_hint: (1, .5)
+        pos_hint: {'center_x': .5, 'center_y': .75}
+        do_default_tab: False
+        TabbedPanelItem:
+            text: 'Recordings'
+            tab_width: 400
+            Carousel:
+                loop: 'True'
+                VideoPlayer:
+                    source: '../img/background_edit.mp4'
+                    state: 'play'
+                    text: '1/8/17 MCO Take 2'
+                VideoPlayer:
+                    text: 'Download'
+                    source: '../img/background_edit.wav'
+        TabbedPanelItem:
+            tab_width: 300
+            text: 'Tab 2'
+            BoxLayout:
+                Label:
+                    text: 'Scrolling List of Recordings'
+                Button:
+                    text: 'Download Selected Recordings'
+        TabbedPanelItem:
+            text: 'tab3'
     Button:
         id: record
-        text: "Record"
+        text: 'Record'
         font_size: '25sp'
         size_hint: (.25, .25)
         pos: (300, 100)
