@@ -8,6 +8,7 @@ import audio
 from hqc import Config
 from hqc import HQCPhone
 
+import config
 import os
 
 kivy.require('1.0.7')
