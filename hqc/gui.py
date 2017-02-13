@@ -6,7 +6,6 @@ from kivy.logger import FileHandler
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.screenmanager import ScreenManager, Screen
 import audio
-from hqc import Config
 from hqc import HQCPhone
 import Config
 import os
@@ -15,7 +14,7 @@ import logging
 kivy.require('1.0.7')
 
 #  Load logging configuration from file
-logging.config.fileConfig('logging.conf')
+logging.config.fileConfig('../logging.conf')
 #  Reference logger
 gui_logger = logging.getLogger('gui')
 

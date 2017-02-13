@@ -4,7 +4,7 @@ import logging
 import os
 
 #  Load logging configuration from file
-logging.config.fileConfig('logging.conf')
+logging.config.fileConfig('../logging.conf')
 #  Reference logger
 debug_logger = logging.getLogger('debugLog')
 

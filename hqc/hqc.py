@@ -8,7 +8,7 @@ import time
 import linphone
 
 #  Load logging configuration from file
-logging.config.fileConfig('logging.conf')
+logging.config.fileConfig('../logging.conf')
 #  Reference logger
 linphone_logger = logging.getLogger('linphone')
 debug_logger = logging.getLogger('debug')
