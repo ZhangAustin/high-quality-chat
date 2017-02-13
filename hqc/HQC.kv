@@ -36,7 +36,7 @@ ScreenManager:
             text_size: root.width, None
             font_size: '25sp'
             pos: (450, 20)
-            on_release: self.parent.gettext(servername.text, username.text, password.text)
+            on_release: self.parent.get_text(servername.text, username.text, password.text)
     SessionScreen:
     SettingsScreen:
         TextInput:

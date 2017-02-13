@@ -1,8 +1,0 @@
-{
-    "server": "ipaddress", 
-    "user": "test", 
-    "save_path": "../recordings", 
-    "default_filetype": ".mp3", 
-    "password": "password", 
-    "default_bitrate": "44100"
-}
