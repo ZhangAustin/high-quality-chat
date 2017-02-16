@@ -136,14 +136,17 @@ ScreenManager:
                 with_previous: False
             ActionOverflow:
             ActionToggleButton:
-                background_normal: 'atlas://data/images/defaulttheme/audio-volume-high'
+                background_normal: '../img/muted.png'
                 group: 'volume'
+                state: 'down'
             ActionToggleButton:
-                background_normal: 'atlas://data/images/defaulttheme/audio-volume-low'
-                group: 'volume'
-            ActionButton:
-                background_down: '../img/muted.png'
                 background_normal: '../img/microphone.png'
+                group: 'volume'
+
+            ActionButton:
+                background_down: 'atlas://data/images/defaulttheme/audio-volume-high'
+                background_normal: 'atlas://data/images/defaulttheme/audio-volume-low'
+
             ActionButton:
                 text: 'Btn3'
             ActionButton:
@@ -156,38 +159,57 @@ ScreenManager:
                     text: 'Leave Session'
                     on_release: app.root.current = "main"
     TabbedPanel:
-        size_hint: (1, .5)
-        pos_hint: {'center_x': .5, 'center_y': .75}
+        size_hint: (.4, .9)
+        pos_hint: {'center_x': .8, 'center_y': .55}
         do_default_tab: False
         TabbedPanelItem:
-            text: 'Recordings'
-            tab_width: 400
-            Carousel:
-                loop: 'True'
-                VideoPlayer:
-                    source: '../img/background_edit.mp4'
-                    state: 'play'
-                    text: '1/8/17 MCO Take 2'
-                VideoPlayer:
-                    text: 'Download'
-                    source: '../img/background_edit.wav'
-        TabbedPanelItem:
             tab_width: 300
-            text: 'Tab 2'
-            BoxLayout:
-                Label:
-                    text: 'Scrolling List of Recordings'
-                Button:
-                    text: 'Download Selected Recordings'
+            text: 'Select Clips'
+            ScrollView:
+                BoxLayout:
+                    id: boxGrid
         TabbedPanelItem:
-            text: 'tab3'
+            text: 'Edit Tools'
+            tab_width: 400
+            GridLayout:
+                cols: 1
+                Button:
+                    id: menuCrop
+                    text: 'Crop Out'
+                    font_size: '18sp'
+                Button:
+                    id: menuSave
+                    text: 'Save'
+                    font_size: '18sp'
+                Button:
+                    id: undo
+                    text: 'Undo'
+                    font_size: '18sp'
+                Button:
+                    id: redo
+                    text: 'Redo'
+                    font_size: '18sp'
+            
     Button:
         id: record
         text: 'Record'
         font_size: '25sp'
         size_hint: (.25, .25)
-        pos: (300, 100)
+        pos: (100, 100)
         on_press: root.record_audio()
+    Button:
+        id: crop
+        text: 'Crop Out'
+        font_size: '18sp'
+        size_hint: (.11, .07)
+        pos: (310, 208)
+    Button:
+        id: save
+        text: 'Save'
+        font_size: '18sp'
+        size_hint: (.11, .17)
+        pos: (310, 100)
+
 <SettingsScreen>
     name: "settings"
     Button:
