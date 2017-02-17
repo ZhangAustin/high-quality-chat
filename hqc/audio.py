@@ -1,11 +1,14 @@
-from pyaudio import PyAudio
+import Queue
+import os
+import sys
+import time
+import wave
+from threading import Thread
+
+import pyaudio
 from pydub import AudioSegment
 from pydub.utils import make_chunks
 
-import os
-import pyaudio
-import sys
-import wave
 
 #  This file contains audio functionality for the project.
 
@@ -95,6 +98,96 @@ def record_audio(filename, secs):
         file_handle = audio_file.export(filename, format="mp3")
 
 
-#record_audio("test.mp3", 5)
-#segment_list = split_audio_file("test.mp3", 2.5)
-#save_audio_chunks(segment_list, "hello", ".mp3", (os.getcwd() + "/"))
+def init_audio_output(filename, width, channels, rate):
+    """
+    Initializes the Pyaudio stream and destination file
+    :param filename: name to write the audio stream to
+    :param width: int for use in get_format_from_width (either 1=8 bit, 2=16 bit, 3=24 bit, or 4=32bit)
+    :param channels: number of channels for recording
+    :param rate: sample rate at which to record
+    :return: the pyaudio object, the pyaudio stream, and the file object
+    """
+    p = pyaudio.PyAudio()
+
+    stream = p.open(format=p.get_format_from_width(width),
+                    channels=channels,
+                    rate=rate,
+                    input=True,
+                    stream_callback=callback)
+
+    output = wave.open(filename, 'wb')
+    output.setnchannels(channels)
+    output.setsampwidth(width)
+    output.setframerate(rate)
+
+    return p, stream, output
+
+
+def async_record(p, stream):
+    """
+    Starts recording from stream asynchronously
+    :param p: a pyaudio object
+    :param stream: a pyaudio stream object
+    """
+    stream.start_stream()
+
+    while stream.is_active():
+        time.sleep(0.1)
+
+    stream.stop_stream()
+    stream.close()
+
+    p.terminate()
+
+
+def callback(in_data, frame_count, time_info, status):
+    """
+    Callback function for continuous_record
+    Checks global var recording
+       If true, put frames into the queue - another thread will pop from the queue and write to disk
+       If false, shut down the recorder (we don't want silence or sudden time shifts in one recording file)
+    """
+    global recording, frames
+    if recording:
+        frames.put(in_data)
+        callback_flag = pyaudio.paContinue
+    else:
+        callback_flag = pyaudio.paComplete
+
+    return in_data, callback_flag
+
+
+def write_queue_to_file(filename):
+    """
+    Write data from a queue to a file object
+    :param filename: initialized file object to write to
+    """
+    global frames
+    while True:
+        data = frames.get()
+        filename.writeframes(b''.join(data))
+        frames.task_done()
+
+
+if __name__ == '__main__':
+    frames = Queue.Queue()
+    recording = True
+    p, stream, output = init_audio_output('asyc.mp3', 2, 2, 48000)
+
+    t = Thread(target=write_queue_to_file, args=(output,))
+    t.daemon = True
+    print "starting daemon"
+    t.start()
+
+    print "starting recording"
+    Thread(target=async_record, args=(p, stream))
+    print "waiting 5 seconds"
+    time.sleep(5)  # Record for 5 seconds
+    print "killing recording"
+    recording = False  # Emulate 'stop recording' button
+    print "waiting for queue to empty"
+    frames.join()  # Block until everything has been written to file
+
+    # record_audio("test.mp3", 5)
+    # segment_list = split_audio_file("test.mp3", 2.5)
+    # save_audio_chunks(segment_list, "hello", ".mp3", (os.getcwd() + "/"))
