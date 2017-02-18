@@ -52,3 +52,8 @@ class Config(ConfigParser.SafeConfigParser):
 
         with open(self.file, 'w') as config_file:
             self.write(config_file)
+
+    def update_setting(self, section, option, value):
+            self.set(section, option, value)
+            with open(self.file, "w") as config_file:
+                self.write(config_file)

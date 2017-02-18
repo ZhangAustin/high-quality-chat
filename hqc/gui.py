@@ -100,11 +100,11 @@ class SessionJoiningScreen(Screen):
     def get_text(self, servername, username, password):
         config = Config.Config('conn.conf')
         if servername != '':
-            config.write('ConnectionDetails', 'server', servername)
+            config.update_setting('ConnectionDetails', 'server', servername)
         if username != '':
-            config.write('ConnectionDetails', 'user', username)
+            config.update_setting('ConnectionDetails', 'user', username)
         if password != '':
-            config.write('ConnectionDetails', 'password', password)
+            config.update_setting('ConnectionDetails', 'password', password)
 
         self.parent.current = 'session'
 
