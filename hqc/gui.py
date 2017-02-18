@@ -107,7 +107,6 @@ class SessionJoiningScreen(Screen):
             config.update_setting('ConnectionDetails', 'password', password)
 
         self.parent.current = 'session'
-
         phone = HQCPhone(config)
         phone.add_proxy_config()
         phone.add_auth_info()
