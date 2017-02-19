@@ -5,6 +5,7 @@ from kivy.lang import Builder
 from kivy.logger import FileHandler
 from kivy.uix.button import Button
 from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
 from kivy.uix.actionbar import ActionBar, ActionView, ActionButton
 from kivy.base import runTouchApp
 from kivy.uix.scrollview import ScrollView
@@ -13,8 +14,11 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.screenmanager import ScreenManager, Screen
 import audio
+import base64
+from kivy.uix.popup import Popup
 from hqc import HQCPhone
 import Config
+import ConfigParser
 import os
 import logging
 
@@ -94,23 +98,67 @@ class SessionScreen(Screen):
         audio.save_audio_chunks(chunk_list, "audio", ".mp3", (os.getcwd() + "/"))
 
 
-class SessionJoiningScreen(Screen):
+class ProducerJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
-    def get_text(self, servername, username, password):
-        config = Config.Config('conn.conf')
+    def gettext(self, servername, username, password):
+
+        config = Config.Config("conn.conf")
         if servername != '':
             config.update_setting('ConnectionDetails', 'server', servername)
+        else:
+            servername = config.get('ConnectionDetails', 'server')
         if username != '':
             config.update_setting('ConnectionDetails', 'user', username)
+        else:
+            username = config.get('ConnectionDetails', 'user')
         if password != '':
             config.update_setting('ConnectionDetails', 'password', password)
-
+        else:
+            password = config.get('ConnectionDetails', 'password')
+        conn_string = username + ';' + password + ";" + servername
+        encoded = base64.b64encode(conn_string)
+        config.update_setting('ConnectionDetails', 'conn_string', encoded)
         self.parent.current = 'session'
+        popup = Popup(title='Connection String',
+                      content=TextInput(text=encoded),
+                      size_hint=(None, None), size=(400, 400))
+        popup.open()
         phone = HQCPhone(config)
         phone.add_proxy_config()
         phone.add_auth_info()
         phone.make_call(1001, config.get('ConnectionDetails', 'server'))
+class ArtistJoiningScreen(Screen):
+    # TODO: Have GUI fill in pre-entered values
+    #       Currently a blank field means use existing values, even if none exists
+    def gettext(self, constring):
+        try:
+            decoded = base64.b64decode(constring)
+            config = Config.Config('conn.conf')
+            mark1 = decoded.find(';')
+            mark2 = decoded.rfind(';')
+            username = decoded[:mark1]
+            password = decoded[mark1 + 1:mark2]
+            server = decoded[mark2 + 1:]
+            if server != '':
+                config.update_setting('ConnectionDetails', 'server', server)
+            if username != '':
+                config.update_setting('ConnectionDetails', 'user', username)
+            if password != '':
+                config.update_setting('ConnectionDetails', 'password', password)
+
+            self.parent.current = 'session'
+
+            phone = HQCPhone(config)
+            phone.add_proxy_config()
+            phone.add_auth_info()
+            phone.make_call(1001, config.get('ConnectionDetails', 'server'))
+        except:
+            errormessage = 'Sorry, that string is not valid'
+            popup = Popup(title='Connection String Error',
+                          content=Label(text=errormessage),
+                          size_hint=(None, None), size=(400, 400))
+            popup.open()
 
 class SettingsScreen(Screen):
     pass

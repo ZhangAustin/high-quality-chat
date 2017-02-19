@@ -4,7 +4,7 @@ ScreenManager:
     id: screen_manager
     transition: FadeTransition()
     MainScreen:
-    SessionJoiningScreen:
+    ProducerJoiningScreen:
         TextInput:
             id: servername
             size_hint: (.5, .15)
@@ -36,7 +36,25 @@ ScreenManager:
             text_size: root.width, None
             font_size: '25sp'
             pos: (450, 20)
-            on_release: self.parent.get_text(servername.text, username.text, password.text)
+            on_release: self.parent.gettext(servername.text, username.text, password.text)
+    ArtistJoiningScreen:
+        TextInput:
+            id: artconnection
+            size_hint: (.5, .15)
+            text_size: root.width, None
+            font_size: '35sp'
+            multiline: False
+            pos: (350, 400)
+        Button:
+            id: artjoinsess
+            text: 'Join Session'
+            halign: 'center'
+            valign: 'middle'
+            size_hint: (.25, .15)
+            text_size: root.width, None
+            font_size: '25sp'
+            pos: (450, 20)
+            on_release: self.parent.gettext(artconnection.text)
     SessionScreen:
     SettingsScreen:
         TextInput:
@@ -89,23 +107,23 @@ ScreenManager:
         Button:
             id: producer
             text: "I'm a Producer"
-            on_release: app.root.current = "sessionjoining"
+            on_release: app.root.current = "producersessionjoining"
             size_hint: (.33, 1)
             font_size: '20sp'
         Button:
-            id: producer
+            id: artist
             text: "I'm an artist"
-            on_release: app.root.current = "sessionjoining"
+            on_release: app.root.current = "artistsessionjoining"
             size_hint: (.33, 1)
             font_size: '20sp'
         Button:
-            id: producer
+            id: listener
             text: "I'm a Listener"
-            on_release: app.root.current = "sessionjoining"
+            on_release: app.root.current = "artistsessionjoining"
             size_hint: (.33, 1)
             font_size: '20sp'
-<SessionJoiningScreen>
-    name: "sessionjoining"
+<ProducerJoiningScreen>
+    name: "producersessionjoining"
     Label:
         text: 'Server Address:'
         text_size: root.width, None
@@ -126,6 +144,15 @@ ScreenManager:
         size: self.texture_size
         font_size: '35sp'
         pos: (170, -50)
+        bold: True
+<ArtistJoiningScreen>
+    name: "artistsessionjoining"
+    Label:
+        text: 'Connection String:'
+        text_size: root.width, None
+        size: self.texture_size
+        font_size: '35sp'
+        pos: (40, 150)
         bold: True
 <SessionScreen>:
     name: "session"
