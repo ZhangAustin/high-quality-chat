@@ -30,6 +30,8 @@ kivy.require('1.0.7')
 logging.config.fileConfig('../logging.conf')
 #  Reference logger
 gui_logger = logging.getLogger('gui')
+#  Reference config object in Config
+config = Config.config
 
 
 class HQC(App):
@@ -134,7 +136,6 @@ class ArtistJoiningScreen(Screen):
     def gettext(self, constring):
         try:
             decoded = base64.b64decode(constring)
-            config = Config.Config('conn.conf')
             mark1 = decoded.find(';')
             mark2 = decoded.rfind(';')
             username = decoded[:mark1]

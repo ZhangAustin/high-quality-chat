@@ -12,6 +12,8 @@ logging.config.fileConfig('../logging.conf')
 #  Reference logger
 linphone_logger = logging.getLogger('linphone')
 debug_logger = logging.getLogger('debug')
+#  Reference config settings from Config
+config = Config.config
 
 
 class HQCPhone:
@@ -129,10 +131,6 @@ class HQCPhone:
 
 
 if __name__ == '__main__':
-    debug_logger.debug("Importing config object")
-    #  Reference config settings from Config
-    config = Config.config
-
     debug_logger.info("Making LinPhone.Core")
     phone = HQCPhone(config)
 
