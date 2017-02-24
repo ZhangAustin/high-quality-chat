@@ -8,6 +8,8 @@ from threading import Thread
 import pyaudio
 from pydub import AudioSegment
 from pydub.utils import make_chunks
+from pydub import AudioSegment
+from pydub.playback import play
 
 
 class Recorder:
@@ -170,6 +172,18 @@ def record_audio(filename, secs):
     if file_extension == ".mp3":
         audio_file = AudioSegment.from_wav(WAVE_OUTPUT_FILENAME)
         file_handle = audio_file.export(filename, format="mp3")
+
+
+#  Plays an .mp3 file
+def play_mp3(filename):
+    audio = AudioSegment.from_mp3(filename)
+    play(audio)
+
+
+#  Plays a .wav file
+def play_wav(filename):
+    audio = AudioSegment.from_wav(filename)
+    play(audio)
 
 if __name__ == '__main__':
     recorder = Recorder('async.mp3')
