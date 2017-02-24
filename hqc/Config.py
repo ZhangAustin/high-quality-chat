@@ -9,6 +9,7 @@ logging.config.fileConfig('../logging.conf')
 debug_logger = logging.getLogger('debugLog')
 
 
+#  Inherits methods such as get() from SafeConfigParser
 class Config(ConfigParser.SafeConfigParser):
 
     def __init__(self, file):
@@ -53,8 +54,17 @@ class Config(ConfigParser.SafeConfigParser):
         with open(self.file, 'w') as config_file:
             self.write(config_file)
 
+    #  Add or update settings to config file
     def update_setting(self, section, option, value):
-            self.read(self.file)
-            self.set(section, option, value)
-            with open(self.file, "w") as config_file:
-                self.write(config_file)
+        self.read(self.file)
+        #  Add a section if one dose not exist
+        if not self.has_section(section):
+            self.add_section(section)
+        #  Add/update the desired setting
+        self.set(section, option, value)
+        #  Write the settings back to disk
+        with open(self.file, "w") as config_file:
+            self.write(config_file)
+
+#  Initialize Config on import. Reference this config for usage
+config = Config("conn.conf")

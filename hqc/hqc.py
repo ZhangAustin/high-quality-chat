@@ -129,9 +129,9 @@ class HQCPhone:
 
 
 if __name__ == '__main__':
-    debug_logger.debug("Making config object")
-    #  Create SafeConfigParser from a file
-    config = Config.Config('conn.conf')
+    debug_logger.debug("Importing config object")
+    #  Reference config settings from Config
+    config = Config.config
 
     debug_logger.info("Making LinPhone.Core")
     phone = HQCPhone(config)
