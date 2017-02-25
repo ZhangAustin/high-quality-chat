@@ -59,26 +59,26 @@ ScreenManager:
     SettingsScreen:
         TextInput:
             id: setting1
-            size_hint: (.5, .15)
+            size_hint: (.5, .10)
             text_size: root.width, None
-            font_size: '35sp'
+            font_size: '25sp'
             multiline: False
-            pos: (350, 400)
+            pos: (170, 480)
         TextInput:
             id: setting2
-            size_hint: (.5, .15)
+            size_hint: (.5, .10)
             text_size: root.width, None
-            font_size: '35sp'
+            font_size: '25sp'
             multiline: False
-            pos: (350, 300)
+            pos: (170, 415)
         TextInput:
             id: setting3
-            size_hint: (.5, .15)
+            size_hint: (.5, .10)
             text_size: root.width, None
-            font_size: '35sp'
+            font_size: '25sp'
             multiline: False
             password: True
-            pos: (350, 200)
+            pos: (170, 350)
 <MainScreen>:
     name: "main"
     Button:
@@ -250,34 +250,34 @@ ScreenManager:
         pos: (625, 525)
         on_release: app.root.current = 'main'
     Label:
-        text: 'Setting 1'
+        text: 'Username'
         text_size: root.width, None
         size: self.texture_size
-        font_size: '35sp'
-        pos: (170, 150)
+        font_size: '25sp'
+        pos: (30, 215)
         bold: True
     Label:
-        text: 'Setting 2'
+        text: 'Microphone'
         text_size: root.width, None
         size: self.texture_size
-        font_size: '35sp'
-        pos: (170, 50)
+        font_size: '25sp'
+        pos: (20, 150)
         bold: True
     Label:
-        text: 'Setting 3'
+        text: 'Spreakers'
         text_size: root.width, None
         size: self.texture_size
-        font_size: '35sp'
-        pos: (170, -50)
+        font_size: '25sp'
+        pos: (30, 85)
         bold: True
     Button:
         id: save_settings
         text: 'Save Settings'
         halign: 'center'
         valign: 'middle'
-        size_hint: (.25, .15)
+        size_hint: (.25, .10)
         text_size: root.width, None
         font_size: '25sp'
-        pos: (450, 20)
+        pos: (300, 50)
         on_release: app.root.current = 'main'
 

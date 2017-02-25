@@ -130,6 +130,8 @@ class ProducerJoiningScreen(Screen):
         phone.add_proxy_config()
         phone.add_auth_info()
         phone.make_call(1001, config.get('ConnectionDetails', 'server'))
+
+
 class ArtistJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
@@ -160,6 +162,7 @@ class ArtistJoiningScreen(Screen):
                           content=Label(text=errormessage),
                           size_hint=(None, None), size=(400, 400))
             popup.open()
+
 
 class SettingsScreen(Screen):
     pass
