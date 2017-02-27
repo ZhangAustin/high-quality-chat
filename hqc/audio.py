@@ -11,6 +11,7 @@ from pydub.utils import make_chunks
 from pydub import AudioSegment
 from pydub.playback import play
 
+#testIncrement = 0
 
 class Recorder:
     _recording = False
@@ -47,7 +48,7 @@ class Recorder:
     def stop(self):
         self._recording = False
         self._frames.join()
-        self._exit = True
+        #self._exit = True
 
     def _async_record(self):
         """
@@ -87,6 +88,12 @@ class Recorder:
             self._output.writeframes(b''.join(data))
             self._frames.task_done()
 
+    def test():
+        #testIncrement += 1
+        print "\ntest" #+ str(testIncrement)
+       # recorder = audio.Recorder("test")
+       # recorder.start() # Starts recording
+       # recorder.stop() # Stops recording
 
 def split_audio_file(self, file_path, secs):
     print "USING DEPRECIATED FUNCTION audio.split_audio_file"

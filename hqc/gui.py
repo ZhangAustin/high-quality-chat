@@ -21,9 +21,18 @@ import Config
 import ConfigParser
 import os
 import logging
-
-NUMBER_OF_BUTTONS = 30
-
+import audio
+import datetime
+from datetime import datetime
+import threading, signal
+import time
+NUMBER_OF_BUTTONS = 2
+layout = GridLayout(cols=3, padding=10, spacing=5,
+                size_hint=(None, None), width=310)
+#layout2 = GridLayout(cols=1, padding=10, spacing=5,
+ #               size_hint=(None, None), width=410)
+startRecording = False
+recorder = audio.Recorder("test")
 kivy.require('1.0.7')
 
 #  Load logging configuration from file
@@ -53,38 +62,17 @@ class SessionScreen(Screen):
 
     def on_enter(self):
         # create a default grid layout with custom width/height
-        layout = GridLayout(cols=4, padding=10, spacing=5,
-                size_hint=(None, None), width=500)
+        #layout = GridLayout(cols=4, padding=10, spacing=5,
+         #       size_hint=(None, None), width=310)
 
         # when we add children to the grid layout, its size doesn't change at
         # all. we need to ensure that the height will be the minimum required
         # to contain all the childs. (otherwise, we'll child outside the
         # bounding box of the childs)
         layout.bind(minimum_height=layout.setter('height'))
-        
-        labelGrid = GridLayout(cols=1, width=50)
-        playGrid = GridLayout(cols=1, orientation = 'vertical')
+        #slayout2.bind(minimum_height=layout.setter('height'))
         # add button into that grid
-        for i in range(NUMBER_OF_BUTTONS):
-            #a ruse because it freaks out for 3 columns so it uses 4
-            label0 = Label(text = " ", size=(.4, .5))
 
-            label = Label(text = "Clip_" + str(i), halign='left', size_hint=(.7, .5))
-            btn = Button(background_normal= '../img/play.png',
-                         size_hint=(.3, 1), allow_stretch=False)
-            if i == 2 or i == 5:
-                btn2 = Button(text="REQUESTED", size=(100, 50),
-                             size_hint=(None, None))
-            elif i == 4:
-                btn2 = Button(text="Request\nAgain", size=(100, 50),
-                             size_hint=(None, None))
-            else:
-                btn2 = Button(text="Request", size=(100, 50),
-                                 size_hint=(None, None))
-            layout.add_widget(btn)
-            layout.add_widget(label)
-            layout.add_widget(btn2)
-            layout.add_widget(label0)
 
       
         # create a scroll view, with a size < size of the grid
@@ -93,11 +81,37 @@ class SessionScreen(Screen):
         root.add_widget(layout)
         self.ids.boxGrid.add_widget(root)
 
-    def record_audio(self):
-        filename = "audio.mp3"
-        audio.record_audio(filename, 5)
-        chunk_list = audio.split_audio_file(filename, 2.5)
-        audio.save_audio_chunks(chunk_list, "audio", ".mp3", (os.getcwd() + "/"))
+        #layout2.add_widget(label)
+        #root2 = ScrollView(size_hint=(None, None), size=(410, 200),
+        #        pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
+        #root2.add_widget(layout2)
+        #self.ids.chatGrid.add_widget(root2)
+
+    def add_clip(self):
+
+        #time.sleep(2)
+        label = Label(text = datetime.now().strftime('%Y-%m-%d %H:%M:%S'), halign='left', size_hint=(.5, 0.2))
+        btn = Button(background_normal= '../img/play.png',
+                     size_hint=(.18, 1), allow_stretch=False)
+        btn2 = Button(text="Request", size=(100, 50),
+                     size_hint=(0.32, None))
+
+        layout.add_widget(btn)
+        layout.add_widget(label)
+        #layout.add_widget(label0)
+        layout.add_widget(btn2)
+
+    def begin_Recording(self):
+        global startRecording
+        global recorder
+        startRecording = not startRecording
+        if startRecording:
+            recorder.start() # Starts recording
+            print "Recording..."
+        else: 
+            recorder.stop()
+            print "Done recording"
+            self.add_clip()
 
 
 class ProducerJoiningScreen(Screen):
@@ -169,3 +183,4 @@ class SettingsScreen(Screen):
 
 if __name__ == '__main__':
     HQC().run()
+
