@@ -185,6 +185,26 @@ ScreenManager:
                 ActionButton:
                     text: 'Leave Session'
                     on_release: app.root.current = "main"
+    Button:
+        id: record
+        text: 'Record'
+        font_size: '25sp'
+        size_hint: (.25, .25)
+        pos: (100, 100)
+        on_press: root.begin_Recording()
+    Button:
+        id: crop
+        text: 'Crop Out'
+        font_size: '18sp'
+        size_hint: (.11, .07)
+        pos: (310, 208)
+    Button:
+        id: save
+        text: 'Save'
+        font_size: '18sp'
+        size_hint: (.11, .17)
+        pos: (310, 100)
+
     TabbedPanel:
         size_hint: (.4, .9)
         pos_hint: {'center_x': .8, 'center_y': .55}
@@ -216,26 +236,6 @@ ScreenManager:
                     id: redo
                     text: 'Redo'
                     font_size: '18sp'
-            
-    Button:
-        id: record
-        text: 'Record'
-        font_size: '25sp'
-        size_hint: (.25, .25)
-        pos: (100, 100)
-        on_press: root.record_audio()
-    Button:
-        id: crop
-        text: 'Crop Out'
-        font_size: '18sp'
-        size_hint: (.11, .07)
-        pos: (310, 208)
-    Button:
-        id: save
-        text: 'Save'
-        font_size: '18sp'
-        size_hint: (.11, .17)
-        pos: (310, 100)
 
 <SettingsScreen>
     name: "settings"
