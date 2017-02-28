@@ -1,15 +1,21 @@
 from ws4py.client.threadedclient import WebSocketClient
 import json
 
+
 class MyChatClient(WebSocketClient):
     def __init__(self, *args, **kwargs):
         super(MyChatClient, self).__init__(*args, **kwargs)
-    def opened(self):
+
+    @staticmethod
+    def opened():
         print "Connected to server"
-    def closed(self, code, reason=None):
+
+    @staticmethod
+    def closed(code, reason=None):
         print "Closed down", code, reason
 
-    def received_message(self, message):
+    @staticmethod
+    def received_message(message):
         message = str(message)
         parsed_json = json.loads(message)
         print "[%s]: %s" % (parsed_json['username'], parsed_json['message'])

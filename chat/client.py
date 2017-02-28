@@ -5,11 +5,15 @@ class MyWSClient(WebSocketClient):
     def __init__(self, username, *args, **kwargs):
         super(MyWSClient, self).__init__(*args, **kwargs)
         self.username = username
+
     def opened(self):
         self.chat()
-    def closed(self, code, reason=None):
+
+    @staticmethod
+    def closed(code, reason=None):
         print "Closed down", code, reason
-    #TODO: Override received_message() to send incoming messages to gui
+
+    # TODO: Override received_message() to send incoming messages to gui
     def chat(self):
         message = raw_input("Message: ")
         payload = {"username": self.username, "message": message}
