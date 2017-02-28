@@ -73,31 +73,11 @@ class SessionScreen(Screen):
         #slayout2.bind(minimum_height=layout.setter('height'))
         # add button into that grid
 
-        for i in range(NUMBER_OF_BUTTONS):
-            #a ruse because it freaks out for 3 columns so it uses 4
-            label0 = Label(text = " ", size=(.4, .5))
-
-            label = Label(text="Clip_" + str(i), halign='left', size_hint=(.7, .5))
-            btn = Button(background_normal= '../img/play.png',
-                         size_hint=(.3, 1), allow_stretch=False)
-            if i == 2 or i == 5:
-                btn2 = Button(text="REQUESTED", size=(100, 50),
-                             size_hint=(None, None))
-            elif i == 4:
-                btn2 = Button(text="Request\nAgain", size=(100, 50),
-                             size_hint=(None, None))
-            else:
-                btn2 = Button(text="Request", size=(100, 50),
-                                 size_hint=(None, None))
-            layout.add_widget(btn)
-            layout.add_widget(label)
-            layout.add_widget(btn2)
-            layout.add_widget(label0)
 
       
         # create a scroll view, with a size < size of the grid
         root = ScrollView(size_hint=(None, None), size=(310, 460),
-                          pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
+                pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
         root.add_widget(layout)
         self.ids.boxGrid.add_widget(root)
 
@@ -152,9 +132,7 @@ class ProducerJoiningScreen(Screen):
             config.update_setting('ConnectionDetails', 'password', password)
         else:
             password = config.get('ConnectionDetails', 'password')
-        # Get connection string
         conn_string = username + ';' + password + ";" + servername
-        # Encode connection string
         encoded = base64.b64encode(conn_string)
         config.update_setting('ConnectionDetails', 'conn_string', encoded)
         self.parent.current = 'session'
