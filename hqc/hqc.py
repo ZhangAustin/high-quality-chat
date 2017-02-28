@@ -1,11 +1,10 @@
 import base64
-import Config
-import logging
 import logging.handlers
-from logging.config import fileConfig
-import os.path
 import time
+
 import linphone
+
+import Config
 
 #  Load logging configuration from file
 logging.config.fileConfig('../logging.conf')
@@ -49,28 +48,17 @@ class HQCPhone:
         self.core.capture_device = config.get('Settings', 'mic')
         self.core.playback_device = config.get('Settings', 'speakers')
 
-    @staticmethod
-    def parse_conn_string(conn_string):
-        decoded = base64.b64decode(conn_string)
-        mark1 = decoded.find(';')
-        mark2 = decoded.rfind(';')
-        username = decoded[:mark1]
-        password = decoded[mark1 + 1:mark2]
-        server = decoded[mark2 + 1:]
-        return [username, password, server]
-
-    @staticmethod
-    def make_conn_string(username, password, server):
-        # For now, conn_string will be sourced from conn.conf
-        # Eventually, it will be passed in through the GUI
-        # If the b64 encoded conn_strings get too long, we can try compressing them
-        conn_string = username + ';' + password + ";" + server
-        return base64.b64encode(conn_string)
-
-    def make_call(self, number, server):
+    def make_call(self, number, server, lq_file='recording.wav'):
+        """
+        Make a SIP call to a number on a server
+        :param number: number to call (should be a conference number)
+        :param server: server which hosts the call
+        :param lq_file: filename to store the LQ recordings
+        :return:
+        """
         params = self.core.create_call_params(None)
-        params.record_file = './recording.snd'  # I have no idea what format it will dump into
-        # Start recording with linphone.Call.start_recording()
+        params.record_file = lq_file
+        # Output file (on devel sys) is constant 128Kbps 8kHz 16 bit 1 channel PCM
         params.audio_enabled = True
         params.video_enabled = False
 
@@ -78,19 +66,27 @@ class HQCPhone:
 
         self.call = self.core.invite_with_params(url, params)
 
+        while self.call.media_in_progress():
+            self.hold_open()
+
+        self.call.start_recording()
+
     def mute_mic(self):
-        self.mic_gain = self.call.microphone_volume_gain
-        self.call.microphone_volume_gain = -1000.0
+        self.core.mic_enabled = False
 
     def unmute_mic(self):
-        self.call.microphone_volume_gain = self.mic_gain
+        self.core.mic_enabled = True
 
-    def hold_open(self):
-        self.core.iterate()
-        time.sleep(0.03)  # I don't know why this value but it's what is used in RPi Example Code
+    def hold_open(self, total_time=-1, cycle_time=0.03):
+        if total_time != -1:
+            cycles = int(total_time / cycle_time)  # We don't care about being exact
+            for i in range(0, cycles):
+                self.core.iterate()
+                time.sleep(cycle_time)
+        else:
+            self.core.iterate()
+            time.sleep(cycle_time)  # I don't know why this value but it's what is used in RPi Example Code
 
-    # There is no separate array in core for recording and playback devices
-    # Just this mega one.  At least there are checks for capabilities
     def get_playback_devices(self):
         arr = []
         for device in self.core.sound_devices:
@@ -130,6 +126,32 @@ class HQCPhone:
         debug_logger.info("Added auth info")
 
 
+def parse_conn_string(conn_string):
+    """
+    Decode the connection string and return its elements
+    :param conn_string: Base64 encoded connection string
+    :return: List containing decoded username, password, and server
+    """
+    decoded = base64.b64decode(conn_string)
+    mark1 = decoded.find(';')
+    mark2 = decoded.rfind(';')
+    username = decoded[:mark1]
+    password = decoded[mark1 + 1:mark2]
+    server = decoded[mark2 + 1:]
+    return [username, password, server]
+
+
+def make_conn_string(username, password, server):
+    """
+    Given a username, password, and server address, base64 encode them together
+    :param username: username (or phone number) to register to the SIP server
+    :param password: password associated with the username
+    :param server: IP or hostname of the SIP server
+    :return: a base 64 encoded string containing all parameters
+    """
+    conn_string = username + ';' + password + ";" + server
+    return base64.b64encode(conn_string)
+
 if __name__ == '__main__':
     debug_logger.info("Making LinPhone.Core")
     phone = HQCPhone(config)
@@ -144,4 +166,8 @@ if __name__ == '__main__':
     phone.make_call(1001, config.get('ConnectionDetails', 'server'))
 
     while True:
-        phone.hold_open()
+        phone.hold_open(5)
+        phone.mute_mic()
+        phone.hold_open(2)
+        phone.unmute_mic()
+        phone.hold_open(10)
