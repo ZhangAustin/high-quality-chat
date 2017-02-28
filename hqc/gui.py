@@ -69,7 +69,7 @@ class SessionScreen(Screen):
             #a ruse because it freaks out for 3 columns so it uses 4
             label0 = Label(text = " ", size=(.4, .5))
 
-            label = Label(text = "Clip_" + str(i), halign='left', size_hint=(.7, .5))
+            label = Label(text="Clip_" + str(i), halign='left', size_hint=(.7, .5))
             btn = Button(background_normal= '../img/play.png',
                          size_hint=(.3, 1), allow_stretch=False)
             if i == 2 or i == 5:
@@ -89,7 +89,7 @@ class SessionScreen(Screen):
       
         # create a scroll view, with a size < size of the grid
         root = ScrollView(size_hint=(None, None), size=(310, 460),
-                pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
+                          pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
         root.add_widget(layout)
         self.ids.boxGrid.add_widget(root)
 
@@ -118,14 +118,29 @@ class ProducerJoiningScreen(Screen):
             config.update_setting('ConnectionDetails', 'password', password)
         else:
             password = config.get('ConnectionDetails', 'password')
+        # Get connection string
         conn_string = username + ';' + password + ";" + servername
+        # Encode connection string
         encoded = base64.b64encode(conn_string)
         config.update_setting('ConnectionDetails', 'conn_string', encoded)
         self.parent.current = 'session'
+
+        #  Make BoxLayout for multiple items
+        popup_box = BoxLayout(orientation='vertical')
+        # Make "Connection String" TextInput
+        popup_text = TextInput(text=encoded, size_hint=(1, .8))
+        popup_box.add_widget(popup_text)
+        # Make "Close" button for popup
+        close_button = Button(text='Close', size_hint=(.4, .2), pos_hint={'center_x': .5})
+        popup_box.add_widget(close_button)
         popup = Popup(title='Connection String',
-                      content=TextInput(text=encoded),
-                      size_hint=(None, None), size=(400, 400))
+                      content=popup_box,
+                      size_hint=(None, None), size=(400, 400),
+                      auto_dismiss=False)
+        close_button.bind(on_press=popup.dismiss)
+        # Open the popup
         popup.open()
+
         phone = HQCPhone(config)
         phone.add_proxy_config()
         phone.add_auth_info()
