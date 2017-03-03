@@ -1,10 +1,8 @@
 import base64
+import Config
+import linphone
 import logging.handlers
 import time
-
-import linphone
-
-import Config
 
 #  Load logging configuration from file
 logging.config.fileConfig('../logging.conf')
@@ -15,7 +13,7 @@ debug_logger = logging.getLogger('debug')
 config = Config.config
 
 
-class HQCPhone:
+class HQCPhone(object):
     core = ''
     config = ''
     mic_gain = 0
@@ -24,8 +22,13 @@ class HQCPhone:
     def __init__(self, config):
         self.config = config
 
-        #  Handles logging for linphone
         def log_handler(level, msg):
+            """
+            Handles logging for linphone
+            :param level: level of logging message (ex. INFO, DEBUG, ERROR)
+            :param msg: message to be logged
+            :return: None
+            """
             #  Choose the appropriate logging handle
             debug_method = getattr(linphone_logger, level)
             debug_method(msg)
@@ -72,9 +75,17 @@ class HQCPhone:
         self.call.start_recording()
 
     def mute_mic(self):
+        """
+        Handles muting the Linphone. core.mic_enable is built-in
+        :return: None
+        """
         self.core.mic_enabled = False
 
     def unmute_mic(self):
+        """
+        Handles un-muting the Linphone. core.mic_enable is built-in
+        :return: None
+        """
         self.core.mic_enabled = True
 
     def hold_open(self, total_time=-1, cycle_time=0.03):
@@ -88,19 +99,30 @@ class HQCPhone:
             time.sleep(cycle_time)  # I don't know why this value but it's what is used in RPi Example Code
 
     def get_playback_devices(self):
-        arr = []
+        """
+        Retrieves references to all available playback devices
+        :return: list of playback device strings
+        """
+        playback_devices = []
+        # Get the available sound devices
         for device in self.core.sound_devices:
+            # Check if the device can play sound
             if self.core.sound_device_can_playback(device):
-                arr += [device]
-        return arr
+                playback_devices.append(device)
+        return playback_devices
 
+    # TODO: add call to reload_sound_devices() somewhere
+    # This refreshes the list of available sound devices (such as USB event)
     def get_recording_devices(self):
-        arr = []
+        """
+        Retrieves references to all available recording devices
+        :return: list of recording device strings
+        """
+        recording_devices = []
         for device in self.core.sound_devices:
             if self.core.sound_device_can_capture(device):
-                arr += [device]
-
-        return arr
+                recording_devices.append(device)
+        return recording_devices
 
     def add_proxy_config(self):
         proxy_cfg = self.core.create_proxy_config()
