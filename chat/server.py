@@ -7,6 +7,8 @@ import json
 import constants
 import base64
 import ntpath
+import time
+import datetime
 
 def path_leaf(path):
     head, tail = ntpath.split(path)
@@ -33,8 +35,8 @@ class MyWebsocket(EchoWebSocket):
 
     def handle_file_transfer(self, received_message):
         payload = json.loads(str(received_message))
-        filename = payload['filename']
-        fh = open("rev-" + path_leaf(filename), 'wb')
+        filename = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d%H:%M:%S')
+        fh = open(path_leaf(filename) + '.wav', 'wb')
         fh.write(base64.b64decode(payload['content']))
         fh.close()
         for client in self.environ['ws4py.app'].clients:
