@@ -13,7 +13,18 @@ debug_logger = logging.getLogger('debug')
 config = Config.config
 
 
+class Singleton(type):
+    _instance = None
+
+    def __call__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(Singleton, cls).__call__(*args, **kwargs)
+
+        return cls._instance
+
+
 class HQCPhone(object):
+    __metaclass__ = Singleton
     core = ''
     config = ''
     mic_gain = 0
@@ -175,6 +186,7 @@ def make_conn_string(username, password, server):
     return base64.b64encode(conn_string)
 
 if __name__ == '__main__':
+
     debug_logger.info("Making LinPhone.Core")
     phone = HQCPhone(config)
 

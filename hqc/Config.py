@@ -9,8 +9,19 @@ logging.config.fileConfig('../logging.conf')
 debug_logger = logging.getLogger('debugLog')
 
 
+class Singleton(type):
+    _instance = None
+
+    def __call__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(Singleton, cls).__call__(*args, **kwargs)
+
+        return cls._instance
+
+
 #  Inherits methods such as get() from SafeConfigParser
 class Config(ConfigParser.SafeConfigParser):
+    __metaclass__ = Singleton
 
     def __init__(self, file):
         ConfigParser.SafeConfigParser.__init__(self)
@@ -65,6 +76,7 @@ class Config(ConfigParser.SafeConfigParser):
         #  Write the settings back to disk
         with open(self.file, "w") as config_file:
             self.write(config_file)
+
 
 #  Initialize Config on import. Reference this config for usage
 config = Config("conn.conf")
