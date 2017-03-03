@@ -1,18 +1,93 @@
-from pyaudio import PyAudio
-from pydub import AudioSegment
+from threading import Thread
 from pydub.utils import make_chunks
-
+from pydub import AudioSegment
+from pydub.playback import play
 import os
 import pyaudio
+import Queue
 import sys
+import time
 import wave
 
-#  This file contains audio functionality for the project.
+
+class Recorder:
+    _recording = False
+    _frames = Queue.Queue()
+    _p = ''
+    _stream = ''
+    _output = ''
+    _audio_writer = ''
+    _audio_recorder = ''
+    _exit = False
+
+    def __init__(self, filename, width=2, channels=2, rate=48000):
+        self._p = pyaudio.PyAudio()
+        self._stream = self._p.open(format=self._p.get_format_from_width(width),
+                                    channels=channels,
+                                    rate=rate,
+                                    input=True,
+                                    stream_callback=self._callback)
+
+        self._output = wave.open(filename, 'wb')
+        self._output.setnchannels(channels)
+        self._output.setsampwidth(width)
+        self._output.setframerate(rate)
+
+        self._audio_writer = Thread(target=self._write_queue_to_file)
+        self._audio_writer.daemon = True
+        self._audio_writer.start()
+
+    def start(self):
+        self._recording = True
+        self._audio_recorder = Thread(target=self._async_record)
+        self._audio_recorder.start()
+
+    def stop(self):
+        self._recording = False
+        self._frames.join()
+        # self._exit = True
+
+    def _async_record(self):
+        """
+        Starts recording from stream asynchronously
+        """
+        self._stream.start_stream()
+
+        while self._stream.is_active():
+            time.sleep(0.1)
+
+        self._stream.stop_stream()
+        self._stream.close()
+
+        self._p.terminate()
+
+    def _callback(self, in_data, frame_count, time_info, status):
+        """
+        Callback function for continuous_record
+        Checks global var recording
+           If true, put frames into the queue - another thread will pop from the queue and write to disk
+           If false, shut down the recorder (we don't want silence or sudden time shifts in one recording file)
+        """
+        if self._recording:
+            self._frames.put(in_data)
+            callback_flag = pyaudio.paContinue
+        else:
+            callback_flag = pyaudio.paComplete
+
+        return in_data, callback_flag
+
+    def _write_queue_to_file(self):
+        """
+        Write data from a queue to a file object
+        """
+        while not self._exit:
+            data = self._frames.get()
+            self._output.writeframes(b''.join(data))
+            self._frames.task_done()
 
 
-#  Splits an audio file into a list of audio segments.
-#  Supports .mp3 and .wav files
-def split_audio_file(file_path, secs):
+def split_audio_file(self, file_path, secs):
+    print "USING DEPRECIATED FUNCTION audio.split_audio_file"
     #  Get absolute file path
     #  file_path = os.path.abspath(filename)
     #  Extract filename and extension
@@ -36,6 +111,7 @@ def split_audio_file(file_path, secs):
 
 #  Saves a list of audio chunks to the specified path
 def save_audio_chunks(chunk_list, base_name, file_extension, file_path):
+    print "USING DEPRECIATED FUNCTION audio.save_audio_chunks"
     for i, chunk in enumerate(chunk_list):
         chunk_name = "{}_{}".format(base_name, i) + str(file_extension)
         #  TODO: check for unsupported file types
@@ -47,6 +123,7 @@ def save_audio_chunks(chunk_list, base_name, file_extension, file_path):
 #  TODO: parametrize and test outputting different settings
 #  Records audio for 5 seconds to disk
 def record_audio(filename, secs):
+    print "USING DEPRECIATED FUNCTION audio.record_audio"
     file_base_name, file_extension = os.path.splitext(filename)
 
     #  Sample sizing and format
@@ -95,6 +172,37 @@ def record_audio(filename, secs):
         file_handle = audio_file.export(filename, format="mp3")
 
 
-#record_audio("test.mp3", 5)
-#segment_list = split_audio_file("test.mp3", 2.5)
-#save_audio_chunks(segment_list, "hello", ".mp3", (os.getcwd() + "/"))
+#  Plays an .mp3 file
+def play_mp3(filename):
+    audio = AudioSegment.from_mp3(filename)
+    play(audio)
+
+
+#  Plays a .wav file
+def play_wav(filename):
+    audio = AudioSegment.from_wav(filename)
+    play(audio)
+
+if __name__ == '__main__':
+    recorder = Recorder('async.mp3')
+    print "Starting recording async.mp3"
+    recorder.start()
+    print "Recording 3 seconds"
+    time.sleep(3)
+    print "Stopping recording async.mp3"
+    recorder.stop()
+
+    print "Waiting 3 seconds"
+    time.sleep(3)
+
+    recorder2 = Recorder('async2.mp3')
+    print "Starting recording async2.mp3"
+    recorder2.start()
+    print "Recording 5 seconds"
+    time.sleep(5)
+    print "Stopping recording async2.mp3"
+    recorder2.stop()
+
+    # record_audio("test.mp3", 5)
+    # segment_list = split_audio_file("test.mp3", 2.5)
+    # save_audio_chunks(segment_list, "hello", ".mp3", (os.getcwd() + "/"))

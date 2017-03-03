@@ -1,88 +1,159 @@
-import ConfigParser
 import base64
-import logging
-import sys
-
+import Config
 import linphone
-from PyQt4.QtCore import QTimer
-from PyQt4.QtGui import QApplication
+import logging.handlers
+import time
 
-def main():
-    # Parse and load the config
-    # This is for ease of testing and will be replaced with a GUI conn_string input
-    confparse = ConfigParser.SafeConfigParser()
-    confparse.read('conn.conf')
-    config_username = confparse.get('ConnectionDetails', 'user')
-    config_password = confparse.get('ConnectionDetails', 'password')
-    config_server = confparse.get('ConnectionDetails', 'server')
-    config_capture = confparse.get('Settings', 'mic')
+#  Load logging configuration from file
+logging.config.fileConfig('../logging.conf')
+#  Reference logger
+linphone_logger = logging.getLogger('linphone')
+debug_logger = logging.getLogger('debug')
+#  Reference config settings from Config
+config = Config.config
 
-    # Create the conn_string.
-    # This is for testing only.  Eventually only the producer will be able to do this.
-    # We will also probably have to revise what 'starting a server' looks like.
-    # We will probably have to give the client config files that matches his infrastructure.
-    # We might have this server in the cloud or installed locally, depending on how the client feels.
-    conn_string = make_conn_string(config_username, config_password, config_server)
 
-    # Parse the conn string
-    values = parse_conn_string(conn_string)
-    username = values[0]
-    password = values[1]  # There is an option to pass a pre-hashed password into create_auth_info
-    server = values[2]
+class HQCPhone(object):
+    core = ''
+    config = ''
+    mic_gain = 0
+    call = ''
 
-    logging.basicConfig(level=logging.INFO)
+    def __init__(self, config):
+        self.config = config
 
-    app = QApplication(sys.argv)
+        def log_handler(level, msg):
+            """
+            Handles logging for linphone
+            :param level: level of logging message (ex. INFO, DEBUG, ERROR)
+            :param msg: message to be logged
+            :return: None
+            """
+            #  Choose the appropriate logging handle
+            debug_method = getattr(linphone_logger, level)
+            debug_method(msg)
 
-    def log_handler(level, msg):
-        method = getattr(logging, level)
-        method(msg)
+        def global_state_changed(*args, **kwargs):
+            debug_logger.warning("global_state_changed: %r %r" % (args, kwargs))
 
-    def global_state_changed(*args, **kwargs):
-        logging.warning("global_state_changed: %r %r" % (args, kwargs))
+        def registration_state_changed(core, call, state, message):
+            debug_logger.warning("registration_state_changed: " + str(state) + ", " + message)
 
-    def registration_state_changed(core, call, state, message):
-        logging.warning("registration_state_changed: " + str(state) + ", " + message)
+        callbacks = {
+            'global_state_changed': global_state_changed,
+            'registration_state_changed': registration_state_changed,
+        }
 
-    callbacks = {
-        'global_state_changed': global_state_changed,
-        'registration_state_changed': registration_state_changed,
-    }
+        linphone.set_log_handler(log_handler)
+        self.core = linphone.Core.new(callbacks, None, None)
+        self.core.video_capture_enabled = False  # remove both of these if we get video implemented
+        self.core.video_display_enabled = False
+        self.core.capture_device = config.get('Settings', 'mic')
+        self.core.playback_device = config.get('Settings', 'speakers')
 
-    linphone.set_log_handler(log_handler)
-    core = linphone.Core.new(callbacks, None, None)
-    core.video_capture_enabled = False  # remove both of these if we get video implemented
-    core.video_display_enabled = False
-    core.capture_device = config_capture
-    proxy_cfg = core.create_proxy_config()
-    proxy_cfg.identity_address = proxy_cfg.normalize_sip_uri("sip:" + username + "@" + server)
-    proxy_cfg.server_addr = "sip:" + server
-    proxy_cfg.register_enabled = True
+    def make_call(self, number, server, lq_file='recording.wav'):
+        """
+        Make a SIP call to a number on a server
+        :param number: number to call (should be a conference number)
+        :param server: server which hosts the call
+        :param lq_file: filename to store the LQ recordings
+        :return:
+        """
+        params = self.core.create_call_params(None)
+        params.record_file = lq_file
+        # Output file (on devel sys) is constant 128Kbps 8kHz 16 bit 1 channel PCM
+        params.audio_enabled = True
+        params.video_enabled = False
 
-    auth_info = linphone.Core.create_auth_info(core, username, None, password, None, None, server)
-    # References to linphone_auth_destroy() in api to securely delete auth_info?
+        url = 'sip:' + str(number) + '@' + server
 
-    core.add_proxy_config(proxy_cfg)
-    core.add_auth_info(auth_info)
+        self.call = self.core.invite_with_params(url, params)
 
-    make_call(core, 1001, server)
+        while self.call.media_in_progress():
+            self.hold_open()
 
-    # Below this is timeout code.  Will sys.exit after some time.
-    # Inherited from sample code, remove later.
-    # Tried to remove this whole block and the call didn't work anymore.
-    # I think everything is non blocking so we have to force the call to stay open.
-    iterate_timer = QTimer()
-    iterate_timer.timeout.connect(core.iterate)
-    stop_timer = QTimer()
-    stop_timer.timeout.connect(app.quit)
-    iterate_timer.start(20)
-    stop_timer.start(50000)
+        self.call.start_recording()
 
-    exitcode = app.exec_()
-    sys.exit(exitcode)
+    def mute_mic(self):
+        """
+        Handles muting the Linphone. core.mic_enable is built-in
+        :return: None
+        """
+        self.core.mic_enabled = False
+
+    def unmute_mic(self):
+        """
+        Handles un-muting the Linphone. core.mic_enable is built-in
+        :return: None
+        """
+        self.core.mic_enabled = True
+
+    def hold_open(self, total_time=-1, cycle_time=0.03):
+        if total_time != -1:
+            cycles = int(total_time / cycle_time)  # We don't care about being exact
+            for i in range(0, cycles):
+                self.core.iterate()
+                time.sleep(cycle_time)
+        else:
+            self.core.iterate()
+            time.sleep(cycle_time)  # I don't know why this value but it's what is used in RPi Example Code
+
+    def get_playback_devices(self):
+        """
+        Retrieves references to all available playback devices
+        :return: list of playback device strings
+        """
+        playback_devices = []
+        # Get the available sound devices
+        for device in self.core.sound_devices:
+            # Check if the device can play sound
+            if self.core.sound_device_can_playback(device):
+                playback_devices.append(device)
+        return playback_devices
+
+    # TODO: add call to reload_sound_devices() somewhere
+    # This refreshes the list of available sound devices (such as USB event)
+    def get_recording_devices(self):
+        """
+        Retrieves references to all available recording devices
+        :return: list of recording device strings
+        """
+        recording_devices = []
+        for device in self.core.sound_devices:
+            if self.core.sound_device_can_capture(device):
+                recording_devices.append(device)
+        return recording_devices
+
+    def add_proxy_config(self):
+        proxy_cfg = self.core.create_proxy_config()
+        proxy_cfg.identity_address = proxy_cfg.normalize_sip_uri("sip:" +
+                                                                 self.config.get('ConnectionDetails', 'user') +
+                                                                 "@" +
+                                                                 self.config.get('ConnectionDetails', 'server'))
+        proxy_cfg.server_addr = "sip:" + self.config.get('ConnectionDetails', 'server')
+        proxy_cfg.register_enabled = True
+        self.core.add_proxy_config(proxy_cfg)
+        debug_logger.info("Added proxy config")
+
+    def add_auth_info(self):
+        auth_info = self.core.create_auth_info(self.config.get('ConnectionDetails', 'user'),
+                                               None,
+                                               self.config.get('ConnectionDetails', 'password'),
+                                               None,
+                                               None,
+                                               self.config.get('ConnectionDetails', 'server'))
+        # References to linphone_auth_destroy() in api to securely delete auth_info?
+
+        self.core.add_auth_info(auth_info)
+        debug_logger.info("Added auth info")
 
 
 def parse_conn_string(conn_string):
+    """
+    Decode the connection string and return its elements
+    :param conn_string: Base64 encoded connection string
+    :return: List containing decoded username, password, and server
+    """
     decoded = base64.b64decode(conn_string)
     mark1 = decoded.find(';')
     mark2 = decoded.rfind(';')
@@ -93,23 +164,32 @@ def parse_conn_string(conn_string):
 
 
 def make_conn_string(username, password, server):
-    # For now, conn_string will be sourced from conn.conf
-    # Eventually, it will be passed in through the GUI
-    # If the b64 encoded conn_strings get too long, we can try compressing them
+    """
+    Given a username, password, and server address, base64 encode them together
+    :param username: username (or phone number) to register to the SIP server
+    :param password: password associated with the username
+    :param server: IP or hostname of the SIP server
+    :return: a base 64 encoded string containing all parameters
+    """
     conn_string = username + ';' + password + ";" + server
     return base64.b64encode(conn_string)
 
+if __name__ == '__main__':
+    debug_logger.info("Making LinPhone.Core")
+    phone = HQCPhone(config)
 
-def make_call(core, number, server):
-    params = core.create_call_params(None)
-    params.record_file = './recording.snd'  # I have no idea what format it will dump into
-    # Start recording with linphone.Call.start_recording()
-    params.audio_enabled = True
-    params.video_enabled = False
+    debug_logger.info("Adding proxy config")
+    phone.add_proxy_config()
 
-    url = 'sip:' + str(number) + '@' + server
+    debug_logger.info("Adding authentication info")
+    phone.add_auth_info()
 
-    core.invite_with_params(url, params)
+    debug_logger.info("Dialing...")
+    phone.make_call(1001, config.get('ConnectionDetails', 'server'))
 
-
-main()
+    while True:
+        phone.hold_open(5)
+        phone.mute_mic()
+        phone.hold_open(2)
+        phone.unmute_mic()
+        phone.hold_open(10)

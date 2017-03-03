@@ -59,26 +59,26 @@ ScreenManager:
     SettingsScreen:
         TextInput:
             id: setting1
-            size_hint: (.5, .15)
+            size_hint: (.5, .10)
             text_size: root.width, None
-            font_size: '35sp'
+            font_size: '25sp'
             multiline: False
-            pos: (350, 400)
+            pos: (170, 480)
         TextInput:
             id: setting2
-            size_hint: (.5, .15)
+            size_hint: (.5, .10)
             text_size: root.width, None
-            font_size: '35sp'
+            font_size: '25sp'
             multiline: False
-            pos: (350, 300)
+            pos: (170, 415)
         TextInput:
             id: setting3
-            size_hint: (.5, .15)
+            size_hint: (.5, .10)
             text_size: root.width, None
-            font_size: '35sp'
+            font_size: '25sp'
             multiline: False
             password: True
-            pos: (350, 200)
+            pos: (170, 350)
 <MainScreen>:
     name: "main"
     Button:
@@ -152,23 +152,91 @@ ScreenManager:
         text_size: root.width, None
         size: self.texture_size
         font_size: '35sp'
-        pos: (86, 150)
+        pos: (40, 150)
         bold: True
 <SessionScreen>:
     name: "session"
+    ActionBar:
+        ActionView:
+            ActionPrevious:
+                title: 'HQC: Session Name'
+                with_previous: False
+            ActionOverflow:
+            ActionToggleButton:
+                background_normal: '../img/muted.png'
+                group: 'volume'
+                state: 'down'
+            ActionToggleButton:
+                background_normal: '../img/microphone.png'
+                group: 'volume'
+
+            ActionButton:
+                background_down: 'atlas://data/images/defaulttheme/audio-volume-high'
+                background_normal: 'atlas://data/images/defaulttheme/audio-volume-low'
+
+            ActionButton:
+                text: 'Btn3'
+            ActionButton:
+                text: 'Btn4'
+            ActionGroup:
+                text: 'Group1'
+                ActionButton:
+                    text: 'Btn5'
+                ActionButton:
+                    text: 'Leave Session'
+                    on_release: app.root.current = "main"
     Button:
         id: record
-        text: "Record"
+        text: 'Record'
         font_size: '25sp'
-        size_hint: (.5, .5)
-        pos: (400, 0)
-        on_press: root.record_audio()
+        size_hint: (.25, .25)
+        pos: (100, 100)
+        on_press: root.begin_Recording()
     Button:
-        id: producer
-        text: "Leave Session"
-        font_size: '25sp'
-        size_hint: (.5, .5)
-        on_release: app.root.current = "main"
+        id: crop
+        text: 'Crop Out'
+        font_size: '18sp'
+        size_hint: (.11, .07)
+        pos: (310, 208)
+    Button:
+        id: save
+        text: 'Save'
+        font_size: '18sp'
+        size_hint: (.11, .17)
+        pos: (310, 100)
+
+    TabbedPanel:
+        size_hint: (.4, .9)
+        pos_hint: {'center_x': .8, 'center_y': .55}
+        do_default_tab: False
+        TabbedPanelItem:
+            tab_width: 300
+            text: 'Select Clips'
+            ScrollView:
+                BoxLayout:
+                    id: boxGrid
+        TabbedPanelItem:
+            text: 'Edit Tools'
+            tab_width: 400
+            GridLayout:
+                cols: 1
+                Button:
+                    id: menuCrop
+                    text: 'Crop Out'
+                    font_size: '18sp'
+                Button:
+                    id: menuSave
+                    text: 'Save'
+                    font_size: '18sp'
+                Button:
+                    id: undo
+                    text: 'Undo'
+                    font_size: '18sp'
+                Button:
+                    id: redo
+                    text: 'Redo'
+                    font_size: '18sp'
+
 <SettingsScreen>
     name: "settings"
     Button:
@@ -182,34 +250,34 @@ ScreenManager:
         pos: (625, 525)
         on_release: app.root.current = 'main'
     Label:
-        text: 'Setting 1'
+        text: 'Username'
         text_size: root.width, None
         size: self.texture_size
-        font_size: '35sp'
-        pos: (170, 150)
+        font_size: '25sp'
+        pos: (30, 215)
         bold: True
     Label:
-        text: 'Setting 2'
+        text: 'Microphone'
         text_size: root.width, None
         size: self.texture_size
-        font_size: '35sp'
-        pos: (170, 50)
+        font_size: '25sp'
+        pos: (20, 150)
         bold: True
     Label:
-        text: 'Setting 3'
+        text: 'Spreakers'
         text_size: root.width, None
         size: self.texture_size
-        font_size: '35sp'
-        pos: (170, -50)
+        font_size: '25sp'
+        pos: (30, 85)
         bold: True
     Button:
         id: save_settings
         text: 'Save Settings'
         halign: 'center'
         valign: 'middle'
-        size_hint: (.25, .15)
+        size_hint: (.25, .10)
         text_size: root.width, None
         font_size: '25sp'
-        pos: (450, 20)
+        pos: (300, 50)
         on_release: app.root.current = 'main'
 
