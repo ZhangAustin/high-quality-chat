@@ -87,6 +87,8 @@ ScreenManager:
             multiline: False
             password: True
             pos: (170, 350)
+    FileTransferScreen:
+
 <MainScreen>:
     name: "main"
     Button:
@@ -192,7 +194,7 @@ ScreenManager:
                     text: 'Btn5'
                 ActionButton:
                     text: 'Leave Session'
-                    on_release: app.root.current = "main"
+                    on_release: app.root.current = "filetransfer"
     Button:
         id: record
         text: 'Record'
@@ -298,4 +300,19 @@ ScreenManager:
         font_size: '25sp'
         pos: (300, 50)
         on_release: app.root.current = 'main'
-
+<FileTransferScreen>
+    name: "filetransfer"
+    BoxLayout:
+        id: filelayout
+        orientation: 'vertical'
+        padding: [0, 0, 0, 150]
+    Button:
+        id: leave_file
+        text: 'Return to Main Menu'
+        halign: 'center'
+        valign: 'middle'
+        size_hint: (.4, .10)
+        text_size: root.width, None
+        font_size: '25sp'
+        pos: (250, 50)
+        on_release: app.root.current = 'main'
