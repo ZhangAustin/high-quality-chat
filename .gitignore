@@ -3,6 +3,7 @@
 conn.conf
 *.wav
 *.mp3
+.DS_Store
 
 
 # Created by .ignore support plugin (hsz.mobi)
