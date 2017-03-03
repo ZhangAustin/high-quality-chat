@@ -35,7 +35,7 @@ class MyWSClient(WebSocketClient):
         payload['filename'] = fh.name
         self.send(str(json.dumps(payload)), True)
         fh.close()
-        self.close()
+        # self.close()
 
 if __name__ == '__main__':
     try:

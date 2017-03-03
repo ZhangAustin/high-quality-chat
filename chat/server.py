@@ -2,6 +2,7 @@ from gevent import monkey; monkey.patch_all()
 from ws4py.websocket import EchoWebSocket
 from ws4py.server.geventserver import WSGIServer
 from ws4py.server.wsgiutils import WebSocketWSGIApplication
+import sys
 
 import json
 import constants
@@ -10,12 +11,16 @@ import ntpath
 import time
 import datetime
 
+#from config import Config
+#config = Config()
+
 def path_leaf(path):
     head, tail = ntpath.split(path)
     return tail or ntpath.basename(head)
 
 class MyWebsocket(EchoWebSocket):
     def opened(self):
+        print self.environ
         app = self.environ['ws4py.app']
         app.clients.append(self)
         print "%d clients connected" % (len(app.clients))
@@ -35,12 +40,15 @@ class MyWebsocket(EchoWebSocket):
 
     def handle_file_transfer(self, received_message):
         payload = json.loads(str(received_message))
-        filename = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d%H:%M:%S')
-        fh = open(path_leaf(filename) + '.wav', 'wb')
+        filename = datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H%M%S') + '.wav'
+        fh = open('./recordings/' + path_leaf(filename), 'wb')
         fh.write(base64.b64decode(payload['content']))
         fh.close()
+        message = "http://localhost:5000/recordings/" + filename
+        downloadPath = {"username": "Server", "message": message}
+        downloadPath["type"] = constants.CHAT
         for client in self.environ['ws4py.app'].clients:
-            client.send(filename + " has been saved", False)
+            client.send(json.dumps(downloadPath), False)
 
     def closed(self, code, reason="A client left the room without a proper explanation."):
         app = self.environ.pop('ws4py.app')
@@ -60,9 +68,15 @@ class MyWebSocketApplication(object):
         return self.ws(environ, start_response)
 
 if __name__ == '__main__':
+    #IP_ADDRESS = config.get("chat_settings", "IP_ADDRESS")
     try:
-        server = WSGIServer(('localhost', 9000), MyWebSocketApplication('localhost', 9000))
-        print "Running server on port 9000"
+        try:
+            PORT = int(sys.argv[1])
+        except IndexError:
+            print "Port not specified"
+            sys.exit(0)
+        server = WSGIServer(('localhost', PORT), MyWebSocketApplication('localhost', PORT))
+        print "Running server on port " + str(PORT)
         server.serve_forever()
     except KeyboardInterrupt:
         server.close()

@@ -19,11 +19,6 @@ class MyChatClient(WebSocketClient):
         message = str(message)
         parsed_json = json.loads(message)
         print "[%s]: %s" % (parsed_json['username'], parsed_json['message'])
-    # def chat(self):
-    #     message = raw_input("Message: ")
-    #     payload = {"username": self.username, "message": message}
-    #     self.send(json.dumps(payload), False)
-    #     chat()
 
 if __name__ == '__main__':
     try:
