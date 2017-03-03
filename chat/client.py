@@ -40,7 +40,9 @@ class MyWSClient(WebSocketClient):
 if __name__ == '__main__':
     try:
         username = raw_input("Enter username: ")
-        ws = MyWSClient(username, 'ws://127.0.0.1:9000/', protocols=['http-only', 'chat'])
+        IP = '127.0.0.1'
+        PORT = '9000'
+        ws = MyWSClient(username, 'ws://' + IP + ':' + PORT + '/', protocols=['http-only', 'chat'])
         ws.connect()
         wst = threading.Thread(target=ws.run_forever)
         wst.daemon = True
