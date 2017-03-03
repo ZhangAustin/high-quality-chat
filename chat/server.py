@@ -6,7 +6,11 @@ from ws4py.server.wsgiutils import WebSocketWSGIApplication
 import json
 import constants
 import base64
+import ntpath
 
+def path_leaf(path):
+    head, tail = ntpath.split(path)
+    return tail or ntpath.basename(head)
 
 class MyWebsocket(EchoWebSocket):
     def opened(self):
@@ -30,7 +34,7 @@ class MyWebsocket(EchoWebSocket):
     def handle_file_transfer(self, received_message):
         payload = json.loads(str(received_message))
         filename = payload['filename']
-        fh = open(filename, 'wb')
+        fh = open("rev-" + path_leaf(filename), 'wb')
         fh.write(base64.b64decode(payload['content']))
         fh.close()
         for client in self.environ['ws4py.app'].clients:
@@ -55,7 +59,7 @@ class MyWebSocketApplication(object):
 
 if __name__ == '__main__':
     try:
-        server = WSGIServer(('127.0.0.1', 9000), MyWebSocketApplication('127.0.0.1', 9000))
+        server = WSGIServer(('localhost', 9000), MyWebSocketApplication('localhost', 9000))
         print "Running server on port 9000"
         server.serve_forever()
     except KeyboardInterrupt:

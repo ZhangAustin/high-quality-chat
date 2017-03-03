@@ -2,6 +2,7 @@ from ws4py.client.threadedclient import WebSocketClient
 import json
 import constants
 import base64
+import threading
 
 class MyWSClient(WebSocketClient):
     def __init__(self, username, *args, **kwargs):
@@ -9,8 +10,7 @@ class MyWSClient(WebSocketClient):
         self.username = username
 
     def opened(self):
-        # self.chat()
-        self.sendFile('./recordings/amy.wav')
+        print "Connection opened"
 
     @staticmethod
     def closed(code, reason=None):
@@ -24,8 +24,9 @@ class MyWSClient(WebSocketClient):
         self.send(json.dumps(payload), False)
         self.chat()
 
-    def sendFile(self, filepath):
-        print "Sending file"
+    def sendFile(self, filepath=None):
+        if not filepath:
+            filepath = raw_input("Insert filepath of file to send: ")
         fh = open(filepath, 'rb')
         content = base64.b64encode(fh.read())
         payload = {}
@@ -41,6 +42,9 @@ if __name__ == '__main__':
         username = raw_input("Enter username: ")
         ws = MyWSClient(username, 'ws://127.0.0.1:9000/', protocols=['http-only', 'chat'])
         ws.connect()
-        ws.run_forever()
+        wst = threading.Thread(target=ws.run_forever)
+        wst.daemon = True
+        wst.start()
+        ws.sendFile()
     except KeyboardInterrupt:
         ws.close()
