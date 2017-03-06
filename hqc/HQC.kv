@@ -56,6 +56,15 @@ ScreenManager:
             pos: (450, 20)
             on_release: self.parent.gettext(artconnection.text)
     SessionScreen:
+        TextInput:
+            id: chatText
+            size_hint: (.50, .10)
+            text_size: root.width, None
+            font_size: '18sp'
+            multiline: False
+            on_text_validate: self.parent.sendmessage(chatText.text)
+
+            pos: (10, 300)
     SettingsScreen:
         TextInput:
             id: setting1
@@ -79,6 +88,8 @@ ScreenManager:
             multiline: False
             password: True
             pos: (170, 350)
+    FileTransferScreen:
+
 <MainScreen>:
     name: "main"
     Button:
@@ -112,7 +123,7 @@ ScreenManager:
             font_size: '20sp'
         Button:
             id: artist
-            text: "I'm an artist"
+            text: "I'm an Artist"
             on_release: app.root.current = "artistsessionjoining"
             size_hint: (.33, 1)
             font_size: '20sp'
@@ -162,29 +173,19 @@ ScreenManager:
                 title: 'HQC: Session Name'
                 with_previous: False
             ActionOverflow:
-            ActionToggleButton:
-                background_normal: '../img/muted.png'
+            ActionButton:
+                id: mute_button
+                background_normal: root.unmuted_mic_image
                 group: 'volume'
-                state: 'down'
-            ActionToggleButton:
-                background_normal: '../img/microphone.png'
-                group: 'volume'
-
+                on_press: root.toggle_mute()
             ActionButton:
                 background_down: 'atlas://data/images/defaulttheme/audio-volume-high'
                 background_normal: 'atlas://data/images/defaulttheme/audio-volume-low'
-
-            ActionButton:
-                text: 'Btn3'
-            ActionButton:
-                text: 'Btn4'
             ActionGroup:
                 text: 'Group1'
                 ActionButton:
-                    text: 'Btn5'
-                ActionButton:
                     text: 'Leave Session'
-                    on_release: app.root.current = "main"
+                    on_release: app.root.current = "filetransfer"
     Button:
         id: record
         text: 'Record'
@@ -198,6 +199,7 @@ ScreenManager:
         font_size: '18sp'
         size_hint: (.11, .07)
         pos: (310, 208)
+        on_release: self.parent.gettext(chatText.text)
     Button:
         id: save
         text: 'Save'
@@ -214,7 +216,7 @@ ScreenManager:
             text: 'Select Clips'
             ScrollView:
                 BoxLayout:
-                    id: boxGrid
+                    id: audioSidebar
         TabbedPanelItem:
             text: 'Edit Tools'
             tab_width: 400
@@ -236,7 +238,20 @@ ScreenManager:
                     id: redo
                     text: 'Redo'
                     font_size: '18sp'
-
+    BoxLayout:
+        ScrollView:
+            size_hint: (None, None)
+            size: (400, 200)
+            pos_hint: {'center_x':.3, 'center_y':.78}
+            scroll_y: 0
+            Label:
+                text: root.chatmessages
+                markup: True
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1]
+                halign: 'left'
+                valign: 'top'
 <SettingsScreen>
     name: "settings"
     Button:
@@ -264,7 +279,7 @@ ScreenManager:
         pos: (20, 150)
         bold: True
     Label:
-        text: 'Spreakers'
+        text: 'Speakers'
         text_size: root.width, None
         size: self.texture_size
         font_size: '25sp'
@@ -280,4 +295,19 @@ ScreenManager:
         font_size: '25sp'
         pos: (300, 50)
         on_release: app.root.current = 'main'
-
+<FileTransferScreen>
+    name: "filetransfer"
+    BoxLayout:
+        id: filelayout
+        orientation: 'vertical'
+        padding: [0, 0, 0, 150]
+    Button:
+        id: leave_file
+        text: 'Return to Main Menu'
+        halign: 'center'
+        valign: 'middle'
+        size_hint: (.4, .10)
+        text_size: root.width, None
+        font_size: '25sp'
+        pos: (250, 50)
+        on_release: app.root.current = 'main'

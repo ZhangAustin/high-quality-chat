@@ -8,11 +8,14 @@ logging.config.fileConfig('../logging.conf')
 #  Reference logger
 debug_logger = logging.getLogger('debugLog')
 
-
 #  Inherits methods such as get() from SafeConfigParser
 class Config(ConfigParser.SafeConfigParser):
-
+    """Handles creation and updating of configuration settings."""
     def __init__(self, file):
+        """
+        Initializes config file at location given or with file already at location given.
+        :param file: File path to either create new config file or of already existing config file to use.
+        """
         ConfigParser.SafeConfigParser.__init__(self)
         self.file = file
         if not os.path.isfile(self.file):
@@ -54,10 +57,16 @@ class Config(ConfigParser.SafeConfigParser):
         with open(self.file, 'w') as config_file:
             self.write(config_file)
 
-    #  Add or update settings to config file
     def update_setting(self, section, option, value):
+        """
+        Add or update settings to config file.
+        :param section: Section of setting to update/add, will be added if does not exist
+        :param option: Desired setting to update/add
+        :param value: Value to set setting to
+        :return: None
+        """
         self.read(self.file)
-        #  Add a section if one dose not exist
+        #  Add a section if one does not exist
         if not self.has_section(section):
             self.add_section(section)
         #  Add/update the desired setting
