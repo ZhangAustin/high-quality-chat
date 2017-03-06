@@ -127,6 +127,7 @@ class SessionScreen(Screen):
     def getchat(self):
         self.chatmessages = "Updated Message"
     def sendmessage(self, message):
+        self.parent.ids.chatText.text = ''
         self.chatmessages += message
         self.chatmessages += "\n"
 
