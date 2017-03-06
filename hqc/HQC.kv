@@ -56,6 +56,14 @@ ScreenManager:
             pos: (450, 20)
             on_release: self.parent.gettext(artconnection.text)
     SessionScreen:
+        TextInput:
+            id: chatText
+            size_hint: (.50, .10)
+            text_size: root.width, None
+            font_size: '18sp'
+            multiline: False
+
+            pos: (10, 300)
     SettingsScreen:
         TextInput:
             id: setting1
@@ -162,14 +170,11 @@ ScreenManager:
                 title: 'HQC: Session Name'
                 with_previous: False
             ActionOverflow:
-            ActionToggleButton:
-                background_normal: '../img/muted.png'
+            ActionButton:
+                id: mute_button
+                background_normal: root.unmuted_mic_image
                 group: 'volume'
-                state: 'down'
-            ActionToggleButton:
-                background_normal: '../img/microphone.png'
-                group: 'volume'
-
+                on_press: root.toggle_mute()
             ActionButton:
                 background_down: 'atlas://data/images/defaulttheme/audio-volume-high'
                 background_normal: 'atlas://data/images/defaulttheme/audio-volume-low'
@@ -198,6 +203,7 @@ ScreenManager:
         font_size: '18sp'
         size_hint: (.11, .07)
         pos: (310, 208)
+        on_release: self.parent.gettext(chatText.text)
     Button:
         id: save
         text: 'Save'
@@ -214,7 +220,7 @@ ScreenManager:
             text: 'Select Clips'
             ScrollView:
                 BoxLayout:
-                    id: boxGrid
+                    id: audioSidebar
         TabbedPanelItem:
             text: 'Edit Tools'
             tab_width: 400
@@ -236,7 +242,16 @@ ScreenManager:
                     id: redo
                     text: 'Redo'
                     font_size: '18sp'
-
+    BoxLayout:
+        size_hint: (.58, .45)
+        pos_hint: {'center_x': .3, 'center_y': .76}
+        orientation: 'vertical'
+        Label:
+            text: '[i]Waiting for others to join...\n[/i][P. Burdell] [i]has joined the chat\n[/i][Ellen] [i] has joined the chat[/i]\n[P. Burdell]: Hi Ellen\n[Ellen] [i] has left the chat[/i]'
+            markup: True
+            text_size: self.size
+            halign: 'left'
+            valign: 'top'
 <SettingsScreen>
     name: "settings"
     Button:
@@ -264,7 +279,7 @@ ScreenManager:
         pos: (20, 150)
         bold: True
     Label:
-        text: 'Spreakers'
+        text: 'Speakers'
         text_size: root.width, None
         size: self.texture_size
         font_size: '25sp'
