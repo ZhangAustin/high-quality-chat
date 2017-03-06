@@ -7,6 +7,8 @@ from kivy.logger import FileHandler
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
+from kivy.properties import StringProperty
+from kivy.properties import ListProperty
 from kivy.uix.actionbar import ActionBar, ActionView, ActionButton
 from kivy.base import runTouchApp
 from kivy.uix.scrollview import ScrollView
@@ -68,6 +70,7 @@ class SessionScreen(Screen):
 
     unmuted_mic_image = '../img/microphone.png'
     muted_mic_image = '../img/muted.png'
+    chatmessages = StringProperty()
 
     def on_enter(self):
         global audioClipLayout
@@ -121,6 +124,11 @@ class SessionScreen(Screen):
             self.ids.mute_button.background_normal = SessionScreen.unmuted_mic_image
         else:
             self.ids.mute_button.background_normal = SessionScreen.muted_mic_image
+    def getchat(self):
+        self.chatmessages = "Updated Message"
+    def sendmessage(self, message):
+        self.chatmessages += message
+        self.chatmessages += "\n"
 
 class ProducerJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
