@@ -1,3 +1,4 @@
+
 import kivy
 from kivy.app import App
 from kivy.config import Config
@@ -28,12 +29,15 @@ from datetime import datetime
 import threading
 import signal
 import time
+
 NUMBER_OF_BUTTONS = 30
 audioClipLayout = GridLayout(cols=3, padding=10, spacing=5,
                     size_hint=(None, None), width=310)
 # layout2 = GridLayout(cols=1, padding=10, spacing=5,
 #                      size_hint=(None, None), width=410)
 startRecording = False
+micOn = False
+unmuted_mic_image = '../img/microphone.png'
 recorder = audio.Recorder("test")
 kivy.require('1.0.7')
 
@@ -62,6 +66,9 @@ class ScreenManager(ScreenManager):
 
 class SessionScreen(Screen):
 
+    unmuted_mic_image = '../img/microphone.png'
+    muted_mic_image = '../img/muted.png'
+
     def on_enter(self):
         global audioClipLayout
 
@@ -70,7 +77,6 @@ class SessionScreen(Screen):
         # to contain all the childs. (otherwise, we'll child outside the
         # bounding box of the childs)
         audioClipLayout.bind(minimum_height=audioClipLayout.setter('height'))
-
         # create a scroll view, with a size < size of the grid
         root = ScrollView(size_hint=(None, None), size=(310, 460),
                           pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
@@ -103,6 +109,18 @@ class SessionScreen(Screen):
             print "Done recording"
             self.add_clip()
 
+    def toggle_mute(self):
+        global micOn
+        micOn = not micOn
+        phone = HQCPhone(config)
+        # Toggles the linphone mic
+        phone.toggle_mic()
+
+        # Update the mic image
+        if phone.core.mic_enabled:
+            self.ids.mute_button.background_normal = SessionScreen.unmuted_mic_image
+        else:
+            self.ids.mute_button.background_normal = SessionScreen.muted_mic_image
 
 class ProducerJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
