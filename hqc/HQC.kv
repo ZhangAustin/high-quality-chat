@@ -170,14 +170,11 @@ ScreenManager:
                 title: 'HQC: Session Name'
                 with_previous: False
             ActionOverflow:
-            ActionToggleButton:
-                background_normal: '../img/muted.png'
+            ActionButton:
+                id: mute_button
+                background_normal: root.unmuted_mic_image
                 group: 'volume'
-                state: 'down'
-            ActionToggleButton:
-                background_normal: '../img/microphone.png'
-                group: 'volume'
-
+                on_press: root.toggle_mute()
             ActionButton:
                 background_down: 'atlas://data/images/defaulttheme/audio-volume-high'
                 background_normal: 'atlas://data/images/defaulttheme/audio-volume-low'

@@ -99,6 +99,9 @@ class HQCPhone(object):
         """
         self.core.mic_enabled = True
 
+    def toggle_mic(self):
+        self.core.mic_enabled = not self.core.mic_enabled
+
     def hold_open(self, total_time=-1, cycle_time=0.03):
         if total_time != -1:
             cycles = int(total_time / cycle_time)  # We don't care about being exact
