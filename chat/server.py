@@ -20,10 +20,12 @@ def path_leaf(path):
 
 class MyWebsocket(EchoWebSocket):
     def opened(self):
-        print self.environ
+        print dir(self)
         app = self.environ['ws4py.app']
         app.clients.append(self)
         print "%d clients connected" % (len(app.clients))
+        # payload = {"type": constants.ROLE_VERIFICATION}
+        # self.send(json.dumps(payload), False)
 
     def received_message(self, received_message):
         message_type = json.loads(str(received_message))['type']
@@ -31,6 +33,8 @@ class MyWebsocket(EchoWebSocket):
             self.handle_chat_message(received_message)
         elif message_type == constants.FILE:
             self.handle_file_transfer(received_message)
+        elif message_type == constants.ROLE_VERIFICATION:
+            self.handle_role_verification(received_message)
 
     def handle_chat_message(self, received_message):
         app = self.environ['ws4py.app']
@@ -39,21 +43,28 @@ class MyWebsocket(EchoWebSocket):
         print "Sent message to %d clients" % (len(app.clients))
 
     def handle_file_transfer(self, received_message):
-        payload = json.loads(str(received_message))
-        filename = datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H%M%S') + '.wav'
-        fh = open('./recordings/' + path_leaf(filename), 'wb')
-        fh.write(base64.b64decode(payload['content']))
-        fh.close()
-        message = "http://localhost:5000/recordings/" + filename
-        downloadPath = {"username": "Server", "message": message}
-        downloadPath["type"] = constants.CHAT
+        # payload = json.loads(str(received_message))
+        # filename = payload['filename']
+        # fh = open('./recordings/' + path_leaf(filename), 'wb')
+        # fh.write(base64.b64decode(payload['content']))
+        # fh.close()
+        # message = "http://localhost:5000/recordings/" + filename
+        # downloadPath = {"username": "Server", "message": message}
+        # downloadPath["type"] = constants.CHAT
         for client in self.environ['ws4py.app'].clients:
-            client.send(json.dumps(downloadPath), False)
+            if client.role == constants.PRODUCER:
+                client.send(received_message, False)
+
+    def handle_role_verification(self, received_message):
+        parsed_json = json.loads(str(received_message))
+        self.username = parsed_json['username']
+        self.role = parsed_json['role']
 
     def closed(self, code, reason="A client left the room without a proper explanation."):
         app = self.environ.pop('ws4py.app')
         if self in app.clients:
             app.clients.remove(self)
+        print "%d clients connected" % (len(app.clients))
 
 
 class MyWebSocketApplication(object):
