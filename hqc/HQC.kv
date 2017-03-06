@@ -238,16 +238,20 @@ ScreenManager:
                     id: redo
                     text: 'Redo'
                     font_size: '18sp'
-    ScrollView:
-        Label:
-            text: root.chatmessages
-            markup: True
-            size: self.size
-            text_size: self.width, None
-            size_hint_y: None
-            height: self.texture_size[1]
-            halign: 'left'
-            valign: 'top'
+    BoxLayout:
+        ScrollView:
+            size_hint: (None, None)
+            size: (400, 200)
+            pos_hint: {'center_x':.3, 'center_y':.78}
+            scroll_y: 0
+            Label:
+                text: root.chatmessages
+                markup: True
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1]
+                halign: 'left'
+                valign: 'top'
 <SettingsScreen>
     name: "settings"
     Button:
