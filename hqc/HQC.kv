@@ -212,8 +212,17 @@ ScreenManager:
             tab_width: 300
             text: 'Select Clips'
             ScrollView:
-                BoxLayout:
+                size_hint: (None, None)
+                size: (310, 460)
+                pos_hint: {'center_x': .5, 'center_y': .5}
+                do_scroll_x: False
+                GridLayout:
                     id: audioSidebar
+                    cols: 3
+                    padding: 10
+                    spacing: 5
+                    size_hint: (None, None)
+                    width: 310
         TabbedPanelItem:
             text: 'Edit Tools'
             tab_width: 400

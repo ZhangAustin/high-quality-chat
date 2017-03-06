@@ -30,8 +30,8 @@ import signal
 import time
 
 NUMBER_OF_BUTTONS = 30
-audioClipLayout = GridLayout(cols=3, padding=10, spacing=5,
-                    size_hint=(None, None), width=310)
+# audioClipLayout = GridLayout(cols=3, padding=10, spacing=5,
+#                     size_hint=(None, None), width=310)
 # layout2 = GridLayout(cols=1, padding=10, spacing=5,
 #                      size_hint=(None, None), width=410)
 startRecording = False
@@ -69,22 +69,22 @@ class SessionScreen(Screen):
     muted_mic_image = '../img/muted.png'
 
     def on_enter(self):
-        global audioClipLayout
+        # global audioClipLayout
 
         # when we add children to the grid layout, its size doesn't change at
         # all. we need to ensure that the height will be the minimum required
         # to contain all the childs. (otherwise, we'll child outside the
         # bounding box of the childs)
-        audioClipLayout.bind(minimum_height=audioClipLayout.setter('height'))
+        self.ids.audioSidebar.bind(minimum_height=self.ids.audioSidebar.setter('height'))
         # create a scroll view, with a size < size of the grid
-        root = ScrollView(size_hint=(None, None), size=(310, 460),
-                          pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
-        root.add_widget(audioClipLayout)
-        self.ids.audioSidebar.add_widget(root)
+        # root = ScrollView(size_hint=(None, None), size=(310, 460),
+        #                   pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
+        # root.add_widget(audioClipLayout)
+        # self.ids.audioSidebar.add_widget(root)
 
-    @staticmethod
-    def add_clip():
-        global audioClipLayout
+    
+    def add_clip(self):
+        # global audioClipLayout
 
         label = Label(text = datetime.now().strftime('%I:%M:%S %p'), halign='left', size_hint=(.5, 0.2))
         btn = Button(background_normal= '../img/play.png',
@@ -92,9 +92,9 @@ class SessionScreen(Screen):
         btn2 = Button(text="Request", size=(100, 50),
                       size_hint=(0.32, None))
 
-        audioClipLayout.add_widget(btn)
-        audioClipLayout.add_widget(label)
-        audioClipLayout.add_widget(btn2)
+        self.ids.audioSidebar.add_widget(btn)
+        self.ids.audioSidebar.add_widget(label)
+        self.ids.audioSidebar.add_widget(btn2)
 
     def begin_Recording(self):
         global startRecording
