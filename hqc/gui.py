@@ -7,11 +7,14 @@ from kivy.logger import FileHandler
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
+from kivy.properties import StringProperty
+from kivy.properties import ListProperty
 from kivy.uix.actionbar import ActionBar, ActionView, ActionButton
 from kivy.base import runTouchApp
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.progressbar import ProgressBar
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.screenmanager import ScreenManager, Screen
 import audio
@@ -67,6 +70,7 @@ class SessionScreen(Screen):
 
     unmuted_mic_image = '../img/microphone.png'
     muted_mic_image = '../img/muted.png'
+    chatmessages = StringProperty()
 
     def on_enter(self):
         global audioClipLayout
@@ -120,6 +124,11 @@ class SessionScreen(Screen):
             self.ids.mute_button.background_normal = SessionScreen.unmuted_mic_image
         else:
             self.ids.mute_button.background_normal = SessionScreen.muted_mic_image
+    def getchat(self):
+        self.chatmessages = "Updated Message"
+    def sendmessage(self, message):
+        self.chatmessages += message
+        self.chatmessages += "\n"
 
 class ProducerJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
@@ -201,6 +210,18 @@ class ArtistJoiningScreen(Screen):
 class SettingsScreen(Screen):
     pass
 
+class FileTransferScreen(Screen):
+
+    def on_enter(self):
+        files = [["File 1", 60], ["File 2", 40], ["File 3", 80], ["File 4", 20]]
+        for file in files:
+            print(file[0])
+            progress = ProgressBar(max=100)
+            progress.value = file[1]
+            filename = file[0]
+            label = Label(text=filename, size_hint=(1/len(files), None))
+            self.ids.filelayout.add_widget(label)
+            self.ids.filelayout.add_widget(progress)
 if __name__ == '__main__':
     HQC().run()
 
