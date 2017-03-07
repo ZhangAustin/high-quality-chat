@@ -4,7 +4,9 @@ ScreenManager:
     id: screen_manager
     transition: FadeTransition()
     MainScreen:
+        manager: screen_manager
     ProducerJoiningScreen:
+        manager: screen_manager
         TextInput:
             id: servername
             size_hint: (.5, .15)
@@ -38,6 +40,7 @@ ScreenManager:
             pos: (450, 20)
             on_release: self.parent.gettext(servername.text, username.text, password.text)
     ArtistJoiningScreen:
+        manager: screen_manager
         TextInput:
             id: artconnection
             size_hint: (.5, .15)
@@ -56,6 +59,7 @@ ScreenManager:
             pos: (450, 20)
             on_release: self.parent.gettext(artconnection.text)
     SessionScreen:
+        manager: screen_manager
         TextInput:
             id: chatText
             size_hint: (.50, .10)
@@ -66,6 +70,7 @@ ScreenManager:
 
             pos: (10, 300)
     SettingsScreen:
+        manager: screen_manager
         TextInput:
             id: setting1
             size_hint: (.5, .10)
@@ -89,6 +94,7 @@ ScreenManager:
             password: True
             pos: (170, 350)
     FileTransferScreen:
+        manager: screen_manager
 
 <MainScreen>:
     name: "main"

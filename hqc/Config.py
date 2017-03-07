@@ -8,6 +8,7 @@ logging.config.fileConfig('../logging.conf')
 #  Reference logger
 debug_logger = logging.getLogger('debugLog')
 
+
 #  Inherits methods such as get() from SafeConfigParser
 class Config(ConfigParser.SafeConfigParser):
     """Handles creation and updating of configuration settings."""
@@ -74,6 +75,3 @@ class Config(ConfigParser.SafeConfigParser):
         #  Write the settings back to disk
         with open(self.file, "w") as config_file:
             self.write(config_file)
-
-#  Initialize Config on import. Reference this config for usage
-config = Config("conn.conf")

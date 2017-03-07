@@ -7,8 +7,7 @@ from kivy.logger import FileHandler
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
-from kivy.properties import StringProperty
-from kivy.properties import ListProperty
+from kivy.properties import ListProperty, ObjectProperty, StringProperty
 from kivy.uix.actionbar import ActionBar, ActionView, ActionButton
 from kivy.base import runTouchApp
 from kivy.uix.scrollview import ScrollView
@@ -21,9 +20,7 @@ import audio
 import base64
 from kivy.uix.popup import Popup
 from hqc import HQCPhone
-import Config
-import ConfigParser
-import os
+from Config import Config
 import logging
 import audio
 import datetime
@@ -47,15 +44,18 @@ kivy.require('1.0.7')
 logging.config.fileConfig('../logging.conf')
 #  Reference logger
 gui_logger = logging.getLogger('gui')
-#  Reference config object in Config
-config = Config.config
 
 
 class HQC(App):
+    """
+    This represents the main application class
+    """
     def build(self):
-        gui_logger.debug("Starting GUI")
-        gui = Builder.load_file("HQC.kv")
-        return gui
+        gui_logger.debug("Build HQC application")
+        self.config = Config("conn.conf")
+        self.phone = HQCPhone(self.config)
+        self.root = Builder.load_file("HQC.kv")
+        self.root.app = self
 
 
 class MainScreen(Screen):
@@ -63,10 +63,11 @@ class MainScreen(Screen):
 
 
 class ScreenManager(ScreenManager):
-    pass
+    app = ObjectProperty(None)
 
 
 class SessionScreen(Screen):
+    app = ObjectProperty(None)
 
     unmuted_mic_image = '../img/microphone.png'
     muted_mic_image = '../img/muted.png'
@@ -115,12 +116,11 @@ class SessionScreen(Screen):
     def toggle_mute(self):
         global micOn
         micOn = not micOn
-        phone = HQCPhone(config)
         # Toggles the linphone mic
-        phone.toggle_mic()
+        self.app.phone.toggle_mic()
 
         # Update the mic image
-        if phone.core.mic_enabled:
+        if self.app.phone.core.mic_enabled:
             self.ids.mute_button.background_normal = SessionScreen.unmuted_mic_image
         else:
             self.ids.mute_button.background_normal = SessionScreen.muted_mic_image
@@ -132,26 +132,28 @@ class SessionScreen(Screen):
         self.chatmessages += "\n"
 
 class ProducerJoiningScreen(Screen):
+    app = ObjectProperty(None)
+
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
     def gettext(self, servername, username, password):
-
-        config = Config.Config("conn.conf")
+        # Reference App
+        app = self.parent.app
         if servername != '':
-            config.update_setting('ConnectionDetails', 'server', servername)
+            app.config.update_setting('ConnectionDetails', 'server', servername)
         else:
-            servername = config.get('ConnectionDetails', 'server')
+            servername = app.config.get('ConnectionDetails', 'server')
         if username != '':
-            config.update_setting('ConnectionDetails', 'user', username)
+            app.config.update_setting('ConnectionDetails', 'user', username)
         else:
-            username = config.get('ConnectionDetails', 'user')
+            username = app.config.get('ConnectionDetails', 'user')
         if password != '':
-            config.update_setting('ConnectionDetails', 'password', password)
+            app.config.update_setting('ConnectionDetails', 'password', password)
         else:
-            password = config.get('ConnectionDetails', 'password')
+            password = app.config.get('ConnectionDetails', 'password')
         conn_string = username + ';' + password + ";" + servername
         encoded = base64.b64encode(conn_string)
-        config.update_setting('ConnectionDetails', 'conn_string', encoded)
+        app.config.update_setting('ConnectionDetails', 'conn_string', encoded)
         self.parent.current = 'session'
 
         #  Make BoxLayout for multiple items
@@ -170,16 +172,18 @@ class ProducerJoiningScreen(Screen):
         # Open the popup
         popup.open()
 
-        phone = HQCPhone(config)
-        phone.add_proxy_config()
-        phone.add_auth_info()
-        phone.make_call(1001, config.get('ConnectionDetails', 'server'))
+        app.phone.add_proxy_config()
+        app.phone.add_auth_info()
+        app.phone.make_call(1001, app.config.get('ConnectionDetails', 'server'))
 
 
 class ArtistJoiningScreen(Screen):
+    app = ObjectProperty(None)
+
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
     def gettext(self, constring):
+        app = self.parent.app
         try:
             decoded = base64.b64decode(constring)
             mark1 = decoded.find(';')
@@ -188,18 +192,17 @@ class ArtistJoiningScreen(Screen):
             password = decoded[mark1 + 1:mark2]
             server = decoded[mark2 + 1:]
             if server != '':
-                config.update_setting('ConnectionDetails', 'server', server)
+                app.config.update_setting('ConnectionDetails', 'server', server)
             if username != '':
-                config.update_setting('ConnectionDetails', 'user', username)
+                app.config.update_setting('ConnectionDetails', 'user', username)
             if password != '':
-                config.update_setting('ConnectionDetails', 'password', password)
+                app.config.update_setting('ConnectionDetails', 'password', password)
 
             self.parent.current = 'session'
 
-            phone = HQCPhone(config)
-            phone.add_proxy_config()
-            phone.add_auth_info()
-            phone.make_call(1001, config.get('ConnectionDetails', 'server'))
+            app.phone.add_proxy_config()
+            app.phone.add_auth_info()
+            app.phone.make_call(1001, app.config.get('ConnectionDetails', 'server'))
         except:
             errormessage = 'Sorry, that string is not valid'
             popup = Popup(title='Connection String Error',
