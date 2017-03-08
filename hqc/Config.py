@@ -44,7 +44,7 @@ class Config(ConfigParser.SafeConfigParser):
                 self.add_section(section)
             for option in sections[section]:
                 if not self.has_option(section, option):
-                    self.set(section, option, None)
+                    self.set(section, option, "None")
 
     def update_setting(self, section, option, value):
         """
