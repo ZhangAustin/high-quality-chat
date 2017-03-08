@@ -112,6 +112,17 @@ def playback(filename, start, end=None, playback_time=None):
         play(audio)
 
 
+def get_length(filename):
+    """
+    Get the length of an audio file suitable for use in playback()
+    :param filename: Location of audio file
+    :return: length of file in seconds
+    """
+    file_name, file_extension = os.path.splitext(filename)
+    audio = AudioSegment.from_file(filename, file_extension)
+    return float(len(audio) / 1000)
+
+
 if __name__ == '__main__':
     recorder = Recorder('async.mp3')
     print "Starting recording async.mp3"
