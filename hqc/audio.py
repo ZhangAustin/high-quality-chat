@@ -1,6 +1,5 @@
 import Queue
 import os
-import sys
 import time
 import wave
 from threading import Thread
@@ -8,7 +7,6 @@ from threading import Thread
 import pyaudio
 from pydub import AudioSegment
 from pydub.playback import play
-from pydub.utils import make_chunks
 
 
 class Recorder:
@@ -85,29 +83,6 @@ class Recorder:
             data = self._frames.get()
             self._output.writeframes(b''.join(data))
             self._frames.task_done()
-
-
-def split_audio_file(self, file_path, secs):
-    print "USING DEPRECIATED FUNCTION audio.split_audio_file"
-    #  Get absolute file path
-    #  file_path = os.path.abspath(filename)
-    #  Extract filename and extension
-    filename, file_extension = os.path.splitext(file_path)
-    if file_extension == ".mp3":
-        audio_segment = AudioSegment.from_mp3(file_path)
-    elif file_extension == ".wav":
-        audio_segment = AudioSegment.from_wav(file_path)
-    else:
-        print("Unsupported audio file")
-        sys.exit(-1)
-    #  Make a list of audio chunks
-    chunk_list = make_chunks(audio_segment, secs*1000)
-    # name = filename.split(".")
-    # for i, chunk in enumerate(chunk_list):
-    #     chunk_name = "{}{}".format(name[0], i) + ".wav"
-    #     chunk.export(chunk_name, format="wav")
-    #  Return the list of audio segments
-    return chunk_list
 
 
 def playback(filename, start, end=None, playback_time=None):
