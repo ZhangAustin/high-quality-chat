@@ -1,14 +1,14 @@
 import ConfigParser
-from logging.config import fileConfig
 import logging
 import os
+from logging.config import fileConfig
 
 #  Load logging configuration from file
 logging.config.fileConfig('../logging.conf')
 #  Reference logger
 debug_logger = logging.getLogger('debugLog')
 
-#  Inherits methods such as get() from SafeConfigParser
+
 class Config(ConfigParser.SafeConfigParser):
     """Handles creation and updating of configuration settings."""
     def __init__(self, file):
@@ -56,6 +56,22 @@ class Config(ConfigParser.SafeConfigParser):
 
         with open(self.file, 'w') as config_file:
             self.write(config_file)
+
+    def check(self):
+        """
+        Checks the config file and ensure all sections exist
+        If not, add the sections and initialize to "None"
+        """
+        connection = ['user', 'password', 'server', 'role']
+        settings = ['mic', 'speakers', 'recording_location']
+        sections = {'ConnectionDetails': connection, 'Settings': settings}
+
+        for section in sections:
+            if not self.has_section(section):
+                self.add_section(section)
+            for option in sections[section]:
+                if not self.has_option(section, option):
+                    self.set(section, option, None)
 
     def update_setting(self, section, option, value):
         """
