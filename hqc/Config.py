@@ -4,9 +4,9 @@ import os
 
 
 #  Load logging configuration from file
-# logging.config.fileConfig('../logging.conf')
+logging.config.fileConfig('../logging.conf')
 #  Reference logger
-#debug_logger = logging.getLogger('debugLog')
+debug_logger = logging.getLogger('debugLog')
 
 
 class Config(ConfigParser.SafeConfigParser):
