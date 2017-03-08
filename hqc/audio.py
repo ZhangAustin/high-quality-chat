@@ -1,6 +1,5 @@
 import Queue
 import os
-import sys
 import time
 import wave
 from threading import Thread
@@ -8,7 +7,6 @@ from threading import Thread
 import pyaudio
 from pydub import AudioSegment
 from pydub.playback import play
-from pydub.utils import make_chunks
 
 
 class Recorder:
@@ -87,29 +85,6 @@ class Recorder:
             self._frames.task_done()
 
 
-def split_audio_file(self, file_path, secs):
-    print "USING DEPRECIATED FUNCTION audio.split_audio_file"
-    #  Get absolute file path
-    #  file_path = os.path.abspath(filename)
-    #  Extract filename and extension
-    filename, file_extension = os.path.splitext(file_path)
-    if file_extension == ".mp3":
-        audio_segment = AudioSegment.from_mp3(file_path)
-    elif file_extension == ".wav":
-        audio_segment = AudioSegment.from_wav(file_path)
-    else:
-        print("Unsupported audio file")
-        sys.exit(-1)
-    #  Make a list of audio chunks
-    chunk_list = make_chunks(audio_segment, secs*1000)
-    # name = filename.split(".")
-    # for i, chunk in enumerate(chunk_list):
-    #     chunk_name = "{}{}".format(name[0], i) + ".wav"
-    #     chunk.export(chunk_name, format="wav")
-    #  Return the list of audio segments
-    return chunk_list
-
-
 def playback(filename, start, end=None, playback_time=None):
     """
     Plays back a wav file from the start point (in seconds) to the end point (in seconds)
@@ -122,7 +97,7 @@ def playback(filename, start, end=None, playback_time=None):
     file_name, file_extension = os.path.splitext(filename)
     # This method will play back filetypes whose extension matches the coded
     # This includes wav and mp3 so we should be good
-    audio = AudioSegment.from_file(filename, file_extension)
+    audio = AudioSegment.from_file(filename, file_extension[1:])
 
     if end is None and playback_time is not None:
         # Play the track starting from start for playback_time seconds
@@ -135,6 +110,17 @@ def playback(filename, start, end=None, playback_time=None):
     else:
         # Play the whole thing
         play(audio)
+
+
+def get_length(filename):
+    """
+    Get the length of an audio file suitable for use in playback()
+    :param filename: Location of audio file
+    :return: length of file in seconds
+    """
+    file_name, file_extension = os.path.splitext(filename)
+    audio = AudioSegment.from_file(filename, file_extension[1:])
+    return float(len(audio) / 1000)
 
 
 if __name__ == '__main__':
