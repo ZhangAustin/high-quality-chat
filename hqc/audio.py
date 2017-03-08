@@ -1,13 +1,14 @@
-from threading import Thread
-from pydub.utils import make_chunks
-from pydub import AudioSegment
-from pydub.playback import play
-import os
-import pyaudio
 import Queue
+import os
 import sys
 import time
 import wave
+from threading import Thread
+
+import pyaudio
+from pydub import AudioSegment
+from pydub.playback import play
+from pydub.utils import make_chunks
 
 
 class Recorder:
@@ -109,79 +110,32 @@ def split_audio_file(self, file_path, secs):
     return chunk_list
 
 
-#  Saves a list of audio chunks to the specified path
-def save_audio_chunks(chunk_list, base_name, file_extension, file_path):
-    print "USING DEPRECIATED FUNCTION audio.save_audio_chunks"
-    for i, chunk in enumerate(chunk_list):
-        chunk_name = "{}_{}".format(base_name, i) + str(file_extension)
-        #  TODO: check for unsupported file types
-        save_path = str(file_path) + str(chunk_name)
-        #  indexing removes "." at beginning of file extension
-        chunk.export(save_path, format=file_extension[1:])
+def playback(filename, start, end=None, playback_time=None):
+    """
+    Plays back a wav file from the start point (in seconds) to the end point (in seconds)
+    :param filename: filename to playback
+    :param start: start time, in seconds.  No more than 3 places after decimal or loss of precision
+    :param end: end time, in seconds.  Same as above
+    :param playback_time: time to play back.  use instead of end
+    """
 
+    file_name, file_extension = os.path.splitext(filename)
+    # This method will play back filetypes whose extension matches the coded
+    # This includes wav and mp3 so we should be good
+    audio = AudioSegment.from_file(filename, file_extension)
 
-#  TODO: parametrize and test outputting different settings
-#  Records audio for 5 seconds to disk
-def record_audio(filename, secs):
-    print "USING DEPRECIATED FUNCTION audio.record_audio"
-    file_base_name, file_extension = os.path.splitext(filename)
+    if end is None and playback_time is not None:
+        # Play the track starting from start for playback_time seconds
+        segment = audio[int(start):int(start + end)]
+        play(segment)
+    elif end is not None and playback_time is None:
+        # Play the track starting from start and ending at end
+        segment = audio[int(start):int(end)]
+        play(segment)
+    else:
+        # Play the whole thing
+        play(audio)
 
-    #  Sample sizing and format
-    FORMAT = pyaudio.paInt16
-    # Number of channels
-    CHANNELS = 2
-    #  Sampling rate. 44.1 KHz is what's used for CD's
-    RATE = 44100
-    # Number of samples in each frame
-    CHUNK = 1024
-    RECORD_SECONDS = secs
-    WAVE_OUTPUT_FILENAME = file_base_name + ".wav"
-
-    #  Create PyAudio object
-    audio = pyaudio.PyAudio()
-    # Open audio stream with given parameters
-    stream = audio.open(format=FORMAT, channels=CHANNELS,
-                        rate=RATE, input=True,
-                        frames_per_buffer=CHUNK)
-    print "recording..."
-    frames = []
-    #  Add small audio chunks to a list
-    for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-        data = stream.read(CHUNK)
-        frames.append(data)
-    print "finished recording"
-
-    #  Stop Recording
-    stream.stop_stream()
-    #  Close handle
-    stream.close()
-    #  Close PyAudio session
-    audio.terminate()
-
-    #  File handle for output file
-    wave_file = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-    wave_file.setnchannels(CHANNELS)
-    wave_file.setsampwidth(audio.get_sample_size(FORMAT))
-    wave_file.setframerate(RATE)
-    wave_file.writeframes(b''.join(frames))
-    #  Close file handle
-    wave_file.close()
-    print("converting wav to mp3")
-    if file_extension == ".mp3":
-        audio_file = AudioSegment.from_wav(WAVE_OUTPUT_FILENAME)
-        file_handle = audio_file.export(filename, format="mp3")
-
-
-#  Plays an .mp3 file
-def play_mp3(filename):
-    audio = AudioSegment.from_mp3(filename)
-    play(audio)
-
-
-#  Plays a .wav file
-def play_wav(filename):
-    audio = AudioSegment.from_wav(filename)
-    play(audio)
 
 if __name__ == '__main__':
     recorder = Recorder('async.mp3')
