@@ -47,6 +47,7 @@ gui_logger = logging.getLogger('gui')
 
 
 class HQC(App):
+    manager = ObjectProperty(None)
     """
     This represents the main application class
     """
@@ -54,13 +55,15 @@ class HQC(App):
         gui_logger.debug("Build HQC application")
         self.config = Config("conn.conf")
         self.phone = HQCPhone(self.config)
-        self.root = Builder.load_file("HQC.kv")
+        gui = Builder.load_file("HQC.kv")
+        self.root = gui
         self.root.app = self
+        return gui
 
 
 class MainScreen(Screen):
+    app = ObjectProperty(None)
     pass
-
 
 class ScreenManager(ScreenManager):
     app = ObjectProperty(None)
@@ -138,22 +141,21 @@ class ProducerJoiningScreen(Screen):
     #       Currently a blank field means use existing values, even if none exists
     def gettext(self, servername, username, password):
         # Reference App
-        app = self.parent.app
         if servername != '':
-            app.config.update_setting('ConnectionDetails', 'server', servername)
+            self.app.config.update_setting('ConnectionDetails', 'server', servername)
         else:
-            servername = app.config.get('ConnectionDetails', 'server')
+            servername = self.app.config.get('ConnectionDetails', 'server')
         if username != '':
-            app.config.update_setting('ConnectionDetails', 'user', username)
+            self.app.config.update_setting('ConnectionDetails', 'user', username)
         else:
-            username = app.config.get('ConnectionDetails', 'user')
+            username = self.app.config.get('ConnectionDetails', 'user')
         if password != '':
-            app.config.update_setting('ConnectionDetails', 'password', password)
+            self.app.config.update_setting('ConnectionDetails', 'password', password)
         else:
-            password = app.config.get('ConnectionDetails', 'password')
+            password = self.app.config.get('ConnectionDetails', 'password')
         conn_string = username + ';' + password + ";" + servername
         encoded = base64.b64encode(conn_string)
-        app.config.update_setting('ConnectionDetails', 'conn_string', encoded)
+        self.app.config.update_setting('ConnectionDetails', 'conn_string', encoded)
         self.parent.current = 'session'
 
         #  Make BoxLayout for multiple items
@@ -172,9 +174,9 @@ class ProducerJoiningScreen(Screen):
         # Open the popup
         popup.open()
 
-        app.phone.add_proxy_config()
-        app.phone.add_auth_info()
-        app.phone.make_call(1001, app.config.get('ConnectionDetails', 'server'))
+        self.app.phone.add_proxy_config()
+        self.app.phone.add_auth_info()
+        self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
 
 
 class ArtistJoiningScreen(Screen):
@@ -183,7 +185,6 @@ class ArtistJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
     def gettext(self, constring):
-        app = self.parent.app
         try:
             decoded = base64.b64decode(constring)
             mark1 = decoded.find(';')
@@ -192,17 +193,17 @@ class ArtistJoiningScreen(Screen):
             password = decoded[mark1 + 1:mark2]
             server = decoded[mark2 + 1:]
             if server != '':
-                app.config.update_setting('ConnectionDetails', 'server', server)
+                self.app.config.update_setting('ConnectionDetails', 'server', server)
             if username != '':
-                app.config.update_setting('ConnectionDetails', 'user', username)
+                self.app.config.update_setting('ConnectionDetails', 'user', username)
             if password != '':
-                app.config.update_setting('ConnectionDetails', 'password', password)
+                self.app.config.update_setting('ConnectionDetails', 'password', password)
 
             self.parent.current = 'session'
 
-            app.phone.add_proxy_config()
-            app.phone.add_auth_info()
-            app.phone.make_call(1001, app.config.get('ConnectionDetails', 'server'))
+            self.app.phone.add_proxy_config()
+            self.app.phone.add_auth_info()
+            self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
         except:
             errormessage = 'Sorry, that string is not valid'
             popup = Popup(title='Connection String Error',
@@ -212,10 +213,11 @@ class ArtistJoiningScreen(Screen):
 
 
 class SettingsScreen(Screen):
-    pass
+    app = ObjectProperty(None)
+
 
 class FileTransferScreen(Screen):
-
+    app = ObjectProperty(None)
     def on_enter(self):
         files = [["File 1", 60], ["File 2", 40], ["File 3", 80], ["File 4", 20]]
         for file in files:
