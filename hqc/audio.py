@@ -44,7 +44,7 @@ class Recorder:
     def stop(self):
         self._recording = False
         self._frames.join()
-        # self._exit = True
+        self._exit = True
 
     def _async_record(self):
         """
