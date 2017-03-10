@@ -5,10 +5,12 @@ from kivy.config import Config
 from kivy.lang import Builder
 from kivy.logger import FileHandler
 from kivy.uix.button import Button
+from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.properties import StringProperty
 from kivy.properties import ListProperty
+from kivy.properties import NumericProperty
 from kivy.uix.actionbar import ActionBar, ActionView, ActionButton
 from kivy.base import runTouchApp
 from kivy.uix.scrollview import ScrollView
@@ -37,11 +39,13 @@ audioClipLayout = GridLayout(cols=3, padding=10, spacing=5,
                     size_hint=(None, None), width=310)
 # layout2 = GridLayout(cols=1, padding=10, spacing=5,
 #                      size_hint=(None, None), width=410)
-startRecording = False
+start_recording = False
+filenames = []
+recorder = None
 micOn = False
 unmuted_mic_image = '../img/microphone.png'
-recorder = audio.Recorder("test")
 kivy.require('1.0.7')
+lq_audio = "undefined in gui"
 
 #  Load logging configuration from file
 logging.config.fileConfig('../logging.conf')
@@ -67,7 +71,7 @@ class ScreenManager(ScreenManager):
 
 
 class SessionScreen(Screen):
-
+    clip_no = -1;
     unmuted_mic_image = '../img/microphone.png'
     muted_mic_image = '../img/muted.png'
     chatmessages = StringProperty()
@@ -86,31 +90,79 @@ class SessionScreen(Screen):
         root.add_widget(audioClipLayout)
         self.ids.audioSidebar.add_widget(root)
 
-    @staticmethod
-    def add_clip():
-        global audioClipLayout
+    def add_clip(self):
+        #generate the index number of the clip for referencing in filenames
+        SessionScreen.clip_no += 1
 
-        label = Label(text = datetime.now().strftime('%I:%M:%S %p'), halign='left', size_hint=(.5, 0.2))
-        btn = Button(background_normal= '../img/play.png',
-                     size_hint=(.18, 1), allow_stretch=False)
+        global audioClipLayout
+        global filenames
+
+        #add play button and filename index # for later playback
+        btn = ToggleButton(background_normal= '../img/play.png',
+                   size_hint=(.18, 1), group = 'play', allow_stretch=False)
+        btn.apply_property(np=NumericProperty(SessionScreen.clip_no))
+        btn.bind(on_press=self.play_clip)
+        audioClipLayout.add_widget(btn)
+
+        # add filename label
+        label = Label(text=filenames[-1], halign='left', size_hint=(.5, 0.2))
+        audioClipLayout.add_widget(label)
+
+        #add request button
         btn2 = Button(text="Request", size=(100, 50),
                       size_hint=(0.32, None))
-
-        audioClipLayout.add_widget(btn)
-        audioClipLayout.add_widget(label)
         audioClipLayout.add_widget(btn2)
 
-    def begin_Recording(self):
-        global startRecording
+    def play_clip(self, obj):
+
+        #get filename of the high quality clip associated with this play button
+        global filenames
+        filename = filenames[-1]
+
+        #get filename of the session low quality audio stream
+        global lq_audio
+
+        #get ante/post meridiem of each stream
+        start_time_ampm = lq_audio[0:2]
+        filename_ampm = filename[0:2]
+
+        #get the # seconds after playback that HQ clip starts in the LQ stream:
+        #HQ start time in s - LQ start time in s (= int)
+        start_time_seconds = int(lq_audio[3:5]) * 3600 + int(lq_audio[6:8]) * 60 + int (lq_audio[9:11])
+        filename_seconds = int(filename[3:5]) * 3600 + int(filename[6:8]) * 60 + int (filename[9:11])
+
+        #if the two times are not in the same part of the day, add 12 hrs to the HQ time in seconds
+        # (excluding the 12th hr, e.g. 11am to 12pm are in the same "half" of the day)
+        if (start_time_ampm != filename_ampm and filename[3:5] != '12'):
+            filename_seconds += 43200
+
+        #gets the offset in seconds of the HQ file start time from the LQ stream
+        hq_start_time = filename_seconds - start_time_seconds
+
+        #gets the file associated with this button's label friend
+        print filenames[obj.np]
+        #audio.get_length(filename)
+        #haudio.playback(lq_audio, hq_start_time)
+        #print(filename)
+
+    def begin_recording(self):
+        global filenames
+
+        #use globals to toggle
+        global start_recording
+        start_recording = not start_recording
         global recorder
-        startRecording = not startRecording
-        if startRecording:
+
+        if start_recording:
+            filename = datetime.now().strftime('%p_%I_%M_%S.mp3')
+            recorder = audio.Recorder(filename) #creates audio file
+            filenames.append(filename) #adds filename to global list
             recorder.start() # Starts recording
             print "Recording..."
         else: 
             recorder.stop()
+            self.add_clip() #adds to gui sidebar
             print "Done recording"
-            self.add_clip()
 
     def toggle_mute(self):
         global micOn
@@ -135,6 +187,7 @@ class ProducerJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
     def gettext(self, servername, username, password):
+        global lq_audio
 
         config = Config.Config("conn.conf")
         if servername != '':
@@ -174,12 +227,15 @@ class ProducerJoiningScreen(Screen):
         phone.add_proxy_config()
         phone.add_auth_info()
         phone.make_call(1001, config.get('ConnectionDetails', 'server'))
+        lq_audio = phone.get_lq_start_time()
+        print "passing lq_audio to gui: " + lq_audio
 
 
 class ArtistJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
     def gettext(self, constring):
+        global lq_audio
         try:
             decoded = base64.b64decode(constring)
             mark1 = decoded.find(';')
@@ -200,6 +256,8 @@ class ArtistJoiningScreen(Screen):
             phone.add_proxy_config()
             phone.add_auth_info()
             phone.make_call(1001, config.get('ConnectionDetails', 'server'))
+            lq_audio = phone.get_lq_start_time()
+            print "passing lq_audio to gui: " + lq_audio
         except:
             errormessage = 'Sorry, that string is not valid'
             popup = Popup(title='Connection String Error',

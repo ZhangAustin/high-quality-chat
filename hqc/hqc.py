@@ -3,6 +3,8 @@ import Config
 import linphone
 import logging.handlers
 import time
+import datetime
+from datetime import datetime
 
 #  Load logging configuration from file
 logging.config.fileConfig('../logging.conf')
@@ -11,7 +13,7 @@ linphone_logger = logging.getLogger('linphone')
 debug_logger = logging.getLogger('debug')
 #  Reference config settings from Config
 config = Config.config
-
+lq_audio = "undefined :("
 
 class Singleton(type):
     _instance = None
@@ -62,7 +64,14 @@ class HQCPhone(object):
         self.core.capture_device = config.get('Settings', 'mic')
         self.core.playback_device = config.get('Settings', 'speakers')
 
-    def make_call(self, number, server, lq_file='recording.wav'):
+    @staticmethod
+    def get_lq_start_time():
+        return lq_audio
+
+    def make_call(self, number, server, lq_file=datetime.now().strftime('%p_%I_%M_%S.wav')):
+        global lq_audio
+        lq_audio = lq_file
+        print "recording low quality stream: " + lq_audio
         """
         Make a SIP call to a number on a server
         :param number: number to call (should be a conference number)
