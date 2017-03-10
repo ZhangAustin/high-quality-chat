@@ -11,11 +11,18 @@ def path_leaf(path):
     head, tail = ntpath.split(path)
     return tail or ntpath.basename(head)
 
+def getWSUrl(ip, port):
+    return 'ws://' + ip + ':' + port + '/'
+
 class MyWSClient(WebSocketClient):
-    def __init__(self, username, role, *args, **kwargs):
-        super(MyWSClient, self).__init__(*args, **kwargs)
+    def __init__(self, username, role, ip, port, *args, **kwargs):
+        super(MyWSClient, self).__init__(getWSUrl(ip, port) ,protocols=['http-only', 'chat'], *args, **kwargs)
         self.username = username
         self.role = role
+        self.connect()
+        wst = threading.Thread(target=self.run_forever)
+        wst.daemon = False
+        wst.start()
 
     def opened(self):
         print "Connection opened"
@@ -69,11 +76,7 @@ if __name__ == '__main__':
         username = raw_input("Enter username: ")
         IP = '127.0.0.1'
         PORT = '9000'
-        ws = MyWSClient(username, constants.PRODUCER, 'ws://' + IP + ':' + PORT + '/', protocols=['http-only', 'chat'])
-        ws.connect()
-        wst = threading.Thread(target=ws.run_forever)
-        wst.daemon = False
-        wst.start()
+        ws = MyWSClient(username, constants.PRODUCER, IP, PORT)
         ws.sendFile()
     except KeyboardInterrupt:
         ws.close()
