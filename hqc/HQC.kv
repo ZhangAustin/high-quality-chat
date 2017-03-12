@@ -1,10 +1,15 @@
 #:kivy 1.0
 #:import FadeTransition kivy.uix.screenmanager.FadeTransition
 ScreenManager:
+    app: None
     id: screen_manager
     transition: FadeTransition()
     MainScreen:
+        manager: screen_manager
+        app: self.manager.app
     ProducerJoiningScreen:
+        manager: screen_manager
+        app: self.manager.app
         TextInput:
             id: servername
             size_hint: (.5, .15)
@@ -38,6 +43,8 @@ ScreenManager:
             pos: (450, 20)
             on_release: self.parent.gettext(servername.text, username.text, password.text)
     ArtistJoiningScreen:
+        manager: screen_manager
+        app: self.manager.app
         TextInput:
             id: artconnection
             size_hint: (.5, .15)
@@ -56,6 +63,8 @@ ScreenManager:
             pos: (450, 20)
             on_release: self.parent.gettext(artconnection.text)
     SessionScreen:
+        manager: screen_manager
+        app: self.manager.app
         TextInput:
             id: chatText
             size_hint: (.50, .10)
@@ -66,6 +75,8 @@ ScreenManager:
 
             pos: (10, 300)
     SettingsScreen:
+        manager: screen_manager
+        app: self.manager.app
         TextInput:
             id: setting1
             size_hint: (.5, .10)
@@ -89,6 +100,8 @@ ScreenManager:
             password: True
             pos: (170, 350)
     FileTransferScreen:
+        app: self.manager.app
+        manager: screen_manager
 
 <MainScreen>:
     name: "main"
