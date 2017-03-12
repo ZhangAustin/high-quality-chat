@@ -97,7 +97,7 @@ def playback(filename, start, end=None, playback_time=None):
     file_name, file_extension = os.path.splitext(filename)
     # This method will play back filetypes whose extension matches the coded
     # This includes wav and mp3 so we should be good
-    audio = AudioSegment.from_file(filename, file_extension[1:])
+    audio = AudioSegment.from_file(filename, format=file_extension[1:])
 
     if end is None and playback_time is not None:
         # Play the track starting from start for playback_time seconds

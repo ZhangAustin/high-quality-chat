@@ -121,7 +121,7 @@ class SessionScreen(Screen):
 
         #get filename of the high quality clip associated with this play button
         global filenames
-        filename = filenames[-1]
+        filename = filenames[obj.np]
 
         #get filename of the session low quality audio stream
         global lq_audio
@@ -142,12 +142,11 @@ class SessionScreen(Screen):
 
         #gets the offset in seconds of the HQ file start time from the LQ stream
         hq_start_time = filename_seconds - start_time_seconds
-
+        print filename + " session offset: " + str(hq_start_time) + " seconds"
         #gets the file associated with this button's label friend
-        print filenames[obj.np]
+
         #audio.get_length(filename)
-        #haudio.playback(lq_audio, hq_start_time)
-        #print(filename)
+        #audio.playback(lq_audio, hq_start_time, None, 2)
 
     def begin_recording(self):
         global filenames
