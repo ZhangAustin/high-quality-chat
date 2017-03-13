@@ -35,8 +35,3 @@ Here `guiFunc` is any function passed into MyWSClient which will run whenever a 
 Now with the `ws` object you can send chat messages and files:
 * `ws.chat(message)` will send a `String` message to all connected clients.
 * `ws.sendFile(filepath)` takes in a `String` for a filepath and will send that file to the connected Producer.
-<!-- ### Client
-Then open multiple clients to chat with each other
-```
-python client.py
-``` -->
