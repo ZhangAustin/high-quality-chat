@@ -36,8 +36,24 @@ class Config(ConfigParser.SafeConfigParser):
         Checks the config file and ensure all sections exist
         If not, add the sections and initialize to "None"
         """
-        connection = ['user', 'password', 'server', 'role']
+
+        connection = ['user', 'password', 'server', 'role', 'call_no', 'username']
+        # User: username to SIP register to the server with.  This will likely be a number but will always be set up
+        #       on the SIP server
+        # Password: password associated with the SIP account trying to be registered
+        # Server: IP or domain name of the SIP server.  Currently expects the SIP server to be on port 5060
+        # Role: Role to register on the server with.  Check constants.py for mappings
+        #       Note: This should be set when the role button is clicked and used in the chat objects
+        # Call_No: Number to call once registered on the SIP server.  This should be a conference number set up on
+        #          the SIP server
+        # Username: Preferred name to be displayed in the application.  This affects display and some usage in chat
+        #           objects
+
         settings = ['mic', 'speakers', 'recording_location']
+        # Mic: Selected from a dropdown menu of recording devices populated from hqc.Phone function
+        # Speakers: Selected from a dropdown menu of output devices populated form hqc.Phone function
+        # Recording_location: Path to storage of sessions and recording files
+
         sections = {'ConnectionDetails': connection, 'Settings': settings}
 
         for section in sections:
