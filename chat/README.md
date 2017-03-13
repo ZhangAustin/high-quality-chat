@@ -22,15 +22,18 @@ python chatWindow.py
 
 ### Client
 ```
-import chat.client as hqc_client
+import chat
 
 IP = '127.0.0.1'
 PORT = '9000'
 def guiFunc(username, message):
-    print newMessage
-ws = hqc_client.MyWSClient(username, constants.PRODUCER, IP, PORT, guiFunc)
+    print "[%s]: %s" % (username, message)
+
+ws = chat.client.MyWSClient(username, chat.constants.PRODUCER, IP, PORT, guiFunc)
 ```
-Here `guiFunc` is any function passed into MyWSClient which will run whenever a new message is received from the server.
+Here `guiFunc` is any function passed into MyWSClient which will run whenever a new message is received from the server. The function should take in a `username` and `message` as a `String`
+
+`chat.constants.PRODUCER` is a user role that needs to be passed in when initializing a new client. The different roles are defined in `constants.py`
 
 Now with the `ws` object you can send chat messages and files:
 * `ws.chat(message)` will send a `String` message to all connected clients.
