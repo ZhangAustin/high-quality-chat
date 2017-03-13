@@ -1,34 +1,26 @@
+import base64
+import logging
+from datetime import datetime
 
 import kivy
 from kivy.app import App
 from kivy.config import Config
 from kivy.lang import Builder
-from kivy.logger import FileHandler
-from kivy.uix.button import Button
-from kivy.uix.togglebutton import ToggleButton
-from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
-from kivy.properties import ListProperty, ObjectProperty, StringProperty, NumericProperty
-from kivy.uix.actionbar import ActionBar, ActionView, ActionButton
-from kivy.base import runTouchApp
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.gridlayout import GridLayout
+from kivy.properties import ObjectProperty, StringProperty, NumericProperty
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.progressbar import ProgressBar
-from kivy.uix.tabbedpanel import TabbedPanel
-from kivy.uix.screenmanager import ScreenManager, Screen
-import audio
-import base64
+from kivy.uix.button import Button
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.label import Label
 from kivy.uix.popup import Popup
-from hqc import HQCPhone
-from Config import Config
-import logging
+from kivy.uix.progressbar import ProgressBar
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.textinput import TextInput
+from kivy.uix.togglebutton import ToggleButton
+
 import audio
-import datetime
-from datetime import datetime
-import threading
-import signal
-import time
+from Config import Config
+from hqc import HQCPhone
 
 NUMBER_OF_BUTTONS = 30
 audioClipLayout = GridLayout(cols=3, padding=10, spacing=5,
@@ -58,6 +50,7 @@ class HQC(App):
         gui_logger.debug("Build HQC application")
         self.config = Config("conn.conf")
         self.phone = HQCPhone(self.config)
+        # TODO: Init chat here
         gui = Builder.load_file("HQC.kv")
         self.root = gui
         self.root.app = self
@@ -73,7 +66,7 @@ class ScreenManager(ScreenManager):
 
 
 class SessionScreen(Screen):
-    clip_no = -1;
+    clip_no = -1
     app = ObjectProperty(None)
 
     unmuted_mic_image = '../img/microphone.png'
