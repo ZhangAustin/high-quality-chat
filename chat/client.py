@@ -11,11 +11,19 @@ def path_leaf(path):
     head, tail = ntpath.split(path)
     return tail or ntpath.basename(head)
 
+def getWSUrl(ip, port):
+    return 'ws://' + ip + ':' + port + '/'
+
 class MyWSClient(WebSocketClient):
-    def __init__(self, username, role, *args, **kwargs):
-        super(MyWSClient, self).__init__(*args, **kwargs)
+    def __init__(self, username, role, ip, port, guiFunc, *args, **kwargs):
+        super(MyWSClient, self).__init__(getWSUrl(ip, port) ,protocols=['http-only', 'chat'], *args, **kwargs)
         self.username = username
         self.role = role
+        self.guiFunc = guiFunc
+        self.connect()
+        wst = threading.Thread(target=self.run_forever)
+        wst.daemon = False
+        wst.start()
 
     def opened(self):
         print "Connection opened"
@@ -27,7 +35,6 @@ class MyWSClient(WebSocketClient):
     def closed(code, reason=None):
         print "Closed down", code, reason
 
-    # TODO: Override received_message() to send incoming messages to gui
     def received_message(self, message):
         message = str(message)
         parsed_json = json.loads(message)
@@ -38,6 +45,10 @@ class MyWSClient(WebSocketClient):
             fh.write(base64.b64decode(parsed_json['content']))
             fh.close()
             print "%s has been saved" % (filename)
+        elif message_type == constants.CHAT:
+            username = parsed_json['username']
+            msg = parsed_json['message']
+            self.guiFunc(username, msg)
 
     def chat(self, message=None):
         if not message:
@@ -46,7 +57,6 @@ class MyWSClient(WebSocketClient):
         payload["type"] = constants.CHAT
         payload["message"] = message
         self.send(json.dumps(payload), False)
-        self.chat()
 
     def sendFile(self, filepath=None):
         if not filepath:
@@ -69,11 +79,9 @@ if __name__ == '__main__':
         username = raw_input("Enter username: ")
         IP = '127.0.0.1'
         PORT = '9000'
-        ws = MyWSClient(username, constants.PRODUCER, 'ws://' + IP + ':' + PORT + '/', protocols=['http-only', 'chat'])
-        ws.connect()
-        wst = threading.Thread(target=ws.run_forever)
-        wst.daemon = False
-        wst.start()
-        ws.sendFile()
+        def guiUpdate(username, message):
+            print "[%s]: %s" % (username, message)
+        ws = MyWSClient(username, constants.PRODUCER, IP, PORT, guiUpdate)
+        ws.chat()
     except KeyboardInterrupt:
         ws.close()

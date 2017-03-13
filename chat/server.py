@@ -20,7 +20,6 @@ def path_leaf(path):
 
 class MyWebsocket(EchoWebSocket):
     def opened(self):
-        print dir(self)
         app = self.environ['ws4py.app']
         app.clients.append(self)
         print "%d clients connected" % (len(app.clients))

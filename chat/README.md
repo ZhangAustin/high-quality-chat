@@ -10,34 +10,31 @@ pip install gevent
 
 ## Running It
 ### Server
-First start the server
+First start the server with desired port number i.e. 9000
 ```
-python server.py
+python server.py PORT_NUMBER
 ```
-### Chat Window
+<!-- ### Chat Window
 Start the chat window
 ```
 python chatWindow.py
-```
+``` -->
 
 ### Client
-Then open multiple clients to chat with each other
 ```
-python client.py
-```
-
-### Client from different program
-```
-import chat.client as hqc_client
-import threading
+import chat
 
 IP = '127.0.0.1'
 PORT = '9000'
+def guiFunc(username, message):
+    print "[%s]: %s" % (username, message)
 
-ws = hqc_client.MyWSClient(username, 'ws://' + IP + ':' + PORT + '/', protocols=['http-only', 'chat'])
-ws.connect()
-wst = threading.Thread(target=ws.run_forever)
-wst.daemon = True
-wst.start()
-ws.sendFile()
+ws = chat.client.MyWSClient(username, chat.constants.PRODUCER, IP, PORT, guiFunc)
 ```
+Here `guiFunc` is any function passed into MyWSClient which will run whenever a new message is received from the server. The function should take in a `username` and `message` as a `String`
+
+`chat.constants.PRODUCER` is a user role that needs to be passed in when initializing a new client. The different roles are defined in `constants.py`
+
+Now with the `ws` object you can send chat messages and files:
+* `ws.chat(message)` will send a `String` message to all connected clients.
+* `ws.sendFile(filepath)` takes in a `String` for a filepath and will send that file to the connected Producer.
