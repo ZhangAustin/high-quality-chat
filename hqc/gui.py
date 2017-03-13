@@ -21,6 +21,7 @@ from kivy.uix.togglebutton import ToggleButton
 import audio
 from Config import Config
 from hqc import HQCPhone
+from chat import constants, client
 
 NUMBER_OF_BUTTONS = 30
 audioClipLayout = GridLayout(cols=3, padding=10, spacing=5,
@@ -73,6 +74,19 @@ class SessionScreen(Screen):
     muted_mic_image = '../img/muted.png'
     chatmessages = StringProperty()
 
+    IP = '127.0.0.1'
+    port = '9000'
+    username = 'username'
+
+    def get_message(self, user, message):
+        self.chatmessages += user
+        self.chatmessages += ": "
+        self.chatmessages += message
+        self.chatmessages += "\n"
+
+    ws = client.MyWSClient(username, constants.PRODUCER, IP, port, get_message)
+
+
     def on_enter(self):
         global audioClipLayout
 
@@ -86,6 +100,7 @@ class SessionScreen(Screen):
                           pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
         root.add_widget(audioClipLayout)
         self.ids.audioSidebar.add_widget(root)
+
 
     def add_clip(self):
         #generate the index number of the clip for referencing in filenames
@@ -171,12 +186,10 @@ class SessionScreen(Screen):
             self.ids.mute_button.background_normal = SessionScreen.unmuted_mic_image
         else:
             self.ids.mute_button.background_normal = SessionScreen.muted_mic_image
-    def getchat(self):
-        self.chatmessages = "Updated Message"
     def sendmessage(self, message):
         self.parent.ids.chatText.text = ''
-        self.chatmessages += message
-        self.chatmessages += "\n"
+        message += "\n"
+        self.ws.chat(message)
 
 class ProducerJoiningScreen(Screen):
     app = ObjectProperty(None)
