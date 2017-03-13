@@ -162,7 +162,7 @@ class SessionScreen(Screen):
             filenames.append(filename) #adds filename to global list
             recorder.start() # Starts recording
             print "Recording..."
-        else: 
+        else:
             recorder.stop()
             self.add_clip() #adds to gui sidebar
             print "Done recording"
@@ -290,4 +290,3 @@ class FileTransferScreen(Screen):
             self.ids.filelayout.add_widget(progress)
 if __name__ == '__main__':
     HQC().run()
-
