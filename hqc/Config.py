@@ -22,8 +22,8 @@ class Config(ConfigParser.SafeConfigParser):
         if not os.path.isfile(self.file):
             logging.warning("Creating config")
             # Touch the file
-            f = open(file, 'w')
-            f.close()
+            with open(file, 'a'):
+                os.utime(file, None)
 
         self.read(self.file)
         self.check()
