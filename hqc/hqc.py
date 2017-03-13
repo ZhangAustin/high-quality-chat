@@ -1,11 +1,11 @@
 import base64
-from Config import Config
-import linphone
 import logging
-import logging.handlers
 import time
-import datetime
 from datetime import datetime
+
+import linphone
+
+from Config import Config
 
 #  Load logging configuration from file
 logging.config.fileConfig('../logging.conf')
@@ -197,6 +197,7 @@ def make_conn_string(username, password, server):
     return base64.b64encode(conn_string)
 
 if __name__ == '__main__':
+    config = Config('conn.conf')
 
     debug_logger.info("Making LinPhone.Core")
     phone = HQCPhone(config)
