@@ -14,6 +14,8 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.image import Image
 import audio
 import base64
 from kivy.uix.popup import Popup
@@ -200,6 +202,10 @@ class ArtistJoiningScreen(Screen):
 
 class SettingsScreen(Screen):
     pass
+
+class ImageButton(ButtonBehavior, Image):
+    def on_press(self):
+        print ('pressed')
 
 if __name__ == '__main__':
     HQC().run()
