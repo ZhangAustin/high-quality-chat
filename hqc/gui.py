@@ -123,9 +123,9 @@ class SessionScreen(Screen):
 
         # Update the mic image
         if micOn:#phone.core.mic_enabled:
-            self.ids.mute_button.background_normal = SessionScreen.unmuted_mic_image
+            self.ids.mute_button.source = SessionScreen.unmuted_mic_image
         else:
-            self.ids.mute_button.background_normal = SessionScreen.muted_mic_image
+            self.ids.mute_button.source = SessionScreen.muted_mic_image
 
 class ProducerJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values

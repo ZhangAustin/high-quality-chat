@@ -167,23 +167,22 @@ ScreenManager:
                 with_previous: False
                 app_icon: '../img/orion_just_stars.png'
             ActionOverflow:
+            ActionImageButton:
+                id: mute_button
+                source: root.muted_mic_image
+                group: 'volume'
+                on_press: root.toggle_mute()
+
+            ActionButton:
+                background_normal: 'atlas://data/images/defaulttheme/audio-volume-high'
             ActionGroup:
-                ActionButton:
-                    id: mute_button
-                    background_normal: root.muted_mic_image
-                    group: 'volume'
-                    on_press: root.toggle_mute()
-                ActionButton:
-                    background_normal: 'atlas://data/images/defaulttheme/audio-volume-high'
-            ActionGroup:
-                text: 'Group1'
-                ActionButton:
+                ActionImageButton:
+                    source: '../img/sign_out_option.png'
                     text: 'Leave Session'
                     on_release: app.root.current = "main"
     ImageButton:
         id: record_button
         source: '../img/record_black.png'
-        text: 'Record'
         font_size: '25sp'
         size_hint: (.25, .25)
         pos: (100, 100)
@@ -191,7 +190,6 @@ ScreenManager:
     ImageButton:
         id: pause_button
         source: '../img/pause_black.png'
-        text: 'Save'
         font_size: '18sp'
         size_hint: (.11, .17)
         pos: (300, 120)
@@ -248,15 +246,16 @@ ScreenManager:
             valign: 'top'
 <SettingsScreen>
     name: "settings"
-    Button:
+    ImageButton:
         id: main_menu
+        source: '../img/left_arrow.png'
         text: 'Main Menu'
         halign: 'center'
         valign: 'middle'
         size_hint: (.20, .10)
         text_size: root.width, None
         font_size: '25sp'
-        pos: (625, 525)
+        pos: (670, 520)
         on_release: app.root.current = 'main'
     Label:
         text: 'Username'
