@@ -1,5 +1,11 @@
 import ConfigParser
+import logging.config
 import os
+
+#  Load logging configuration from file
+logging.config.fileConfig('../logging.conf')
+#  Reference logger
+debug_logger = logging.getLogger('debugLog')
 
 
 #  Inherits methods such as get() from SafeConfigParser
@@ -13,6 +19,7 @@ class Config(ConfigParser.SafeConfigParser):
         ConfigParser.SafeConfigParser.__init__(self)
         self.file = file
         if not os.path.isfile(self.file):
+            logging.warning("Creating config")
             # Touch the file
             with open(file, 'a'):
                 os.utime(file, None)
@@ -46,10 +53,7 @@ class Config(ConfigParser.SafeConfigParser):
         # Speakers: Selected from a dropdown menu of output devices populated form hqc.Phone function
         # Recording_location: Path to storage of sessions and recording files
 
-        log = ['location']
-        # Absolute location for the logging configuration file
-
-        sections = {'ConnectionDetails': connection, 'Settings': settings, 'Logging': log}
+        sections = {'ConnectionDetails': connection, 'Settings': settings}
 
         for section in sections:
             if not self.has_section(section):
@@ -75,3 +79,6 @@ class Config(ConfigParser.SafeConfigParser):
         #  Write the settings back to disk
         with open(self.file, "w") as config_file:
             self.write(config_file)
+
+# WARNING: DO NOT Initialize Config on import. Create a config object with custom parameters.
+# config = Config("conn.conf")
