@@ -14,6 +14,8 @@ linphone_logger = logging.getLogger('linphone')
 debug_logger = logging.getLogger('debug')
 
 lq_audio = "undefined :("
+
+
 class Singleton(type):
     _instance = None
 
