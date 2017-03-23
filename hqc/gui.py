@@ -4,9 +4,10 @@ from datetime import datetime
 
 import kivy
 from kivy.app import App
+from kivy.clock import Clock
 from kivy.config import Config
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty, StringProperty, NumericProperty
+from kivy.properties import ListProperty, ObjectProperty, StringProperty, NumericProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
@@ -21,6 +22,8 @@ from kivy.uix.togglebutton import ToggleButton
 import audio
 from Config import Config
 from hqc import HQCPhone
+from chat.ChatClient import HQCWSClient
+
 
 NUMBER_OF_BUTTONS = 30
 audioClipLayout = GridLayout(cols=3, padding=10, spacing=5,
@@ -31,7 +34,7 @@ start_recording = False
 filenames = []
 recorder = None
 micOn = False
-unmuted_mic_image = '../img/microphone.png'
+un_muted_mic_image = '../img/microphone.png'
 kivy.require('1.0.7')
 lq_audio = "undefined in gui"
 
@@ -50,16 +53,22 @@ class HQC(App):
         gui_logger.debug("Build HQC application")
         self.config = Config("conn.conf")
         self.phone = HQCPhone(self.config)
-        # TODO: Init chat here
+        self.chat_client = HQCWSClient("Test User", "Test Role", '127.0.0.1', '9000', "C:Users/Boots/Desktop")
+        # Give the web socket a reference to the app
+        self.chat_client.app = self
         gui = Builder.load_file("HQC.kv")
         self.root = gui
         self.root.app = self
         return gui
 
+    def update_chat(self, username, message):
+        self.root.screens[3].update_chat(username, message)
+
 
 class MainScreen(Screen):
     app = ObjectProperty(None)
     pass
+
 
 class ScreenManager(ScreenManager):
     app = ObjectProperty(None)
@@ -69,9 +78,9 @@ class SessionScreen(Screen):
     clip_no = -1
     app = ObjectProperty(None)
 
-    unmuted_mic_image = '../img/microphone.png'
+    un_muted_mic_image = '../img/microphone.png'
     muted_mic_image = '../img/muted.png'
-    chatmessages = StringProperty()
+    chat_messages = StringProperty()
 
     def on_enter(self):
         global audioClipLayout
@@ -168,15 +177,38 @@ class SessionScreen(Screen):
 
         # Update the mic image
         if self.app.phone.core.mic_enabled:
-            self.ids.mute_button.background_normal = SessionScreen.unmuted_mic_image
+            self.ids.mute_button.background_normal = SessionScreen.un_muted_mic_image
         else:
             self.ids.mute_button.background_normal = SessionScreen.muted_mic_image
-    def getchat(self):
-        self.chatmessages = "Updated Message"
-    def sendmessage(self, message):
+
+    def update_chat(self, username, message):
+        """
+        Called upon when receiving an incoming message
+        :param message: string of message received
+        :return: None
+        """
+        chat_message = str(username) + ": " + str(message)
+        self.chat_messages += chat_message + "\n"
+
+    def send_message(self, message):
+        """
+        Called upon entering text to the chat input.
+        :param message: string entered in chat
+        :return: None
+        """
+        self.app.chat_client.chat(message)
+        # Reset text input
         self.parent.ids.chatText.text = ''
-        self.chatmessages += message
-        self.chatmessages += "\n"
+        # Keep cursor in text chat
+        # Clock.schedule_once(self.refocus_input)
+
+    def refocus_input(self):
+        """
+        Sets the cursor focus inside the session chat
+        :return: None
+        """
+        self.parent.ids.chatText.focus = True
+
 
 class ProducerJoiningScreen(Screen):
     app = ObjectProperty(None)
@@ -186,7 +218,7 @@ class ProducerJoiningScreen(Screen):
     def gettext(self, servername, username, password):
         global lq_audio
 
-        config = Config.Config("conn.conf")
+        config = self.app.config
         # Reference App
         if servername != '':
             self.app.config.update_setting('ConnectionDetails', 'server', servername)
