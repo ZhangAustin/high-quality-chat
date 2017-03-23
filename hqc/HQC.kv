@@ -71,7 +71,7 @@ ScreenManager:
             text_size: root.width, None
             font_size: '18sp'
             multiline: False
-            on_text_validate: self.parent.sendmessage(chatText.text)
+            on_text_validate: self.parent.send_message(chatText.text)
 
             pos: (10, 300)
     SettingsScreen:
@@ -188,7 +188,7 @@ ScreenManager:
             ActionOverflow:
             ActionButton:
                 id: mute_button
-                background_normal: root.unmuted_mic_image
+                background_normal: root.un_muted_mic_image
                 group: 'volume'
                 on_press: root.toggle_mute()
             ActionButton:
@@ -258,7 +258,7 @@ ScreenManager:
             pos_hint: {'center_x':.3, 'center_y':.78}
             scroll_y: 0
             Label:
-                text: root.chatmessages
+                text: root.chat_messages
                 markup: True
                 text_size: self.width, None
                 size_hint_y: None

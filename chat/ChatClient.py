@@ -9,12 +9,13 @@ import ntpath
 
 
 class HQCWSClient(WebSocketClient):
-    def __init__(self, username, role, ip, port, gui_func, *args, **kwargs):
+    def __init__(self, username, role, ip, port, save_directory, *args, **kwargs):
         super(HQCWSClient, self).__init__(HQCWSClient.get_ws_url(ip, port),
                                           protocols=['http-only', 'chat'], *args, **kwargs)
         self.username = username
         self.role = role
-        self.gui_func = gui_func
+        self.save_directory = save_directory
+        self.app = None
         self.connect()
         wst = threading.Thread(target=self.run_forever)
         wst.daemon = False
@@ -60,8 +61,26 @@ class HQCWSClient(WebSocketClient):
         head, tail = ntpath.split(path)
         return tail or ntpath.basename(head)
 
+    def handle_recv_file_message(self, parsed_json):
+        # Get the filename
+        filename = parsed_json['filename']
+
+        # Write the message contents to disk
+        with open(self.save_directory + HQCWSClient.path_leaf(filename), 'wb') as out_file:
+            out_file.write(base64.b64decode(parsed_json['content']))
+
+        print "{} has been saved".format(filename)
+
+    def handle_recv_chat_message(self, parsed_json):
+        username = parsed_json['username']
+        message = parsed_json['message']
+        self.update_app_chat(username, message)
+
+    def update_app_chat(self, username, message):
+        self.app.update_chat(username, message)
+
     @staticmethod
-    def update_gui(username, message):
+    def print_message(username, message):
         """
         Passed into the HQCWSClient constructor and called upon receiving a message
         :param username: string username of sender
@@ -72,7 +91,7 @@ class HQCWSClient(WebSocketClient):
 
     def received_message(self, message):
         """
-        Called upon receiving any message type
+        Overrides WebSocket. Called upon receiving any message type
         :param message: JSON object of entire message
         :return: None
         """
@@ -82,20 +101,11 @@ class HQCWSClient(WebSocketClient):
         message_type = parsed_json['type']
 
         if message_type == constants.FILE:
-            # Get the filename
-            filename = parsed_json['filename']
-
-            # Write the message contents to disk
-            with open('./recordings/' + HQCWSClient.path_leaf(filename), 'wb') as out_file:
-                out_file.write(base64.b64decode(parsed_json['content']))
-
-            print "{} has been saved".format(filename)
+            self.handle_recv_file_message(parsed_json)
 
         elif message_type == constants.CHAT:
-            username = parsed_json['username']
-            msg = parsed_json['message']
+            self.handle_recv_chat_message(parsed_json)
 
-            self.gui_func(username, msg)
         else:
             print "Message type {} not supported".format(message_type)
 
@@ -147,7 +157,7 @@ if __name__ == '__main__':
         IP = '127.0.0.1'
         PORT = '9000'
 
-        ws = HQCWSClient(username, constants.PRODUCER, IP, PORT, HQCWSClient.update_gui)
+        ws = HQCWSClient(username, constants.PRODUCER, IP, PORT, "C:Users/Boots/Desktop")
         ws.chat()
     except KeyboardInterrupt:
         ws.close()
