@@ -18,6 +18,8 @@ SYNC_RECORDINGSTART = 11
 SYNC_RECORDINGSTOP = 12
 # END --- Contains timestamp payload --- #
 
+SYNC = range(4, 13)
+
 # User roles
 ARTIST = "ARTIST"
 PRODUCER = "PRODUCER"

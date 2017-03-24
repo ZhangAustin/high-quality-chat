@@ -78,6 +78,41 @@ class HQCWSClient(WebSocketClient):
         message = parsed_json['message']
         self.update_app_chat(username, message)
 
+    def handle_recv_sync_message(self, parsed_json):
+        status_code = parsed_json['type']
+        username = parsed_json['username']
+        if status_code == constants.SYNC_TESTSYNCMSG:
+            print "Received a test sync message from {}".format(username)
+        elif status_code == constants.SYNC_MICON:
+            print "{} turned mic on".format(username)
+            # Do something in GUI
+        elif status_code == constants.SYNC_MICOFF:
+            print "{} turned mic off".format(username)
+            # Do something in GUI
+        elif status_code == constants.SYNC_SPEAKERON:
+            print "{} turned speakers on".format(username)
+            # Do something in GUI
+        elif status_code == constants.SYNC_SPEAKEROFF:
+            print "{} turned speakers off".format(username)
+            # Do something in GUI
+        elif status_code == constants.SYNC_RECORDINGON:
+            print "{} started recording".format(username)
+            # Do something in GUI
+        elif status_code == constants.SYNC_RECORDINGOFF:
+            print "{} stopped recording".format(username)
+            # Do something in GUI
+        elif status_code == constants.SYNC_RECORDINGSTART:
+            timestamp = parsed_json['message']
+            print "{} started recording at {}".format(username, timestamp)
+            # Do something in GUI
+            pass
+        elif status_code == constants.SYNC_RECORDINGSTOP:
+            timestamp = parsed_json['message']
+            print "{} stopped recording at {}".format(username, timestamp)
+            # Do something in GUI
+        else:
+            print "Status code {} in constants.SYNC but has no handler (recv from {})".format(status_code, username)
+
     def update_app_chat(self, username, message):
         self.app.update_chat(username, message)
 
@@ -107,6 +142,9 @@ class HQCWSClient(WebSocketClient):
 
         elif message_type == constants.CHAT:
             self.handle_recv_chat_message(parsed_json)
+
+        elif message_type in constants.SYNC:
+            self.handle_recv_sync_message(parsed_json)
 
         else:
             print "Message type {} not supported".format(message_type)
