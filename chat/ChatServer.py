@@ -6,10 +6,8 @@ import sys
 
 import json
 import constants
-import base64
 import ntpath
-import time
-import datetime
+
 
 #from config import Config
 #config = Config()
@@ -50,6 +48,8 @@ class HQCWebSocket(EchoWebSocket):
             self.handle_file_transfer(received_message)
         elif message_type == constants.ROLE_VERIFICATION:
             self.handle_role_verification(received_message)
+        elif message_type in constants.SYNC:
+            self.handle_sync(received_message)
 
     def handle_chat_message(self, received_message):
         """
@@ -84,8 +84,21 @@ class HQCWebSocket(EchoWebSocket):
     # TODO: implement method of storing usernames and roles
     def handle_role_verification(self, received_message):
         parsed_json = json.loads(str(received_message))
-        self.username = parsed_json['username']
-        self.role = parsed_json['role']
+        # These are almost definitely not going to be instance attribs
+        username = parsed_json['username']
+        role = parsed_json['role']
+
+    def handle_sync(self, message):
+        """
+        Handles the distribution of sync messages.
+        While identical to handle_chat_message, best to keep separated in case additional server functionality is added
+        :param message: Sync message to forward
+        :return: None
+        """
+        app = self.environ['ws4py.app']
+        for client in app.clients:
+            client.send(message, False)
+        print "Sent sync message to %d clients" % (len(app.clients))
 
     def closed(self, code, reason="A client left the room without a proper explanation."):
         app = self.environ.pop('ws4py.app')
