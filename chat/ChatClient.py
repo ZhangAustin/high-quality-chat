@@ -1,11 +1,13 @@
-from ws4py.client.threadedclient import WebSocketClient
-import json
-import constants
 import base64
+import datetime
+import json
+import ntpath
 import threading
 import time
-import datetime
-import ntpath
+
+from ws4py.client.threadedclient import WebSocketClient
+
+import constants
 
 
 class HQCWSClient(WebSocketClient):
@@ -76,6 +78,41 @@ class HQCWSClient(WebSocketClient):
         message = parsed_json['message']
         self.update_app_chat(username, message)
 
+    def handle_recv_sync_message(self, parsed_json):
+        status_code = parsed_json['type']
+        username = parsed_json['username']
+        if status_code == constants.SYNC_TESTSYNCMSG:
+            print "Received a test sync message from {}".format(username)
+        elif status_code == constants.SYNC_MICON:
+            print "{} turned mic on".format(username)
+            # Do something in GUI
+        elif status_code == constants.SYNC_MICOFF:
+            print "{} turned mic off".format(username)
+            # Do something in GUI
+        elif status_code == constants.SYNC_SPEAKERON:
+            print "{} turned speakers on".format(username)
+            # Do something in GUI
+        elif status_code == constants.SYNC_SPEAKEROFF:
+            print "{} turned speakers off".format(username)
+            # Do something in GUI
+        elif status_code == constants.SYNC_RECORDINGON:
+            print "{} started recording".format(username)
+            # Do something in GUI
+        elif status_code == constants.SYNC_RECORDINGOFF:
+            print "{} stopped recording".format(username)
+            # Do something in GUI
+        elif status_code == constants.SYNC_RECORDINGSTART:
+            timestamp = parsed_json['message']
+            print "{} started recording at {}".format(username, timestamp)
+            # Do something in GUI
+            pass
+        elif status_code == constants.SYNC_RECORDINGSTOP:
+            timestamp = parsed_json['message']
+            print "{} stopped recording at {}".format(username, timestamp)
+            # Do something in GUI
+        else:
+            print "Status code {} in constants.SYNC but has no handler (recv from {})".format(status_code, username)
+
     def update_app_chat(self, username, message):
         self.app.update_chat(username, message)
 
@@ -105,6 +142,9 @@ class HQCWSClient(WebSocketClient):
 
         elif message_type == constants.CHAT:
             self.handle_recv_chat_message(parsed_json)
+
+        elif message_type in constants.SYNC:
+            self.handle_recv_sync_message(parsed_json)
 
         else:
             print "Message type {} not supported".format(message_type)
@@ -143,6 +183,23 @@ class HQCWSClient(WebSocketClient):
         self.send(str(json.dumps(payload)), True)
         fh.close()
         # self.close()
+
+    def send_sync(self, sync_code=constants.SYNC_TESTSYNCMSG, timestamp=None):
+        """
+        Forms and sends a sync message in order to reflect state changes in all connected users' GUI
+        :param sync_code: Status to send, as defined in constants
+        :param timestamp: time of HQ recording stop or start, for use with SYNC_RECORDINGSTART and SYNC_RECORDINGSTOP
+        """
+        payload = self.new_payload()
+        payload['type'] = sync_code
+        if sync_code == constants.SYNC_RECORDINGSTART or sync_code == constants.SYNC_RECORDINGSTOP:
+            if timestamp is not None:
+                payload['message'] = timestamp
+                self.send(json.dumps(payload), False)
+            else:
+                print "No timestamp provided for sync message"
+        else:
+            self.send(json.dumps(payload), False)
 
     def new_payload(self):
         """
