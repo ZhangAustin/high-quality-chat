@@ -78,12 +78,13 @@ ScreenManager:
         manager: screen_manager
         app: self.manager.app
         TextInput:
-            id: setting1
+            id: username_setting
             size_hint: (.5, .10)
             text_size: root.width, None
             font_size: '25sp'
             multiline: False
             pos: (170, 480)
+            on_text_validate: self.parent.update_username(username_setting.text)
         TextInput:
             id: setting2
             size_hint: (.5, .10)

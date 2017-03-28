@@ -23,6 +23,7 @@ import audio
 from Config import Config
 from hqc import HQCPhone
 from chat.ChatClient import HQCWSClient
+from chat import constants
 
 
 NUMBER_OF_BUTTONS = 30
@@ -30,6 +31,7 @@ audioClipLayout = GridLayout(cols=3, padding=10, spacing=5,
                     size_hint=(None, None), width=310)
 # layout2 = GridLayout(cols=1, padding=10, spacing=5,
 #                      size_hint=(None, None), width=410)
+# TODO: REMOVE GLOBAL VARIABLES. Put them in the config, a class definition, or default parameter.
 start_recording = False
 filenames = []
 recorder = None
@@ -63,6 +65,10 @@ class HQC(App):
 
     def update_chat(self, username, message):
         self.root.screens[3].update_chat(username, message)
+
+    def update_role(self, role):
+        self.chat_client.role = role
+        self.config.update_setting("Chat", "role", role)
 
 
 class MainScreen(Screen):
@@ -216,6 +222,9 @@ class SessionScreen(Screen):
 class ProducerJoiningScreen(Screen):
     app = ObjectProperty(None)
 
+    def on_enter(self):
+        self.app.update_role(constants.PRODUCER)
+
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
     def gettext(self, servername, username, password):
@@ -266,6 +275,9 @@ class ProducerJoiningScreen(Screen):
 class ArtistJoiningScreen(Screen):
     app = ObjectProperty(None)
 
+    def on_enter(self):
+        self.app.update_role(constants.ARTIST)
+
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
     def gettext(self, constring):
@@ -303,6 +315,11 @@ class ArtistJoiningScreen(Screen):
 
 class SettingsScreen(Screen):
     app = ObjectProperty(None)
+
+    def update_username(self, text_input):
+        self.app.chat_client.username = text_input
+        self.app.config.update_setting("Chat", "username", text_input)
+        self.parent.ids.username_setting.text = ""
 
 
 class FileTransferScreen(Screen):
