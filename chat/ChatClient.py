@@ -2,7 +2,10 @@ import base64
 import datetime
 import json
 import ntpath
+<<<<<<< HEAD
 import socket
+=======
+>>>>>>> master
 import threading
 import time
 
@@ -155,8 +158,9 @@ class HQCWSClient(WebSocketClient):
             elif message_type in constants.SYNC:
                 self.handle_recv_sync_message(parsed_json)
 
-            else:
-                print "Message type {} not supported".format(message_type)
+        elif message_type in constants.SYNC:
+            self.handle_recv_sync_message(parsed_json)
+
         else:
             # Retrieve the message dictionary
             parsed_json = json.loads(str(message))
