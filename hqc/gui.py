@@ -196,7 +196,10 @@ class SessionScreen(Screen):
         :param message: string entered in chat
         :return: None
         """
-        self.app.chat_client.chat(message)
+        if self.app.chat_client:
+            self.app.chat_client.chat(message)
+        else:
+            print "Chat client not connected"
         # Reset text input
         self.parent.ids.chatText.text = ''
         # Keep cursor in text chat
@@ -289,10 +292,11 @@ class ArtistJoiningScreen(Screen):
             lq_audio = self.app.phone.get_lq_start_time()
             print "passing lq_audio to gui: " + lq_audio
 
-        except:
-            errormessage = 'Sorry, that string is not valid'
+        except Exception as e:
+            print "Error: " + str(e)
+            error_message = 'Sorry, that string is not valid'
             popup = Popup(title='Connection String Error',
-                          content=Label(text=errormessage),
+                          content=Label(text=error_message),
                           size_hint=(None, None), size=(400, 400))
             popup.open()
 
@@ -303,6 +307,7 @@ class SettingsScreen(Screen):
 
 class FileTransferScreen(Screen):
     app = ObjectProperty(None)
+
     def on_enter(self):
         files = [["File 1", 60], ["File 2", 40], ["File 3", 80], ["File 4", 20]]
         for file in files:
@@ -313,5 +318,6 @@ class FileTransferScreen(Screen):
             label = Label(text=filename, size_hint=(1/len(files), None))
             self.ids.filelayout.add_widget(label)
             self.ids.filelayout.add_widget(progress)
+
 if __name__ == '__main__':
     HQC().run()

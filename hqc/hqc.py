@@ -211,7 +211,7 @@ if __name__ == '__main__':
     phone.add_auth_info()
 
     debug_logger.info("Dialing...")
-    phone.make_call(1001, config.get('ConnectionDetails', 'server'))
+    phone.make_call(2000, config.get('ConnectionDetails', 'server'))
 
     while True:
         phone.hold_open(5)
