@@ -23,9 +23,9 @@ class HQCWSClient(WebSocketClient):
             self.connect()
         except socket.error:
             print "Could not connect to the server"
-        wst = threading.Thread(target=self.run_forever)
-        wst.daemon = False
-        wst.start()
+        self.wst = threading.Thread(target=self.run_forever)
+        self.wst.daemon = False
+        self.wst.start()
 
     def opened(self):
         """
@@ -36,6 +36,12 @@ class HQCWSClient(WebSocketClient):
         payload = self.new_payload()
         payload['type'] = constants.ROLE_VERIFICATION
         self.send(str(json.dumps(payload)), False)
+
+    def finish(self):
+        self.close()
+        print self.wst.is_alive
+        if self.wst.is_alive:
+            self.wst.join()
 
     @staticmethod
     def closed(code, reason=None):
