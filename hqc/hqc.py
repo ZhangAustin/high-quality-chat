@@ -1,16 +1,19 @@
 import base64
-import Config
-import linphone
-import logging.handlers
+import logging
 import time
+from datetime import datetime
+
+import linphone
+
+from Config import Config
 
 #  Load logging configuration from file
 logging.config.fileConfig('../logging.conf')
 #  Reference logger
 linphone_logger = logging.getLogger('linphone')
 debug_logger = logging.getLogger('debug')
-#  Reference config settings from Config
-config = Config.config
+
+lq_audio = "undefined :("
 
 
 class Singleton(type):
@@ -26,12 +29,24 @@ class Singleton(type):
 class HQCPhone(object):
     __metaclass__ = Singleton
     core = ''
-    config = ''
     mic_gain = 0
     call = ''
 
     def __init__(self, config):
-        self.config = config
+        self.config = Config("conn.conf")
+
+        def global_state_changed(*args, **kwargs):
+            debug_logger.warning("global_state_changed: %r %r" % (args, kwargs))
+
+        def registration_state_changed(core, call, state, message):
+            debug_logger.warning("registration_state_changed: " + str(state) + ", " + message)
+        callbacks = {
+            'global_state_changed': global_state_changed,
+            'registration_state_changed': registration_state_changed,
+        }
+        self.core = linphone.Core.new(callbacks, None, None)
+        self.add_proxy_config()
+        self.add_auth_info()
 
         def log_handler(level, msg):
             """
@@ -44,25 +59,20 @@ class HQCPhone(object):
             debug_method = getattr(linphone_logger, level)
             debug_method(msg)
 
-        def global_state_changed(*args, **kwargs):
-            debug_logger.warning("global_state_changed: %r %r" % (args, kwargs))
-
-        def registration_state_changed(core, call, state, message):
-            debug_logger.warning("registration_state_changed: " + str(state) + ", " + message)
-
-        callbacks = {
-            'global_state_changed': global_state_changed,
-            'registration_state_changed': registration_state_changed,
-        }
-
         linphone.set_log_handler(log_handler)
-        self.core = linphone.Core.new(callbacks, None, None)
         self.core.video_capture_enabled = False  # remove both of these if we get video implemented
         self.core.video_display_enabled = False
-        self.core.capture_device = config.get('Settings', 'mic')
-        self.core.playback_device = config.get('Settings', 'speakers')
+        self.core.capture_device = self.config.get('Settings', 'mic')
+        self.core.playback_device = self.config.get('Settings', 'speakers')
 
-    def make_call(self, number, server, lq_file='recording.wav'):
+    @staticmethod
+    def get_lq_start_time():
+        return lq_audio
+
+    def make_call(self, number, server, lq_file=datetime.now().strftime('%p_%I_%M_%S.wav')):
+        global lq_audio
+        lq_audio = lq_file
+        print "recording low quality stream: " + lq_audio
         """
         Make a SIP call to a number on a server
         :param number: number to call (should be a conference number)
@@ -189,6 +199,7 @@ def make_conn_string(username, password, server):
     return base64.b64encode(conn_string)
 
 if __name__ == '__main__':
+    config = Config('conn.conf')
 
     debug_logger.info("Making LinPhone.Core")
     phone = HQCPhone(config)
@@ -200,7 +211,7 @@ if __name__ == '__main__':
     phone.add_auth_info()
 
     debug_logger.info("Dialing...")
-    phone.make_call(1001, config.get('ConnectionDetails', 'server'))
+    phone.make_call(2000, config.get('ConnectionDetails', 'server'))
 
     while True:
         phone.hold_open(5)

@@ -3,8 +3,10 @@
 conn.conf
 *.wav
 *.mp3
-hqc/test
+.DS_Store
+*.swp
 
+hqc/test
 
 # Created by .ignore support plugin (hsz.mobi)
 ### Python template
@@ -98,4 +100,3 @@ ENV/
 
 # Rope project settings
 .ropeproject
-

@@ -1,10 +1,15 @@
 #:kivy 1.0
 #:import FadeTransition kivy.uix.screenmanager.FadeTransition
 ScreenManager:
+    app: None
     id: screen_manager
     transition: FadeTransition()
     MainScreen:
+        manager: screen_manager
+        app: self.manager.app
     ProducerJoiningScreen:
+        manager: screen_manager
+        app: self.manager.app
         TextInput:
             id: servername
             size_hint: (.5, .15)
@@ -38,6 +43,8 @@ ScreenManager:
             pos: (450, 20)
             on_release: self.parent.gettext(servername.text, username.text, password.text)
     ArtistJoiningScreen:
+        manager: screen_manager
+        app: self.manager.app
         TextInput:
             id: artconnection
             size_hint: (.5, .15)
@@ -56,22 +63,28 @@ ScreenManager:
             pos: (450, 20)
             on_release: self.parent.gettext(artconnection.text)
     SessionScreen:
+        manager: screen_manager
+        app: self.manager.app
         TextInput:
             id: chatText
             size_hint: (.50, .10)
             text_size: root.width, None
             font_size: '18sp'
             multiline: False
+            on_text_validate: self.parent.send_message(chatText.text)
 
             pos: (10, 300)
     SettingsScreen:
+        manager: screen_manager
+        app: self.manager.app
         TextInput:
-            id: setting1
+            id: username_setting
             size_hint: (.5, .10)
             text_size: root.width, None
             font_size: '25sp'
             multiline: False
             pos: (170, 480)
+            on_text_validate: self.parent.update_username(username_setting.text)
         TextInput:
             id: setting2
             size_hint: (.5, .10)
@@ -87,6 +100,10 @@ ScreenManager:
             multiline: False
             password: True
             pos: (170, 350)
+    FileTransferScreen:
+        app: self.manager.app
+        manager: screen_manager
+
 <MainScreen>:
     name: "main"
     Label:
@@ -186,13 +203,13 @@ ScreenManager:
         font_size: '25sp'
         size_hint: (.25, .25)
         pos: (100, 100)
-        on_press: root.begin_Recording()
+        on_press: root.begin_recording()
     ImageButton:
         id: pause_button
         source: '../img/pause_black.png'
-        font_size: '18sp'
-        size_hint: (.11, .17)
-        pos: (300, 120)
+        size_hint: (.17, .17)
+        pos: (280, 120)
+        on_release: self.parent.gettext(chatText.text)
 
     TabbedPanel:
         size_hint: (.4, .9)
@@ -235,15 +252,19 @@ ScreenManager:
                     text: 'Redo'
                     font_size: '18sp'
     BoxLayout:
-        size_hint: (.58, .45)
-        pos_hint: {'center_x': .3, 'center_y': .76}
-        orientation: 'vertical'
-        Label:
-            text: '[i]Waiting for others to join...\n[/i][P. Burdell] [i]has joined the chat\n[/i][Ellen] [i] has joined the chat[/i]\n[P. Burdell]: Hi Ellen\n[Ellen] [i] has left the chat[/i]'
-            markup: True
-            text_size: self.size
-            halign: 'left'
-            valign: 'top'
+        ScrollView:
+            size_hint: (None, None)
+            size: (400, 200)
+            pos_hint: {'center_x':.3, 'center_y':.78}
+            scroll_y: 0
+            Label:
+                text: root.chat_messages
+                markup: True
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1]
+                halign: 'left'
+                valign: 'top'
 <SettingsScreen>
     name: "settings"
     ImageButton:
@@ -288,4 +309,19 @@ ScreenManager:
         font_size: '25sp'
         pos: (300, 50)
         on_release: app.root.current = 'main'
-
+<FileTransferScreen>
+    name: "filetransfer"
+    BoxLayout:
+        id: filelayout
+        orientation: 'vertical'
+        padding: [0, 0, 0, 150]
+    Button:
+        id: leave_file
+        text: 'Return to Main Menu'
+        halign: 'center'
+        valign: 'middle'
+        size_hint: (.4, .10)
+        text_size: root.width, None
+        font_size: '25sp'
+        pos: (250, 50)
+        on_release: app.root.current = 'main'
