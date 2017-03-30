@@ -1,8 +1,0 @@
-#This file is effectively a list of ENUMS
-CHAT  = 1
-FILE  = 2
-ROLE_VERIFICATION = 3
-
-ARTIST = "ARTIST"
-PRODUCER = "PRODUCER"
-LISTENER = "LISTENER"

@@ -14,6 +14,8 @@ linphone_logger = logging.getLogger('linphone')
 debug_logger = logging.getLogger('debug')
 
 lq_audio = "undefined :("
+
+
 class Singleton(type):
     _instance = None
 
@@ -31,7 +33,7 @@ class HQCPhone(object):
     call = ''
 
     def __init__(self, config):
-        self.config = Config("conn.conf")
+        self.config = config
 
         def global_state_changed(*args, **kwargs):
             debug_logger.warning("global_state_changed: %r %r" % (args, kwargs))
@@ -60,8 +62,8 @@ class HQCPhone(object):
         linphone.set_log_handler(log_handler)
         self.core.video_capture_enabled = False  # remove both of these if we get video implemented
         self.core.video_display_enabled = False
-        self.core.capture_device = self.config.get('Settings', 'mic')
-        self.core.playback_device = self.config.get('Settings', 'speakers')
+        self.core.capture_device = self.config.get('AudioSettings', 'mic')
+        self.core.playback_device = self.config.get('AudioSettings', 'speakers')
 
     @staticmethod
     def get_lq_start_time():
@@ -209,7 +211,7 @@ if __name__ == '__main__':
     phone.add_auth_info()
 
     debug_logger.info("Dialing...")
-    phone.make_call(1001, config.get('ConnectionDetails', 'server'))
+    phone.make_call(2000, config.get('ConnectionDetails', 'server'))
 
     while True:
         phone.hold_open(5)
