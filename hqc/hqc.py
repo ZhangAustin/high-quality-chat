@@ -33,7 +33,7 @@ class HQCPhone(object):
     call = ''
 
     def __init__(self, config):
-        self.config = Config("conn.conf")
+        self.config = config
 
         def global_state_changed(*args, **kwargs):
             debug_logger.warning("global_state_changed: %r %r" % (args, kwargs))
@@ -62,8 +62,8 @@ class HQCPhone(object):
         linphone.set_log_handler(log_handler)
         self.core.video_capture_enabled = False  # remove both of these if we get video implemented
         self.core.video_display_enabled = False
-        self.core.capture_device = self.config.get('Settings', 'mic')
-        self.core.playback_device = self.config.get('Settings', 'speakers')
+        self.core.capture_device = self.config.get('AudioSettings', 'mic')
+        self.core.playback_device = self.config.get('AudioSettings', 'speakers')
 
     @staticmethod
     def get_lq_start_time():

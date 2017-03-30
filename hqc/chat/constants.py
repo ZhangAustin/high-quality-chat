@@ -24,3 +24,8 @@ SYNC = range(4, 13)
 ARTIST = "ARTIST"
 PRODUCER = "PRODUCER"
 LISTENER = "LISTENER"
+
+# Default connection values
+IP = '127.0.0.1'
+PORT = 9000
+USERNAME = 'user'

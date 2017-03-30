@@ -55,15 +55,23 @@ class HQC(App):
     """
     This represents the main application class
     """
-    def build(self):
-        gui_logger.debug("Build HQC application")
+    def __init__(self, **kwargs):
+        super(HQC, self).__init__(**kwargs)
         self.config = Config("conn.conf")
         self.phone = HQCPhone(self.config)
-        self.chat_client = HQCWSClient("Test User", "Test Role", '127.0.0.1', '9000', "C:Users/Boots/Desktop")
-        # Give the web socket a reference to the app
+        self.chat_client = HQCWSClient(self.config)
+        # Link chat to application
         self.chat_client.app = self
+
+    # Build should only handle setting up GUI-specific items
+    def build(self):
+        # Kivy is stubborn and overrides self.config with a built-in ConfigParser
+        self.config = self.chat_client.config
+        gui_logger.debug("Building HQC application")
+        # Give the web socket a reference to the app
         gui = Builder.load_file("HQC.kv")
         self.root = gui
+        # Link application to Screen Manager
         self.root.app = self
         return gui
 
@@ -72,7 +80,7 @@ class HQC(App):
 
     def update_role(self, role):
         self.chat_client.role = role
-        self.config.update_setting("Chat", "role", role)
+        self.config.update_setting("ChatSettings", "role", role)
 
 
 class MainScreen(Screen):
@@ -332,7 +340,7 @@ class SettingsScreen(Screen):
 
     def update_username(self, text_input):
         self.app.chat_client.username = text_input
-        self.app.config.update_setting("Chat", "username", text_input)
+        self.app.config.update_setting("ChatSettings", "username", text_input)
         self.parent.ids.username_setting.text = ""
 
 
@@ -350,8 +358,10 @@ class FileTransferScreen(Screen):
             self.ids.filelayout.add_widget(label)
             self.ids.filelayout.add_widget(progress)
 
+
 class ImageButton(ButtonBehavior, Image):
     pass
+
 
 class ActionImageButton(ImageButton, ActionItem):
     pass

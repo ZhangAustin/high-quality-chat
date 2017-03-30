@@ -12,17 +12,31 @@ import constants
 
 
 class HQCWSClient(WebSocketClient):
-    def __init__(self, username, role, ip, port, save_directory, *args, **kwargs):
-        super(HQCWSClient, self).__init__(HQCWSClient.get_ws_url(ip, port),
+    def __init__(self, config, *args, **kwargs):
+        self.config = config
+        # Get connection details from config
+        try:
+            self.ip = config.get('ChatSettings', 'ip')
+            self.port = config.get('ChatSettings', 'port')
+        except:
+            self.ip = constants.IP
+            self.port = constants.PORT
+        super(HQCWSClient, self).__init__(HQCWSClient.get_ws_url(self.ip, self.port),
                                           protocols=['http-only', 'chat'], *args, **kwargs)
-        self.username = username
-        self.role = role
-        self.save_directory = save_directory
+        try:
+            self.username = config.get('ChatSettings', 'username')
+            self.role = config.get('ChatSettings', 'role')
+            self.save_directory = config.get('FileSettings', 'save_directory')
+        except:
+            self.username = constants.USERNAME
+            self.role = constants.ARTIST
+            self.save_directory = None
+        # Set in GUI initialization
         self.app = None
         try:
             self.connect()
-        except socket.error:
-            print "Could not connect to the server"
+        except socket.error as error:
+            print "Could not connect to the server:", error
         self.wst = threading.Thread(target=self.run_forever)
         self.wst.daemon = False
         self.wst.start()
