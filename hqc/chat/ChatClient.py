@@ -11,6 +11,17 @@ from ws4py.client.threadedclient import WebSocketClient
 import constants
 
 
+class ClientThread(threading.Thread):
+
+    def __init__(self, client):
+        super(ClientThread, self).__init__()
+        self.client = client
+
+    def run(self):
+        print "Client Thread started"
+        self.client.finish()
+
+
 class HQCWSClient(WebSocketClient):
     def __init__(self, config, *args, **kwargs):
         self.config = config
@@ -37,9 +48,8 @@ class HQCWSClient(WebSocketClient):
             self.connect()
         except socket.error as error:
             print "Could not connect to the server:", error
-        self.wst = threading.Thread(target=self.run_forever)
-        self.wst.daemon = False
-        self.wst.start()
+        client_thread = ClientThread(self)
+        client_thread.start()
 
     def opened(self):
         """
@@ -52,6 +62,7 @@ class HQCWSClient(WebSocketClient):
         self.send(str(json.dumps(payload)), False)
 
     def finish(self):
+        print "Finish called"
         self.close()
         print self.wst.is_alive
         if self.wst.is_alive:
