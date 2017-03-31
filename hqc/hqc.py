@@ -42,6 +42,10 @@ class HQCPhone(object):
     recording_locations = []
 
     def __init__(self, config):
+        """
+        SIP client using liblinphone for underlying technologies
+        :param config: A Config object to retrieve setting information from
+        """
         self.config = config
 
         def global_state_changed(*args, **kwargs):
@@ -283,7 +287,14 @@ class HQCPhone(object):
         debug_logger.info("Added auth info")
 
     def hangup(self):
+        """
+        Gracefully disconnects the call
+        :return: 
+        """
+        # Gracefully end the LQ recording stream
         self.stop_start_recording(None, final=True)
+
+        # Gracefully hang up
         self.core.terminate_all_calls()
 
 
