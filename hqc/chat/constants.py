@@ -18,8 +18,10 @@ SYNC_RECORDINGSTART = 11
 SYNC_RECORDINGSTOP = 12
 # END --- Contains timestamp payload --- #
 SYNC_SESSIONNAME = 13
+SYNC_HAVEFILE = 14  # Artist should send this once it finalizes HQ recordings
+SYNC_REQUESTFILE = 15  # Producer should send this once it hits the 'request file' button'
 
-SYNC = range(4, 14)
+SYNC = range(4, 16)
 
 # User roles
 ARTIST = "ARTIST"
