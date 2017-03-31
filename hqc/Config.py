@@ -36,9 +36,12 @@ class Config(ConfigParser.SafeConfigParser):
         Checks the config file and ensure all sections exist
         If not, add the sections and initialize to "None"
         """
-        connection = ['user', 'password', 'server', 'role']
-        settings = ['mic', 'speakers', 'recording_location']
-        sections = {'ConnectionDetails': connection, 'Settings': settings}
+        connection = ['user', 'password', 'server', 'conn_string']
+        audio_settings = ['mic', 'speakers', 'recording_location']
+        chat_settings = ['ip_address', 'port', 'username', 'role']
+        sections = {'ConnectionDetails': connection,
+                    'AudioSettings': audio_settings,
+                    'ChatSettings': chat_settings}
 
         for section in sections:
             if not self.has_section(section):
@@ -64,6 +67,3 @@ class Config(ConfigParser.SafeConfigParser):
         #  Write the settings back to disk
         with open(self.file, "w") as config_file:
             self.write(config_file)
-
-# WARNING: DO NOT Initialize Config on import. Create a config object with custom parameters.
-#config = Config("conn.conf")

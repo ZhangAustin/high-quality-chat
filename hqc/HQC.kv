@@ -16,6 +16,7 @@ ScreenManager:
             text_size: root.width, None
             font_size: '35sp'
             multiline: False
+            hint_text: 'MyServer'
             pos: (350, 400)
         TextInput:
             id: username
@@ -23,6 +24,7 @@ ScreenManager:
             text_size: root.width, None
             font_size: '35sp'
             multiline: False
+            hint_text: 'SvenTheMonkeyDr520'
             pos: (350, 300)
         TextInput:
             id: password
@@ -31,37 +33,40 @@ ScreenManager:
             font_size: '35sp'
             multiline: False
             password: True
+            hint_text: '********'
             pos: (350, 200)
-        Button:
+        ImageButton:
             id: joinsess
-            background_normal: 'atlas://data/images/defaulttheme/audio-volume-high'
+            source: '../img/right_arrow.png'
             halign: 'center'
             valign: 'middle'
-            size_hint: (.25, .15)
+            size_hint: (.35, .15)
             text_size: root.width, None
             font_size: '25sp'
-            pos: (450, 20)
-            on_release: self.parent.gettext(servername.text, username.text, password.text)
+            pos: (420, 50)
+            on_release: self.parent.get_text(servername.text, username.text, password.text)
     ArtistJoiningScreen:
         manager: screen_manager
         app: self.manager.app
         TextInput:
             id: artconnection
-            size_hint: (.5, .15)
-            text_size: root.width, None
-            font_size: '35sp'
-            multiline: False
-            pos: (350, 400)
-        Button:
-            id: artjoinsess
-            text: 'Join Session'
-            halign: 'center'
-            valign: 'middle'
-            size_hint: (.25, .15)
+            size_hint: (.8, .15)
             text_size: root.width, None
             font_size: '25sp'
-            pos: (450, 20)
-            on_release: self.parent.gettext(artconnection.text)
+            multiline: True
+            hint_text: 'e.g. MTAwNDszYjIwODAyYzk1YmM0NjE3MTVlM2NmZ\nGQ4YzY2NGYyOzQ1LjE3LjE2MC43NA=='
+            pos: (80, 320)
+        ImageButton:
+            id: artjoinsess
+            text: 'Join Session'
+            source: '../img/right_arrow.png'
+            halign: 'center'
+            valign: 'middle'
+            size_hint: (.5, None)
+            text_size: root.width, None
+            font_size: '25sp'
+            pos: (200, 100)
+            on_release: self.parent.get_text(artconnection.text)
     SessionScreen:
         manager: screen_manager
         app: self.manager.app
@@ -70,6 +75,7 @@ ScreenManager:
             size_hint: (.50, .10)
             text_size: root.width, None
             font_size: '18sp'
+            hint_text: 'Type to chat'
             multiline: False
             on_text_validate: self.parent.send_message(chatText.text)
 
@@ -83,6 +89,7 @@ ScreenManager:
             text_size: root.width, None
             font_size: '25sp'
             multiline: False
+            hint_text: 'TRUE'
             pos: (170, 480)
             on_text_validate: self.parent.update_username(username_setting.text)
         TextInput:
@@ -91,6 +98,7 @@ ScreenManager:
             text_size: root.width, None
             font_size: '25sp'
             multiline: False
+            hint_text: 'YES'
             pos: (170, 415)
         TextInput:
             id: setting3
@@ -98,6 +106,7 @@ ScreenManager:
             text_size: root.width, None
             font_size: '25sp'
             multiline: False
+            hint_text: 'ON'
             password: True
             pos: (170, 350)
     FileTransferScreen:
@@ -209,13 +218,13 @@ ScreenManager:
         font_size: '25sp'
         size_hint: (.25, .25)
         pos: (100, 100)
-        on_press: root.begin_recording()
+        on_press: root.record_button()
     ImageButton:
         id: pause_button
         source: '../img/pause_black.png'
         size_hint: (.17, .17)
         pos: (280, 120)
-        on_release: self.parent.gettext(chatText.text)
+        on_release: self.parent.get_text(chatText.text)
 
     TabbedPanel:
         size_hint: (.4, .9)

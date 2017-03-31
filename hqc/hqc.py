@@ -13,8 +13,6 @@ logging.config.fileConfig('../logging.conf')
 linphone_logger = logging.getLogger('linphone')
 debug_logger = logging.getLogger('debug')
 
-lq_audio = "undefined :("
-
 
 class Singleton(type):
     _instance = None
@@ -33,7 +31,9 @@ class HQCPhone(object):
     call = ''
 
     def __init__(self, config):
-        self.config = Config("conn.conf")
+        self.config = config
+        # TODO: define
+        self.lq_audio = "undefined :("
 
         def global_state_changed(*args, **kwargs):
             debug_logger.warning("global_state_changed: %r %r" % (args, kwargs))
@@ -56,14 +56,14 @@ class HQCPhone(object):
             :return: None
             """
             #  Choose the appropriate logging handle
-            debug_method = getattr(linphone_logger, level)
+            debug_method = getattr(linphone_logger, 'info')
             debug_method(msg)
 
         linphone.set_log_handler(log_handler)
         self.core.video_capture_enabled = False  # remove both of these if we get video implemented
         self.core.video_display_enabled = False
-        self.core.capture_device = self.config.get('Settings', 'mic')
-        self.core.playback_device = self.config.get('Settings', 'speakers')
+        self.core.capture_device = self.config.get('AudioSettings', 'mic')
+        self.core.playback_device = self.config.get('AudioSettings', 'speakers')
 
     @staticmethod
     def get_lq_start_time():
@@ -93,6 +93,7 @@ class HQCPhone(object):
         while self.call.media_in_progress():
             self.hold_open()
 
+        # start_recording() is a linphone built-in function
         self.call.start_recording()
 
     def mute_mic(self):
@@ -147,6 +148,62 @@ class HQCPhone(object):
             if self.core.sound_device_can_capture(device):
                 recording_devices.append(device)
         return recording_devices
+
+    def get_codecs(self):
+        """
+        Retrieves all available codecs
+        :return: An array of lists containing codec details
+        """
+        printable_codecs = []
+        for codec in self.core.audio_codecs:
+            printable_codec = [codec.mime_type, codec.normal_bitrate, codec.channels]
+            printable_codecs.append(printable_codec)
+
+        for printable_codec in printable_codecs:
+            print printable_codec
+
+    def force_codec_type(self, codec):
+        """
+        Disables all codecs except for the specified codec.  If the specified codec is not found, enable all codecs
+        :param codec: an array returned from get_codecs
+        :return: 1 on success, 0 on failure (no matching codec)
+        """
+        # Cannot reliably use core.find_audio_codec due to issue with bitrate selection
+        selected_codec = -1
+        for payload in self.core.audio_codecs:
+            if payload.mime_type == codec[0]:
+                if payload.normal_bitrate == codec[1]:
+                    if payload.channels == codec[2]:
+                        selected_codec = payload
+
+        # We double iterate audio_codecs because if we can't find a matching codec we don't want to disable everything
+        if selected_codec != -1:
+            # We found a matching codec
+            for payload in self.core.audio_codecs:
+                if not self.codecs_match(payload, selected_codec):
+                    self.core.enable_payload_type(payload, False)
+                else:
+                    self.core.enable_payload_type(payload, True)
+            return 1
+        else:
+            return 0
+
+    def codecs_match(self, codec1, codec2):
+        """
+        Determines if two codecs are the same
+        For whatever reason, 
+            a = self.core.audio_codec[0]
+            a in self.core.audio_codec
+            > false
+        :param codec1: The first codec
+        :param codec2: The second codec
+        :return: true if the codecs match, false if they don't
+        """
+        if codec1.mime_type == codec2.mime_type:
+            if codec1.normal_bitrate == codec2.normal_bitrate:
+                if codec1.channels == codec2.channels:
+                    return True
+        return False
 
     def add_proxy_config(self):
         proxy_cfg = self.core.create_proxy_config()
@@ -204,18 +261,27 @@ if __name__ == '__main__':
     debug_logger.info("Making LinPhone.Core")
     phone = HQCPhone(config)
 
-    debug_logger.info("Adding proxy config")
-    phone.add_proxy_config()
+    # phone.get_codecs()
+    print phone.force_codec_type(['opus', 20000, 2])
 
-    debug_logger.info("Adding authentication info")
-    phone.add_auth_info()
-
-    debug_logger.info("Dialing...")
-    phone.make_call(2000, config.get('ConnectionDetails', 'server'))
-
-    while True:
-        phone.hold_open(5)
-        phone.mute_mic()
-        phone.hold_open(2)
-        phone.unmute_mic()
-        phone.hold_open(10)
+    test_codec = []
+    for codec in phone.core.audio_codecs:
+        test_codec.append(
+            [phone.core.payload_type_enabled(codec), codec.mime_type, codec.normal_bitrate, codec.channels])
+    for codec in test_codec:
+        print codec
+        # debug_logger.info("Adding proxy config")
+        # phone.add_proxy_config()
+        #
+        # debug_logger.info("Adding authentication info")
+        # phone.add_auth_info()
+        #
+        # debug_logger.info("Dialing...")
+        # phone.make_call(2000, config.get('ConnectionDetails', 'server'))
+        #
+        # while True:
+        #     phone.hold_open(5)
+        #     phone.mute_mic()
+        #     phone.hold_open(2)
+        #     phone.unmute_mic()
+        #     phone.hold_open(10)
