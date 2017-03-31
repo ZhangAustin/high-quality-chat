@@ -35,10 +35,6 @@ from chat import constants
 # layout2 = GridLayout(cols=1, padding=10, spacing=5,
 #                      size_hint=(None, None), width=410)
 
-# TODO: REMOVE GLOBAL VARIABLES. Put them in the config, a class definition, or default parameter.
-start_recording = False
-filenames = []
-recorder = None
 kivy.require('1.0.7')
 
 #  Load logging configuration from file
