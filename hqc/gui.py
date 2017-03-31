@@ -1,5 +1,6 @@
 import base64
 import logging
+import os
 from datetime import datetime
 
 import kivy
@@ -174,7 +175,8 @@ class SessionScreen(Screen):
 
         if self.app.recording:
             self.ids.record_button.source = SessionScreen.stop_black
-            filename = datetime.now().strftime('HQ_%H%M%S.mp3')
+            filename = os.path.join(self.app.config.get('AudioSettings', 'recording_location'),
+                                    datetime.now().strftime('HQ_%H%M%S.mp3'))
             self.app.recorder = audio.Recorder(filename) #creates audio file
             self.audio_files.append(filename) #adds filename to global list
             self.app.recorder.start() # Starts recording
