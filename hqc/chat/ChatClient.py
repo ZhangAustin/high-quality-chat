@@ -26,7 +26,7 @@ class HQCWSClient(WebSocketClient):
         try:
             self.username = config.get('ChatSettings', 'username')
             self.role = config.get('ChatSettings', 'role')
-            self.save_directory = config.get('AudioSettings', 'save_directory')
+            self.save_directory = config.get('AudioSettings', 'recording_location')
         except:
             self.username = constants.USERNAME
             self.role = constants.ARTIST
