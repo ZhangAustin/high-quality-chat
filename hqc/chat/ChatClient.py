@@ -140,7 +140,9 @@ class HQCWSClient(WebSocketClient):
             print "{} stopped recording at {}".format(username, timestamp)
             # Do something in GUI
         elif status_code == constants.SYNC_SESSIONNAME:
-            pass
+            session_name = parsed_json['message']
+            print "{} set the session name to {}".format(username, session_name)
+            # Do something in GUI
         else:
             print "Status code {} in constants.SYNC but has no handler (recv from {})".format(status_code, username)
 
