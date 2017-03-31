@@ -102,6 +102,9 @@ class SessionScreen(Screen):
     # List of audio file names
     audio_files = []
 
+    # List of requested audio files
+    requested_files = []
+
     def on_enter(self):
         # global audioClipLayout
 
@@ -113,6 +116,7 @@ class SessionScreen(Screen):
         self.app.chat_client = HQCWSClient(self.app.config)
         self.app.chat_client.app = self.app
         self.app.chat_client.config = self.app.config
+        print "Joined Chat Client"
         # create a scroll view, with a size < size of the grid
         # root = ScrollView(size_hint=(None, None), size=(310, 460),
         #                   pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
@@ -137,13 +141,18 @@ class SessionScreen(Screen):
         #audioClipLayout.add_widget(label)
 
         #add request button
+        filename = self.audio_files[-1]
         btn2 = Button(text="Request", size=(100, 50),
                       size_hint=(0.32, None))
+        btn2.bind(on_press=self.add_file(filename))
         #audioClipLayout.add_widget(btn2)
 
         self.ids.audioSidebar.add_widget(btn)
         self.ids.audioSidebar.add_widget(label)
         self.ids.audioSidebar.add_widget(btn2)
+
+    def add_file(self, file):
+        self.requested_files += file
 
     def play_clip(self, obj):
 
@@ -230,8 +239,8 @@ class SessionScreen(Screen):
     def on_leave(self, *args):
         """
         Makes sure the SessionScreen is left properly
-        :param args: 
-        :return: 
+        :param args:
+        :return:
         """
         # If leaving the SessionScreen, make sure to stop recording
         if self.app.recording:
@@ -297,6 +306,9 @@ class ArtistJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
     def get_text(self, conn_string):
+        if conn_string == '':
+            conn_string = self.app.config.get('ConnectionDetails', 'conn_string')
+            print "Got Conn String"
         if conn_string != None:
             decoded = base64.b64decode(conn_string)
             mark1 = decoded.find(';')
@@ -310,7 +322,7 @@ class ArtistJoiningScreen(Screen):
                 self.app.config.update_setting('ConnectionDetails', 'user', username)
             if password != '':
                 self.app.config.update_setting('ConnectionDetails', 'password', password)
-
+            print "Joining Session"
             self.parent.current = 'session'
 
             self.app.phone.add_proxy_config()
@@ -340,13 +352,12 @@ class FileTransferScreen(Screen):
     app = ObjectProperty(None)
 
     def on_enter(self):
-        files = [["File 1", 60], ["File 2", 40], ["File 3", 80], ["File 4", 20]]
+        #To Do: find a better way to reference the requested files
+        files = self.app.root.screens[3].requested_files
         for file in files:
-            print(file[0])
             progress = ProgressBar(max=100)
-            progress.value = file[1]
-            filename = file[0]
-            label = Label(text=filename, size_hint=(1/len(files), None))
+            self.app.chat_client.send_file(file)
+            label = Label(text=file, size_hint=(1/len(files), None))
             self.ids.filelayout.add_widget(label)
             self.ids.filelayout.add_widget(progress)
 
