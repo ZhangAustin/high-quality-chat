@@ -107,24 +107,35 @@ class HQCPhone(object):
         self.call.start_recording()
 
     def stop_start_recording(self, lq_file=datetime.now().strftime('%p_%I_%M_%S.wav'), final=False):
+        """
+        Stops, then starts the LQ recording process. Recordings need to be finalized before they can be accessed.
+        :param lq_file: New file name to record into
+        :param final: If true, do not start the recording after stopping it.
+        :return: the new recording location
+        """
         def generate_name(path):
+            """
+            Generates a finalized pathname by appending an incrementing counter
+            :param path: Path to update
+            :return: Updated path name
+            """
             absolute_path = os.path.abspath(path)
             if os.path.isfile(absolute_path):
                 file_name = os.path.basename(absolute_path)
                 folder_name = os.path.dirname(absolute_path)
                 # Add the number of the recording to the start of the file
-                file_name = str(len(self.recording_locations)) + file_name
+                file_name = str(len(self.recording_locations)) + '_' + file_name
                 return os.path.join(folder_name, file_name)
-            return -1
 
         self.call.stop_recording()
 
-        # If this is the first LQ recording of the session
-        if self.recording_current == self.recording_start:
-            self.recording_current = lq_file
-            new_name = generate_name(self.recording_start)
+        if not final:
+            # Move the file specified by recording_start into recording_current
+            new_name = generate_name(self.recording_current)
             os.rename(self.recording_start, new_name)
             self.recording_locations.append(new_name)
+            self.recording_current = lq_file
+
 
 
     def mute_mic(self):
