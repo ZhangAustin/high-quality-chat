@@ -126,21 +126,21 @@ class SessionScreen(Screen):
 
         global audioClipLayout
 
-        #add play button and filename index # for later playback
+        # add play button and filename index # for later playback
         btn = ToggleButton(background_normal= '../img/play.png',
                    size_hint=(.18, 1), group = 'play', allow_stretch=False)
         btn.apply_property(np=NumericProperty(SessionScreen.clip_no))
         btn.bind(on_press=self.play_clip)
-        #audioClipLayout.add_widget(btn)
+        # audioClipLayout.add_widget(btn)
 
         # add filename label
         label = Label(text=self.audio_files[-1], halign='left', size_hint=(.5, 0.2))
-        #audioClipLayout.add_widget(label)
+        # audioClipLayout.add_widget(label)
 
-        #add request button
+        # add request button
         btn2 = Button(text="Request", size=(100, 50),
                       size_hint=(0.32, None))
-        #audioClipLayout.add_widget(btn2)
+        # audioClipLayout.add_widget(btn2)
 
         self.ids.audioSidebar.add_widget(btn)
         self.ids.audioSidebar.add_widget(label)
@@ -155,18 +155,18 @@ class SessionScreen(Screen):
         # Get filename of the session low quality audio stream
         lq_audio = self.app.lq_audio
 
-        #get the # seconds after playback that HQ clip starts in the LQ stream:
-        #HQ start time in s - LQ start time in s (= int)
+        # get the # seconds after playback that HQ clip starts in the LQ stream:
+        # HQ start time in s - LQ start time in s (= int)
         start_time_seconds = int(lq_audio[3:5]) * 3600 + int(lq_audio[6:8]) * 60 + int (lq_audio[9:11])
         filename_seconds = int(filename[3:5]) * 3600 + int(filename[6:8]) * 60 + int (filename[9:11])
 
-        #gets the offset in seconds of the HQ file start time from the LQ stream
+        # gets the offset in seconds of the HQ file start time from the LQ stream
         hq_start_time = filename_seconds - start_time_seconds
         print filename + " session offset: " + str(hq_start_time) + " seconds"
-        #gets the file associated with this button's label friend
+        # gets the file associated with this button's label friend
 
-        #audio.get_length(filename)
-        #audio.playback(lq_audio, hq_start_time, None, 2)
+        # audio.get_length(filename)
+        # audio.playback(lq_audio, hq_start_time, None, 2)
 
     def record_button(self):
 
@@ -177,14 +177,14 @@ class SessionScreen(Screen):
             self.ids.record_button.source = SessionScreen.stop_black
             filename = os.path.join(self.app.config.get('AudioSettings', 'recording_location'),
                                     datetime.now().strftime('HQ_%H%M%S.mp3'))
-            self.app.recorder = audio.Recorder(filename) #creates audio file
-            self.audio_files.append(filename) #adds filename to global list
-            self.app.recorder.start() # Starts recording
+            self.app.recorder = audio.Recorder(filename)  # creates audio file
+            self.audio_files.append(filename)  # adds filename to global list
+            self.app.recorder.start()  # Starts recording
             print "Recording..."
         else:
             self.ids.record_button.source = SessionScreen.record_black
             self.app.recorder.stop()
-            self.add_clip() #adds to gui sidebar
+            self.add_clip()  # adds to gui sidebar
             print "Done recording"
 
     def toggle_mute(self):
@@ -267,7 +267,7 @@ class ProducerJoiningScreen(Screen):
         self.app.config.update_setting('ConnectionDetails', 'conn_string', encoded)
         self.parent.current = 'session'
 
-        #  Make BoxLayout for multiple items
+        # Make BoxLayout for multiple items
         popup_box = BoxLayout(orientation='vertical')
         # Make "Connection String" TextInput
         popup_text = TextInput(text=encoded, size_hint=(1, .8))
@@ -299,7 +299,7 @@ class ArtistJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
     def get_text(self, conn_string):
-        if conn_string != None:
+        if conn_string is not None:
             decoded = base64.b64decode(conn_string)
             mark1 = decoded.find(';')
             mark2 = decoded.rfind(';')
