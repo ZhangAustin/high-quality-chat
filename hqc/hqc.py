@@ -106,7 +106,7 @@ class HQCPhone(object):
         # start_recording() is a linphone built-in function
         self.call.start_recording()
 
-    def stop_start_recording(self, lq_file=datetime.now().strftime('%p_%I_%M_%S.wav'), final=False):
+    def stop_start_recording(self, lq_file=datetime.now().strftime('%I_%M_%S.wav'), final=False):
         """
         Stops, then starts the LQ recording process. Recordings need to be finalized before they can be accessed.
         :param lq_file: New file name to record into
@@ -120,12 +120,11 @@ class HQCPhone(object):
             :return: Updated path name
             """
             absolute_path = os.path.abspath(path)
-            if os.path.isfile(absolute_path):
-                file_name = os.path.basename(absolute_path)
-                folder_name = os.path.dirname(absolute_path)
-                # Add the number of the recording to the start of the file
-                file_name = str(len(self.recording_locations)) + '_' + file_name
-                return os.path.join(folder_name, file_name)
+            file_name = os.path.basename(absolute_path)
+            folder_name = os.path.dirname(absolute_path)
+            # Add the number of the recording to the start of the file
+            file_name = str(len(self.recording_locations)) + '_' + file_name
+            return os.path.join(folder_name, file_name)
 
         self.call.stop_recording()
         # Move the file specified by recording_start into recording_current
@@ -300,8 +299,14 @@ def make_conn_string(username, password, server):
 
 if __name__ == '__main__':
     def test_lq_recording_toggle():
+        # This code should generate two 2 second low quality recordings
         dial_conference_no()
 
+        phone.hold_open(5)
+        phone.stop_start_recording()
+        phone.hold_open(5)
+        phone.stop_start_recording(final=True)
+        phone.hold_open()
 
     def dial_conference_no():
         debug_logger.info("Adding proxy config")
@@ -336,7 +341,7 @@ if __name__ == '__main__':
             phone.hold_open(10)
 
 
-    def make_core_object():
+    def make_core_objects():
         config = Config('conn.conf')
 
         debug_logger.info("Making LinPhone.Core")
@@ -344,5 +349,5 @@ if __name__ == '__main__':
         return phone, config
 
 
-    phone, config = make_core_object()
+    phone, config = make_core_objects()
     test_lq_recording_toggle()
