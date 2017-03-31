@@ -17,8 +17,9 @@ SYNC_RECORDINGOFF = 10
 SYNC_RECORDINGSTART = 11
 SYNC_RECORDINGSTOP = 12
 # END --- Contains timestamp payload --- #
+SYNC_SESSIONNAME = 13
 
-SYNC = range(4, 13)
+SYNC = range(4, 14)
 
 # User roles
 ARTIST = "ARTIST"

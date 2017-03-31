@@ -101,6 +101,9 @@ class HQCWSClient(WebSocketClient):
         username = parsed_json['username']
         message = parsed_json['message']
         self.update_app_chat(username, message)
+        if message.split()[0] == '!name':
+            self.send_sync(constants.SYNC_SESSIONNAME)
+            self.update_app_chat('server', 'name changed to ' + message[6:])
 
     def handle_recv_sync_message(self, parsed_json):
         status_code = parsed_json['type']
@@ -109,9 +112,11 @@ class HQCWSClient(WebSocketClient):
             print "Received a test sync message from {}".format(username)
         elif status_code == constants.SYNC_MICON:
             print "{} turned mic on".format(username)
+            self.update_app_chat('server', username + ' mic on')
             # Do something in GUI
         elif status_code == constants.SYNC_MICOFF:
             print "{} turned mic off".format(username)
+            self.update_app_chat('server', username + ' mic off')
             # Do something in GUI
         elif status_code == constants.SYNC_SPEAKERON:
             print "{} turned speakers on".format(username)
@@ -134,6 +139,8 @@ class HQCWSClient(WebSocketClient):
             timestamp = parsed_json['message']
             print "{} stopped recording at {}".format(username, timestamp)
             # Do something in GUI
+        elif status_code == constants.SYNC_SESSIONNAME:
+            pass
         else:
             print "Status code {} in constants.SYNC but has no handler (recv from {})".format(status_code, username)
 

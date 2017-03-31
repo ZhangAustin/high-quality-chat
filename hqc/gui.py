@@ -220,8 +220,10 @@ class SessionScreen(Screen):
 
         # Update the mic image
         if self.app.phone.core.mic_enabled:
+            self.app.chat_client.send_sync(constants.SYNC_MICON)
             self.ids.mute_button.source = SessionScreen.un_muted_mic_image
         else:
+            self.app.chat_client.send_sync(constants.SYNC_MICOFF)
             self.ids.mute_button.source = SessionScreen.muted_mic_image
 
     def update_chat(self, username, message):
