@@ -41,7 +41,6 @@ start_recording = False
 filenames = []
 recorder = None
 progress = False
-micOn = False
 kivy.require('1.0.7')
 
 #  Load logging configuration from file
@@ -106,7 +105,7 @@ class SessionScreen(Screen):
 
     stop_black = '../img/stop_black.png'
     record_black = '../img/record_black.png'
-    record_orange = '../img/record_orange.png'
+    record_red = '../img/record_red.png'
 
     # Store a large string of all chat messages
     chat_messages = StringProperty()
@@ -214,7 +213,7 @@ class SessionScreen(Screen):
             print "Recording..."
         else:
             progress = False
-            self.ids.record_button.source = SessionScreen.record_black
+            self.ids.record_button.source = SessionScreen.record_red
             self.app.recorder.stop()
             self.add_clip() #adds to gui sidebar
             print "Done recording"
