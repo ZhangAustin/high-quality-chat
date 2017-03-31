@@ -10,7 +10,6 @@ from ws4py.client.threadedclient import WebSocketClient
 
 import constants
 
-
 class ClientThread(threading.Thread):
 
     def __init__(self, client):
@@ -19,7 +18,7 @@ class ClientThread(threading.Thread):
 
     def run(self):
         print "Client Thread started"
-        self.client.finish()
+        self.client.run_forever()
 
 
 class HQCWSClient(WebSocketClient):
@@ -32,8 +31,7 @@ class HQCWSClient(WebSocketClient):
         except:
             self.ip = constants.IP
             self.port = constants.PORT
-        super(HQCWSClient, self).__init__(HQCWSClient.get_ws_url(self.ip, self.port),
-                                          protocols=['http-only', 'chat'], *args, **kwargs)
+        super(HQCWSClient, self).__init__(HQCWSClient.get_ws_url(self.ip, self.port), protocols=['http-only', 'chat'], *args, **kwargs)
         try:
             self.username = config.get('ChatSettings', 'username')
             self.role = config.get('ChatSettings', 'role')
@@ -48,8 +46,8 @@ class HQCWSClient(WebSocketClient):
             self.connect()
         except socket.error as error:
             print "Could not connect to the server:", error
-        client_thread = ClientThread(self)
-        client_thread.start()
+        self.client_thread = ClientThread(self)
+        self.client_thread.start()
 
     def opened(self):
         """
@@ -62,11 +60,7 @@ class HQCWSClient(WebSocketClient):
         self.send(str(json.dumps(payload)), False)
 
     def finish(self):
-        print "Finish called"
-        self.close()
-        print self.wst.is_alive
-        if self.wst.is_alive:
-            self.wst.join()
+        self.close(reason='finish() was called')
 
     @staticmethod
     def closed(code, reason=None):
@@ -259,12 +253,6 @@ class HQCWSClient(WebSocketClient):
 
 if __name__ == '__main__':
     try:
-        username = raw_input("Enter username: ")
-        IP = '127.0.0.1'
-        PORT = '9000'
-
-        ws = HQCWSClient(username, constants.PRODUCER, IP, PORT, "C:Users/Boots/Desktop")
-        while True:
-            ws.chat()
+        print "Run this from outside the folder and use Config"
     except KeyboardInterrupt:
         ws.close()
