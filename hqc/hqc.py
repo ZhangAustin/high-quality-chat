@@ -1,5 +1,6 @@
 import base64
 import logging
+import os
 import time
 from datetime import datetime
 
@@ -30,10 +31,19 @@ class HQCPhone(object):
     mic_gain = 0
     call = ''
 
+    # For testing purposes, these are relative paths
+    # For implementation, these are absolute paths as defined in the config
+    # The initial LQ recording file, set in make_call
+    recording_start = ''
+
+    # The current LQ recording file, first set in make_call and later in stop_start_recording
+    recording_current = ''
+
+    # An array of filenames containing the actual filenames of finalized LQ recordings
+    recording_locations = []
+
     def __init__(self, config):
         self.config = config
-        # TODO: define
-        self.lq_audio = "undefined :("
 
         def global_state_changed(*args, **kwargs):
             debug_logger.warning("global_state_changed: %r %r" % (args, kwargs))
@@ -67,12 +77,12 @@ class HQCPhone(object):
 
     @staticmethod
     def get_lq_start_time():
-        return lq_audio
+        print "====================================="
+        print "=== WARNING: DEPRECIATED FUNCTION ==="
+        print "===  Use self.recording_location  ==="
+        print "====================================="
 
     def make_call(self, number, server, lq_file=datetime.now().strftime('%p_%I_%M_%S.wav')):
-        global lq_audio
-        lq_audio = lq_file
-        print "recording low quality stream: " + lq_audio
         """
         Make a SIP call to a number on a server
         :param number: number to call (should be a conference number)
@@ -81,7 +91,7 @@ class HQCPhone(object):
         :return:
         """
         params = self.core.create_call_params(None)
-        params.record_file = lq_file
+        params.record_file = self.recording_start = self.recording_current = lq_file
         # Output file (on devel sys) is constant 128Kbps 8kHz 16 bit 1 channel PCM
         params.audio_enabled = True
         params.video_enabled = False
@@ -95,6 +105,38 @@ class HQCPhone(object):
 
         # start_recording() is a linphone built-in function
         self.call.start_recording()
+
+    def stop_start_recording(self, lq_file=datetime.now().strftime('%p_%I_%M_%S.wav'), final=False):
+        """
+        Stops, then starts the LQ recording process. Recordings need to be finalized before they can be accessed.
+        :param lq_file: New file name to record into
+        :param final: If true, do not start the recording after stopping it.
+        :return: the new recording location
+        """
+        def generate_name(path):
+            """
+            Generates a finalized pathname by appending an incrementing counter
+            :param path: Path to update
+            :return: Updated path name
+            """
+            absolute_path = os.path.abspath(path)
+            file_name = os.path.basename(absolute_path)
+            folder_name = os.path.dirname(absolute_path)
+            # Add the number of the recording to the start of the file
+            file_name = str(len(self.recording_locations)) + '_' + file_name
+            return os.path.join(folder_name, file_name)
+
+        self.call.stop_recording()
+        # Move the file specified by recording_start into recording_current
+        new_name = generate_name(self.recording_current)
+        os.rename(self.recording_start, new_name)
+        self.recording_locations.append(new_name)
+
+        if not final:
+            # Update the new recording file
+            # Will still be recorded into recording_start, but allows us to rename it afterwards
+            self.recording_current = lq_file
+            self.call.start_recording()
 
     def mute_mic(self):
         """
@@ -111,9 +153,19 @@ class HQCPhone(object):
         self.core.mic_enabled = True
 
     def toggle_mic(self):
+        """
+        If the mic is enabled, disable it and vice versa
+        :return: 
+        """
         self.core.mic_enabled = not self.core.mic_enabled
 
     def hold_open(self, total_time=-1, cycle_time=0.03):
+        """
+        Constant poll required for linphone to function
+        :param total_time: The total time in seconds to iterate
+        :param cycle_time: The time between iterations (default from sample code)
+        :return: 
+        """
         if total_time != -1:
             cycles = int(total_time / cycle_time)  # We don't care about being exact
             for i in range(0, cycles):
@@ -206,6 +258,11 @@ class HQCPhone(object):
         return False
 
     def add_proxy_config(self):
+        """
+        Generates and adds 'proxy configurations' to the core object
+        Used for specifying SIP server location
+        :return: 
+        """
         proxy_cfg = self.core.create_proxy_config()
         proxy_cfg.identity_address = proxy_cfg.normalize_sip_uri("sip:" +
                                                                  self.config.get('ConnectionDetails', 'user') +
@@ -217,6 +274,11 @@ class HQCPhone(object):
         debug_logger.info("Added proxy config")
 
     def add_auth_info(self):
+        """
+        Generates and adds authentication data to the core object
+        Used for registering and making authenticated actions to the SIP server
+        :return: 
+        """
         auth_info = self.core.create_auth_info(self.config.get('ConnectionDetails', 'user'),
                                                None,
                                                self.config.get('ConnectionDetails', 'password'),
@@ -256,32 +318,57 @@ def make_conn_string(username, password, server):
     return base64.b64encode(conn_string)
 
 if __name__ == '__main__':
-    config = Config('conn.conf')
+    def test_lq_recording_toggle():
+        # This code should generate two 2 second low quality recordings
+        dial_no(1100)
 
-    debug_logger.info("Making LinPhone.Core")
-    phone = HQCPhone(config)
+        phone.hold_open(5)
+        phone.stop_start_recording()
+        phone.hold_open(5)
+        phone.stop_start_recording(final=True)
+        phone.hold_open()
 
-    # phone.get_codecs()
-    print phone.force_codec_type(['opus', 20000, 2])
 
-    test_codec = []
-    for codec in phone.core.audio_codecs:
-        test_codec.append(
-            [phone.core.payload_type_enabled(codec), codec.mime_type, codec.normal_bitrate, codec.channels])
-    for codec in test_codec:
-        print codec
-        # debug_logger.info("Adding proxy config")
-        # phone.add_proxy_config()
-        #
-        # debug_logger.info("Adding authentication info")
-        # phone.add_auth_info()
-        #
-        # debug_logger.info("Dialing...")
-        # phone.make_call(2000, config.get('ConnectionDetails', 'server'))
-        #
-        # while True:
-        #     phone.hold_open(5)
-        #     phone.mute_mic()
-        #     phone.hold_open(2)
-        #     phone.unmute_mic()
-        #     phone.hold_open(10)
+    def dial_no(number):
+        debug_logger.info("Adding proxy config")
+        phone.add_proxy_config()
+
+        debug_logger.info("Adding authentication info")
+        phone.add_auth_info()
+
+        debug_logger.info("Dialing...")
+        phone.make_call(number, config.get('ConnectionDetails', 'server'))
+
+
+    def test_codec_selection():
+        print phone.force_codec_type(['opus', 20000, 2])
+
+        test_codec = []
+        for codec in phone.core.audio_codecs:
+            test_codec.append(
+                [phone.core.payload_type_enabled(codec), codec.mime_type, codec.normal_bitrate, codec.channels])
+        for codec in test_codec:
+            print codec
+
+
+    def test_custom_hold_open_and_mic_status():
+        dial_no(1100)
+
+        while True:
+            phone.hold_open(5)
+            phone.mute_mic()
+            phone.hold_open(2)
+            phone.unmute_mic()
+            phone.hold_open(10)
+
+
+    def make_core_objects():
+        config = Config('conn.conf')
+
+        debug_logger.info("Making LinPhone.Core")
+        phone = HQCPhone(config)
+        return phone, config
+
+
+    phone, config = make_core_objects()
+    test_lq_recording_toggle()
