@@ -1,6 +1,8 @@
 import base64
 import logging
 import os
+import threading
+import time
 from datetime import datetime
 
 import kivy
@@ -21,7 +23,6 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
 
 import audio
-import time, threading
 from Config import Config
 from chat import constants
 from chat.ChatClient import HQCWSClient
@@ -311,7 +312,9 @@ class ProducerJoiningScreen(Screen):
 
         self.app.phone.add_proxy_config()
         self.app.phone.add_auth_info()
-        self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
+        file_name = os.path.join(self.app.config.get('AudioSettings', 'recording_location'),
+                                 datetime.now().strftime('LQ_%H%M%S.wav'))
+        self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'), file_name)
         self.app.lq_audio = self.app.phone.recording_start
         print "passing lq_audio to gui: " + self.app.lq_audio
 
