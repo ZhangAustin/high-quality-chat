@@ -44,7 +44,7 @@ ScreenManager:
             text_size: root.width, None
             font_size: '25sp'
             pos: (420, 50)
-            on_release: self.parent.gettext(servername.text, username.text, password.text)
+            on_release: self.parent.get_text(servername.text, username.text, password.text)
     ArtistJoiningScreen:
         manager: screen_manager
         app: self.manager.app
@@ -66,7 +66,7 @@ ScreenManager:
             text_size: root.width, None
             font_size: '25sp'
             pos: (200, 100)
-            on_release: self.parent.gettext(artconnection.text)
+            on_release: self.parent.get_text(artconnection.text)
     SessionScreen:
         manager: screen_manager
         app: self.manager.app
@@ -212,13 +212,13 @@ ScreenManager:
         font_size: '25sp'
         size_hint: (.25, .25)
         pos: (100, 100)
-        on_press: root.begin_recording()
+        on_press: root.record_button()
     ImageButton:
         id: pause_button
         source: '../img/pause_black.png'
         size_hint: (.17, .17)
         pos: (280, 120)
-        on_release: self.parent.gettext(chatText.text)
+        on_release: self.parent.get_text(chatText.text)
 
     TabbedPanel:
         size_hint: (.4, .9)
