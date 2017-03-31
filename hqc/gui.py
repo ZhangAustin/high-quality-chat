@@ -34,6 +34,11 @@ from chat import constants
 #                     size_hint=(None, None), width=310)
 # layout2 = GridLayout(cols=1, padding=10, spacing=5,
 #                      size_hint=(None, None), width=410)
+
+# TODO: REMOVE GLOBAL VARIABLES. Put them in the config, a class definition, or default parameter.
+start_recording = False
+filenames = []
+recorder = None
 kivy.require('1.0.7')
 
 #  Load logging configuration from file
@@ -56,8 +61,6 @@ class HQC(App):
         self.recorder = None
         # Boolean of whether or not the user is recording
         self.recording = False
-        # Boolean of whether or not the linphone mic is on
-        self.microphone_on = False
         # TODO: Description
         self.lq_audio = "undefined in gui"
 
@@ -100,6 +103,7 @@ class SessionScreen(Screen):
 
     stop_black = '../img/stop_black.png'
     record_black = '../img/record_black.png'
+    record_orange = '../img/record_orange.png'
 
     # Store a large string of all chat messages
     chat_messages = StringProperty()
@@ -201,13 +205,12 @@ class SessionScreen(Screen):
             print "Done recording"
 
     def toggle_mute(self):
-        self.app.microphone_on = not self.app.microphone_on
 
         # Toggles the linphone mic
         self.app.phone.toggle_mic()
 
         # Update the mic image
-        if self.app.microphone_on:  # phone.core.mic_enabled:
+        if self.app.phone.core.mic_enabled:
             self.ids.mute_button.source = SessionScreen.un_muted_mic_image
         else:
             self.ids.mute_button.source = SessionScreen.muted_mic_image
