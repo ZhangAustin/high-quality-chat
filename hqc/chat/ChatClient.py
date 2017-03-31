@@ -143,6 +143,13 @@ class HQCWSClient(WebSocketClient):
             session_name = parsed_json['message']
             print "{} set the session name to {}".format(username, session_name)
             # Do something in GUI
+        elif status_code == constants.SYNC_HAVEFILE:
+            file_name = parsed_json['message']
+            print "{} has recorded file {}".format(username, file_name)
+            # Do something in GUI, like update the right pane file listing
+        elif status_code == constants.SYNC_REQUESTFILE:
+            file_name = parsed_json['message']
+            print "{} requests file {}".format(username, file_name)
         else:
             print "Status code {} in constants.SYNC but has no handler (recv from {})".format(status_code, username)
 
