@@ -299,32 +299,50 @@ def make_conn_string(username, password, server):
     return base64.b64encode(conn_string)
 
 if __name__ == '__main__':
-    config = Config('conn.conf')
+    def test_lq_recording_toggle():
+        dial_conference_no()
 
-    debug_logger.info("Making LinPhone.Core")
-    phone = HQCPhone(config)
 
-    # phone.get_codecs()
-    print phone.force_codec_type(['opus', 20000, 2])
+    def dial_conference_no():
+        debug_logger.info("Adding proxy config")
+        phone.add_proxy_config()
 
-    test_codec = []
-    for codec in phone.core.audio_codecs:
-        test_codec.append(
-            [phone.core.payload_type_enabled(codec), codec.mime_type, codec.normal_bitrate, codec.channels])
-    for codec in test_codec:
-        print codec
-        # debug_logger.info("Adding proxy config")
-        # phone.add_proxy_config()
-        #
-        # debug_logger.info("Adding authentication info")
-        # phone.add_auth_info()
-        #
-        # debug_logger.info("Dialing...")
-        # phone.make_call(2000, config.get('ConnectionDetails', 'server'))
-        #
-        # while True:
-        #     phone.hold_open(5)
-        #     phone.mute_mic()
-        #     phone.hold_open(2)
-        #     phone.unmute_mic()
-        #     phone.hold_open(10)
+        debug_logger.info("Adding authentication info")
+        phone.add_auth_info()
+
+        debug_logger.info("Dialing...")
+        phone.make_call(2000, config.get('ConnectionDetails', 'server'))
+
+
+    def test_codec_selection():
+        print phone.force_codec_type(['opus', 20000, 2])
+
+        test_codec = []
+        for codec in phone.core.audio_codecs:
+            test_codec.append(
+                [phone.core.payload_type_enabled(codec), codec.mime_type, codec.normal_bitrate, codec.channels])
+        for codec in test_codec:
+            print codec
+
+
+    def test_custom_hold_open_and_mic_status():
+        dial_conference_no()
+
+        while True:
+            phone.hold_open(5)
+            phone.mute_mic()
+            phone.hold_open(2)
+            phone.unmute_mic()
+            phone.hold_open(10)
+
+
+    def make_core_object():
+        config = Config('conn.conf')
+
+        debug_logger.info("Making LinPhone.Core")
+        phone = HQCPhone(config)
+        return phone, config
+
+
+    phone, config = make_core_object()
+    test_lq_recording_toggle()
