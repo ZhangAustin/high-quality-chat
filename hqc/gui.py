@@ -30,18 +30,16 @@ from hqc import HQCPhone
 from chat.ChatClient import HQCWSClient
 from chat import constants
 
-
-NUMBER_OF_BUTTONS = 30
 # audioClipLayout = GridLayout(cols=3, padding=10, spacing=5,
 #                     size_hint=(None, None), width=310)
 # layout2 = GridLayout(cols=1, padding=10, spacing=5,
 #                      size_hint=(None, None), width=410)
+
 # TODO: REMOVE GLOBAL VARIABLES. Put them in the config, a class definition, or default parameter.
 start_recording = False
 filenames = []
 recorder = None
 kivy.require('1.0.7')
-lq_audio = "undefined in gui"
 
 #  Load logging configuration from file
 logging.config.fileConfig('../logging.conf')
@@ -54,15 +52,27 @@ class HQC(App):
     """
     This represents the main application class
     """
-    def build(self):
-        gui_logger.debug("Build HQC application")
+    def __init__(self, **kwargs):
+        super(HQC, self).__init__(**kwargs)
         self.config = Config("conn.conf")
         self.phone = HQCPhone(self.config)
-        self.chat_client = HQCWSClient("Test User", "Test Role", '127.0.0.1', '9000', "C:Users/Boots/Desktop")
+        self.chat_client = None
+        # Recorder object from audio module
+        self.recorder = None
+        # Boolean of whether or not the user is recording
+        self.recording = False
+        # TODO: Description
+        self.lq_audio = "undefined in gui"
+
+    # Build should only handle setting up GUI-specific items
+    def build(self):
+        # Kivy is stubborn and overrides self.config with a built-in ConfigParser
+        self.config = Config("conn.conf")
+        gui_logger.debug("Building HQC application")
         # Give the web socket a reference to the app
-        self.chat_client.app = self
         gui = Builder.load_file("HQC.kv")
         self.root = gui
+        # Link application to Screen Manager
         self.root.app = self
         return gui
 
@@ -70,8 +80,7 @@ class HQC(App):
         self.root.screens[3].update_chat(username, message)
 
     def update_role(self, role):
-        self.chat_client.role = role
-        self.config.update_setting("Chat", "role", role)
+        self.config.update_setting("ChatSettings", "role", role)
 
 
 class MainScreen(Screen):
@@ -84,7 +93,9 @@ class ScreenManager(ScreenManager):
 
 
 class SessionScreen(Screen):
+    # Used for giving each audio clip a unique ID
     clip_no = -1
+    # Used to reference app
     app = ObjectProperty(None)
 
     un_muted_mic_image = '../img/microphone.png'
@@ -94,7 +105,11 @@ class SessionScreen(Screen):
     record_black = '../img/record_black.png'
     record_orange = '../img/record_orange.png'
 
+    # Store a large string of all chat messages
     chat_messages = StringProperty()
+
+    # List of audio file names
+    audio_files = []
 
     def on_enter(self):
         # global audioClipLayout
@@ -104,6 +119,9 @@ class SessionScreen(Screen):
         # to contain all the childs. (otherwise, we'll child outside the
         # bounding box of the childs)
         self.ids.audioSidebar.bind(minimum_height=self.ids.audioSidebar.setter('height'))
+        self.app.chat_client = HQCWSClient(self.app.config)
+        self.app.chat_client.app = self.app
+        self.app.chat_client.config = self.app.config
         # create a scroll view, with a size < size of the grid
         # root = ScrollView(size_hint=(None, None), size=(310, 460),
         #                   pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
@@ -111,11 +129,10 @@ class SessionScreen(Screen):
         # self.ids.audioSidebar.add_widget(root)
 
     def add_clip(self):
-        #generate the index number of the clip for referencing in filenames
+        # Generate the index number of the clip for referencing in filenames
         SessionScreen.clip_no += 1
 
         global audioClipLayout
-        global filenames
 
         #add play button and filename index # for later playback
         btn = ToggleButton(background_normal= '../img/play.png',
@@ -125,7 +142,7 @@ class SessionScreen(Screen):
         #audioClipLayout.add_widget(btn)
 
         # add filename label
-        label = Label(text=filenames[-1], halign='left', size_hint=(.5, 0.2))
+        label = Label(text=self.audio_files[-1], halign='left', size_hint=(.5, 0.2))
         #audioClipLayout.add_widget(label)
 
         #add request button
@@ -139,12 +156,12 @@ class SessionScreen(Screen):
 
     def play_clip(self, obj):
 
-        #get filename of the high quality clip associated with this play button
-        global filenames
-        filename = filenames[obj.np]
+        # Get filename of the high quality clip associated with this play button
+        # TODO: explain what obj.np is/does
+        filename = self.audio_files[obj.np]
 
-        #get filename of the session low quality audio stream
-        global lq_audio
+        # Get filename of the session low quality audio stream
+        lq_audio = self.app.lq_audio
 
         #get ante/post meridiem of each stream
         start_time_ampm = lq_audio[0:2]
@@ -168,28 +185,26 @@ class SessionScreen(Screen):
         #audio.get_length(filename)
         #audio.playback(lq_audio, hq_start_time, None, 2)
 
-    def begin_recording(self):
-        global filenames
+    def record_button(self):
 
-        #use globals to toggle
-        global start_recording
-        start_recording = not start_recording
-        global recorder
+        # Toggle recording
+        self.app.recording = not self.app.recording
 
-        if start_recording:
+        if self.app.recording:
             self.ids.record_button.source = SessionScreen.stop_black
             filename = datetime.now().strftime('%p_%I_%M_%S.mp3')
-            recorder = audio.Recorder(filename) #creates audio file
-            filenames.append(filename) #adds filename to global list
-            recorder.start() # Starts recording
+            self.app.recorder = audio.Recorder(filename) #creates audio file
+            self.audio_files.append(filename) #adds filename to global list
+            self.app.recorder.start() # Starts recording
             print "Recording..."
         else:
-            self.ids.record_button.source = SessionScreen.record_orange
-            recorder.stop()
+            self.ids.record_button.source = SessionScreen.record_black
+            self.app.recorder.stop()
             self.add_clip() #adds to gui sidebar
             print "Done recording"
 
     def toggle_mute(self):
+
         # Toggles the linphone mic
         self.app.phone.toggle_mic()
 
@@ -230,6 +245,16 @@ class SessionScreen(Screen):
         """
         self.parent.ids.chatText.focus = True
 
+    def on_leave(self, *args):
+        """
+        Makes sure the SessionScreen is left properly
+        :param args: 
+        :return: 
+        """
+        # If leaving the SessionScreen, make sure to stop recording
+        if self.app.recording:
+            self.record_button()
+
 
 class ProducerJoiningScreen(Screen):
     app = ObjectProperty(None)
@@ -239,11 +264,8 @@ class ProducerJoiningScreen(Screen):
 
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
-    def gettext(self, servername, username, password):
-        global lq_audio
+    def get_text(self, servername, username, password):
 
-        config = self.app.config
-        # Reference App
         if servername != '':
             self.app.config.update_setting('ConnectionDetails', 'server', servername)
         else:
@@ -280,8 +302,8 @@ class ProducerJoiningScreen(Screen):
         self.app.phone.add_proxy_config()
         self.app.phone.add_auth_info()
         self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
-        lq_audio = self.app.phone.get_lq_start_time()
-        print "passing lq_audio to gui: " + lq_audio
+        self.app.lq_audio = self.app.phone.get_lq_start_time()
+        print "passing lq_audio to gui: " + self.app.lq_audio
 
 
 class ArtistJoiningScreen(Screen):
@@ -292,10 +314,9 @@ class ArtistJoiningScreen(Screen):
 
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
-    def gettext(self, constring):
-        global lq_audio
-        try:
-            decoded = base64.b64decode(constring)
+    def get_text(self, conn_string):
+        if conn_string != None:
+            decoded = base64.b64decode(conn_string)
             mark1 = decoded.find(';')
             mark2 = decoded.rfind(';')
             username = decoded[:mark1]
@@ -313,11 +334,10 @@ class ArtistJoiningScreen(Screen):
             self.app.phone.add_proxy_config()
             self.app.phone.add_auth_info()
             self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
-            lq_audio = self.app.phone.get_lq_start_time()
-            print "passing lq_audio to gui: " + lq_audio
+            self.app.lq_audio = self.app.phone.get_lq_start_time()
+            print "passing lq_audio to gui: " + self.app.lq_audio
 
-        except Exception as e:
-            print "Error: " + str(e)
+        else:
             error_message = 'Sorry, that string is not valid'
             popup = Popup(title='Connection String Error',
                           content=Label(text=error_message),
@@ -330,7 +350,7 @@ class SettingsScreen(Screen):
 
     def update_username(self, text_input):
         self.app.chat_client.username = text_input
-        self.app.config.update_setting("Chat", "username", text_input)
+        self.app.config.update_setting("ChatSettings", "username", text_input)
         self.parent.ids.username_setting.text = ""
 
 
@@ -348,8 +368,10 @@ class FileTransferScreen(Screen):
             self.ids.filelayout.add_widget(label)
             self.ids.filelayout.add_widget(progress)
 
+
 class ImageButton(ButtonBehavior, Image):
     pass
+
 
 class ActionImageButton(ImageButton, ActionItem):
     pass
