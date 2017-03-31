@@ -4,31 +4,26 @@ from datetime import datetime
 
 import kivy
 from kivy.app import App
-from kivy.clock import Clock
 from kivy.config import Config
 from kivy.lang import Builder
-from kivy.properties import ListProperty, ObjectProperty, StringProperty, NumericProperty
+from kivy.properties import ObjectProperty, StringProperty, NumericProperty
+from kivy.uix.actionbar import ActionItem
+from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-
-from kivy.uix.actionbar import ActionItem
-from kivy.uix.gridlayout import GridLayout
+from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.progressbar import ProgressBar
 from kivy.uix.screenmanager import ScreenManager, Screen
-
-from kivy.uix.behaviors import ButtonBehavior
-from kivy.uix.image import Image
-from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
 
 import audio
 from Config import Config
-from hqc import HQCPhone
-from chat.ChatClient import HQCWSClient
 from chat import constants
+from chat.ChatClient import HQCWSClient
+from hqc import HQCPhone
 
 # audioClipLayout = GridLayout(cols=3, padding=10, spacing=5,
 #                     size_hint=(None, None), width=310)
@@ -159,19 +154,10 @@ class SessionScreen(Screen):
         # Get filename of the session low quality audio stream
         lq_audio = self.app.lq_audio
 
-        #get ante/post meridiem of each stream
-        start_time_ampm = lq_audio[0:2]
-        filename_ampm = filename[0:2]
-
         #get the # seconds after playback that HQ clip starts in the LQ stream:
         #HQ start time in s - LQ start time in s (= int)
         start_time_seconds = int(lq_audio[3:5]) * 3600 + int(lq_audio[6:8]) * 60 + int (lq_audio[9:11])
         filename_seconds = int(filename[3:5]) * 3600 + int(filename[6:8]) * 60 + int (filename[9:11])
-
-        #if the two times are not in the same part of the day, add 12 hrs to the HQ time in seconds
-        # (excluding the 12th hr, e.g. 11am to 12pm are in the same "half" of the day)
-        if (start_time_ampm != filename_ampm and filename[3:5] != '12'):
-            filename_seconds += 43200
 
         #gets the offset in seconds of the HQ file start time from the LQ stream
         hq_start_time = filename_seconds - start_time_seconds
@@ -188,7 +174,7 @@ class SessionScreen(Screen):
 
         if self.app.recording:
             self.ids.record_button.source = SessionScreen.stop_black
-            filename = datetime.now().strftime('%p_%I_%M_%S.mp3')
+            filename = datetime.now().strftime('HQ_%H%M%S.mp3')
             self.app.recorder = audio.Recorder(filename) #creates audio file
             self.audio_files.append(filename) #adds filename to global list
             self.app.recorder.start() # Starts recording
@@ -298,7 +284,7 @@ class ProducerJoiningScreen(Screen):
         self.app.phone.add_proxy_config()
         self.app.phone.add_auth_info()
         self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
-        self.app.lq_audio = self.app.phone.get_lq_start_time()
+        self.app.lq_audio = self.app.phone.recording_start
         print "passing lq_audio to gui: " + self.app.lq_audio
 
 
