@@ -13,8 +13,6 @@ logging.config.fileConfig('../logging.conf')
 linphone_logger = logging.getLogger('linphone')
 debug_logger = logging.getLogger('debug')
 
-lq_audio = "undefined :("
-
 
 class Singleton(type):
     _instance = None
@@ -34,6 +32,8 @@ class HQCPhone(object):
 
     def __init__(self, config):
         self.config = config
+        # TODO: define
+        self.lq_audio = "undefined :("
 
         def global_state_changed(*args, **kwargs):
             debug_logger.warning("global_state_changed: %r %r" % (args, kwargs))
@@ -93,6 +93,7 @@ class HQCPhone(object):
         while self.call.media_in_progress():
             self.hold_open()
 
+        # start_recording() is a linphone built-in function
         self.call.start_recording()
 
     def mute_mic(self):

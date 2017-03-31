@@ -67,6 +67,3 @@ class Config(ConfigParser.SafeConfigParser):
         #  Write the settings back to disk
         with open(self.file, "w") as config_file:
             self.write(config_file)
-
-# WARNING: DO NOT Initialize Config on import. Create a config object with custom parameters.
-#config = Config("conn.conf")
