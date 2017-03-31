@@ -283,6 +283,10 @@ class HQCPhone(object):
         self.core.add_auth_info(auth_info)
         debug_logger.info("Added auth info")
 
+    def hangup(self):
+        self.stop_start_recording(final=True)
+        self.core.terminate_all_calls()
+
 
 def parse_conn_string(conn_string):
     """
