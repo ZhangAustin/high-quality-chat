@@ -122,6 +122,12 @@ class SessionScreen(Screen):
         # to contain all the childs. (otherwise, we'll child outside the
         # bounding box of the childs)
         self.ids.audioSidebar.bind(minimum_height=self.ids.audioSidebar.setter('height'))
+        progress_bar = ProgressBar( value=0, size_hint= (0.5, None))
+        label = Label(text = 'Waiting', size_hint= (0.32, None))
+        label2 = Label(text='N/A%', size_hint= (0.18, None))
+        self.ids.audioSidebar.add_widget(label2)
+        self.ids.audioSidebar.add_widget(progress_bar)
+        self.ids.audioSidebar.add_widget(label)
         self.app.chat_client = HQCWSClient(self.app.config)
         self.app.chat_client.app = self.app
         self.app.chat_client.config = self.app.config
@@ -140,7 +146,7 @@ class SessionScreen(Screen):
         #add play button and filename index # for later playback
         btn = ToggleButton(background_normal= '../img/play.png',
                    size_hint=(.18, 1), group = 'play', allow_stretch=False)
-        btn.apply_property(np=NumericProperty(SessionScreen.clip_no))
+        btn.apply_property(clip_no=NumericProperty(SessionScreen.clip_no))
         btn.bind(on_press=self.play_clip)
         #audioClipLayout.add_widget(btn)
 
@@ -161,7 +167,7 @@ class SessionScreen(Screen):
 
         # Get filename of the high quality clip associated with this play button
         # TODO: explain what obj.np is/does
-        filename = self.audio_files[obj.np]
+        filename = self.audio_files[obj.clip_no]
 
         # Get filename of the session low quality audio stream
         lq_audio = self.app.lq_audio
