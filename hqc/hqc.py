@@ -1,5 +1,6 @@
 import base64
 import logging
+import os
 import time
 from datetime import datetime
 
@@ -29,7 +30,17 @@ class HQCPhone(object):
     core = ''
     mic_gain = 0
     call = ''
-    recording_location = ''
+
+    # For testing purposes, these are relative paths
+    # For implementation, these are absolute paths as defined in the config
+    # The initial LQ recording file, set in make_call
+    recording_start = ''
+
+    # The current LQ recording file, first set in make_call and later in stop_start_recording
+    recording_current = ''
+
+    # An array of filenames containing the actual filenames of finalized LQ recordings
+    recording_locations = []
 
     def __init__(self, config):
         self.config = config
@@ -64,7 +75,8 @@ class HQCPhone(object):
         self.core.capture_device = self.config.get('AudioSettings', 'mic')
         self.core.playback_device = self.config.get('AudioSettings', 'speakers')
 
-    def get_lq_start_time(self):
+    @staticmethod
+    def get_lq_start_time():
         print "====================================="
         print "=== WARNING: DEPRECIATED FUNCTION ==="
         print "===  Use self.recording_location  ==="
@@ -79,7 +91,7 @@ class HQCPhone(object):
         :return:
         """
         params = self.core.create_call_params(None)
-        params.record_file = lq_file
+        params.record_file = self.recording_start = self.recording_current = lq_file
         # Output file (on devel sys) is constant 128Kbps 8kHz 16 bit 1 channel PCM
         params.audio_enabled = True
         params.video_enabled = False
@@ -93,6 +105,27 @@ class HQCPhone(object):
 
         # start_recording() is a linphone built-in function
         self.call.start_recording()
+
+    def stop_start_recording(self, lq_file=datetime.now().strftime('%p_%I_%M_%S.wav'), final=False):
+        def generate_name(path):
+            absolute_path = os.path.abspath(path)
+            if os.path.isfile(absolute_path):
+                file_name = os.path.basename(absolute_path)
+                folder_name = os.path.dirname(absolute_path)
+                # Add the number of the recording to the start of the file
+                file_name = str(len(self.recording_locations)) + file_name
+                return os.path.join(folder_name, file_name)
+            return -1
+
+        self.call.stop_recording()
+
+        # If this is the first LQ recording of the session
+        if self.recording_current == self.recording_start:
+            self.recording_current = lq_file
+            new_name = generate_name(self.recording_start)
+            os.rename(self.recording_start, new_name)
+            self.recording_locations.append(new_name)
+
 
     def mute_mic(self):
         """
