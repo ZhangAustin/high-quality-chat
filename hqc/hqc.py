@@ -75,13 +75,6 @@ class HQCPhone(object):
         self.core.capture_device = self.config.get('AudioSettings', 'mic')
         self.core.playback_device = self.config.get('AudioSettings', 'speakers')
 
-    @staticmethod
-    def get_lq_start_time():
-        print "====================================="
-        print "=== WARNING: DEPRECIATED FUNCTION ==="
-        print "===  Use self.recording_location  ==="
-        print "====================================="
-
     def make_call(self, number, server, lq_file=datetime.now().strftime('LQ_%H%M%S.wav')):
         """
         Make a SIP call to a number on a server
