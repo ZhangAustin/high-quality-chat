@@ -60,7 +60,7 @@ class Config(ConfigParser.SafeConfigParser):
         try:
             os.makedirs(self.get('AudioSettings', 'recording_location'))
         except os.error as e:  # Folder already exists
-            print str(e)
+            print e
 
     def update_setting(self, section, option, value):
         """

@@ -154,19 +154,10 @@ class SessionScreen(Screen):
         # Get filename of the session low quality audio stream
         lq_audio = self.app.lq_audio
 
-        #get ante/post meridiem of each stream
-        start_time_ampm = lq_audio[0:2]
-        filename_ampm = filename[0:2]
-
         #get the # seconds after playback that HQ clip starts in the LQ stream:
         #HQ start time in s - LQ start time in s (= int)
         start_time_seconds = int(lq_audio[3:5]) * 3600 + int(lq_audio[6:8]) * 60 + int (lq_audio[9:11])
         filename_seconds = int(filename[3:5]) * 3600 + int(filename[6:8]) * 60 + int (filename[9:11])
-
-        #if the two times are not in the same part of the day, add 12 hrs to the HQ time in seconds
-        # (excluding the 12th hr, e.g. 11am to 12pm are in the same "half" of the day)
-        if (start_time_ampm != filename_ampm and filename[3:5] != '12'):
-            filename_seconds += 43200
 
         #gets the offset in seconds of the HQ file start time from the LQ stream
         hq_start_time = filename_seconds - start_time_seconds
@@ -183,7 +174,7 @@ class SessionScreen(Screen):
 
         if self.app.recording:
             self.ids.record_button.source = SessionScreen.stop_black
-            filename = datetime.now().strftime('%p_%I_%M_%S.mp3')
+            filename = datetime.now().strftime('HQ_%H%M%S.mp3')
             self.app.recorder = audio.Recorder(filename) #creates audio file
             self.audio_files.append(filename) #adds filename to global list
             self.app.recorder.start() # Starts recording
