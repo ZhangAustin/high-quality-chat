@@ -106,7 +106,7 @@ class HQCPhone(object):
         # start_recording() is a linphone built-in function
         self.call.start_recording()
 
-    def stop_start_recording(self, lq_file=datetime.now().strftime('%I_%M_%S.wav'), final=False):
+    def stop_start_recording(self, lq_file=datetime.now().strftime('%p_%I_%M_%S.wav'), final=False):
         """
         Stops, then starts the LQ recording process. Recordings need to be finalized before they can be accessed.
         :param lq_file: New file name to record into
@@ -300,7 +300,7 @@ def make_conn_string(username, password, server):
 if __name__ == '__main__':
     def test_lq_recording_toggle():
         # This code should generate two 2 second low quality recordings
-        dial_conference_no()
+        dial_no(1100)
 
         phone.hold_open(5)
         phone.stop_start_recording()
@@ -308,7 +308,8 @@ if __name__ == '__main__':
         phone.stop_start_recording(final=True)
         phone.hold_open()
 
-    def dial_conference_no():
+
+    def dial_no(number):
         debug_logger.info("Adding proxy config")
         phone.add_proxy_config()
 
@@ -316,7 +317,7 @@ if __name__ == '__main__':
         phone.add_auth_info()
 
         debug_logger.info("Dialing...")
-        phone.make_call(2000, config.get('ConnectionDetails', 'server'))
+        phone.make_call(number, config.get('ConnectionDetails', 'server'))
 
 
     def test_codec_selection():
@@ -331,7 +332,7 @@ if __name__ == '__main__':
 
 
     def test_custom_hold_open_and_mic_status():
-        dial_conference_no()
+        dial_no(1100)
 
         while True:
             phone.hold_open(5)
