@@ -153,9 +153,19 @@ class HQCPhone(object):
         self.core.mic_enabled = True
 
     def toggle_mic(self):
+        """
+        If the mic is enabled, disable it and vice versa
+        :return: 
+        """
         self.core.mic_enabled = not self.core.mic_enabled
 
     def hold_open(self, total_time=-1, cycle_time=0.03):
+        """
+        Constant poll required for linphone to function
+        :param total_time: The total time in seconds to iterate
+        :param cycle_time: The time between iterations (default from sample code)
+        :return: 
+        """
         if total_time != -1:
             cycles = int(total_time / cycle_time)  # We don't care about being exact
             for i in range(0, cycles):
@@ -248,6 +258,11 @@ class HQCPhone(object):
         return False
 
     def add_proxy_config(self):
+        """
+        Generates and adds 'proxy configurations' to the core object
+        Used for specifying SIP server location
+        :return: 
+        """
         proxy_cfg = self.core.create_proxy_config()
         proxy_cfg.identity_address = proxy_cfg.normalize_sip_uri("sip:" +
                                                                  self.config.get('ConnectionDetails', 'user') +
@@ -259,6 +274,11 @@ class HQCPhone(object):
         debug_logger.info("Added proxy config")
 
     def add_auth_info(self):
+        """
+        Generates and adds authentication data to the core object
+        Used for registering and making authenticated actions to the SIP server
+        :return: 
+        """
         auth_info = self.core.create_auth_info(self.config.get('ConnectionDetails', 'user'),
                                                None,
                                                self.config.get('ConnectionDetails', 'password'),
