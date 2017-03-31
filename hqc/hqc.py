@@ -82,7 +82,7 @@ class HQCPhone(object):
         print "===  Use self.recording_location  ==="
         print "====================================="
 
-    def make_call(self, number, server, lq_file=datetime.now().strftime('%p_%I_%M_%S.wav')):
+    def make_call(self, number, server, lq_file=datetime.now().strftime('LQ_%H%M%S.wav')):
         """
         Make a SIP call to a number on a server
         :param number: number to call (should be a conference number)
@@ -106,7 +106,7 @@ class HQCPhone(object):
         # start_recording() is a linphone built-in function
         self.call.start_recording()
 
-    def stop_start_recording(self, lq_file=datetime.now().strftime('%p_%I_%M_%S.wav'), final=False):
+    def stop_start_recording(self, lq_file=datetime.now().strftime('LQ_%H%M%S.wav'), final=False):
         """
         Stops, then starts the LQ recording process. Recordings need to be finalized before they can be accessed.
         :param lq_file: New file name to record into

@@ -4,31 +4,26 @@ from datetime import datetime
 
 import kivy
 from kivy.app import App
-from kivy.clock import Clock
 from kivy.config import Config
 from kivy.lang import Builder
-from kivy.properties import ListProperty, ObjectProperty, StringProperty, NumericProperty
+from kivy.properties import ObjectProperty, StringProperty, NumericProperty
+from kivy.uix.actionbar import ActionItem
+from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-
-from kivy.uix.actionbar import ActionItem
-from kivy.uix.gridlayout import GridLayout
+from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.progressbar import ProgressBar
 from kivy.uix.screenmanager import ScreenManager, Screen
-
-from kivy.uix.behaviors import ButtonBehavior
-from kivy.uix.image import Image
-from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
 
 import audio
 from Config import Config
-from hqc import HQCPhone
-from chat.ChatClient import HQCWSClient
 from chat import constants
+from chat.ChatClient import HQCWSClient
+from hqc import HQCPhone
 
 # audioClipLayout = GridLayout(cols=3, padding=10, spacing=5,
 #                     size_hint=(None, None), width=310)
@@ -298,7 +293,7 @@ class ProducerJoiningScreen(Screen):
         self.app.phone.add_proxy_config()
         self.app.phone.add_auth_info()
         self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
-        self.app.lq_audio = self.app.phone.get_lq_start_time()
+        self.app.lq_audio = self.app.phone.recording_start
         print "passing lq_audio to gui: " + self.app.lq_audio
 
 
