@@ -40,7 +40,6 @@ NUMBER_OF_BUTTONS = 30
 start_recording = False
 filenames = []
 recorder = None
-micOn = False
 kivy.require('1.0.7')
 lq_audio = "undefined in gui"
 
@@ -93,6 +92,7 @@ class SessionScreen(Screen):
 
     stop_black = '../img/stop_black.png'
     record_black = '../img/record_black.png'
+    record_orange = '../img/record_orange.png'
 
     chat_messages = StringProperty()
 
@@ -184,19 +184,17 @@ class SessionScreen(Screen):
             recorder.start() # Starts recording
             print "Recording..."
         else:
-            self.ids.record_button.source = SessionScreen.record_black
+            self.ids.record_button.source = SessionScreen.record_orange
             recorder.stop()
             self.add_clip() #adds to gui sidebar
             print "Done recording"
 
     def toggle_mute(self):
-        global micOn
-        micOn = not micOn
         # Toggles the linphone mic
-        #self.app.phone.toggle_mic()
+        self.app.phone.toggle_mic()
 
         # Update the mic image
-        if micOn:#phone.core.mic_enabled:
+        if self.app.phone.core.mic_enabled:
             self.ids.mute_button.source = SessionScreen.un_muted_mic_image
         else:
             self.ids.mute_button.source = SessionScreen.muted_mic_image
