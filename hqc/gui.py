@@ -318,7 +318,7 @@ class ArtistJoiningScreen(Screen):
             self.app.phone.add_proxy_config()
             self.app.phone.add_auth_info()
             self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
-            self.app.lq_audio = self.app.phone.get_lq_start_time()
+            self.app.lq_audio = self.app.phone.recording_start
             print "passing lq_audio to gui: " + self.app.lq_audio
 
         else:
