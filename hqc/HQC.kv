@@ -197,6 +197,12 @@ ScreenManager:
                     source: '../img/sign_out_option.png'
                     text: 'Leave Session'
                     on_release: app.root.current = "main"
+    ProgressBar:
+        id: progress_bar
+        size_hint: (0.6, 0.25)
+        pos: (0, 5)
+        value: 0
+        max: 30
     ImageButton:
         id: record_button
         source: '../img/record_black.png'

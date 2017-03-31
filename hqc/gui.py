@@ -25,6 +25,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
 
 import audio
+import time, threading
 from Config import Config
 from hqc import HQCPhone
 from chat.ChatClient import HQCWSClient
@@ -40,6 +41,7 @@ NUMBER_OF_BUTTONS = 30
 start_recording = False
 filenames = []
 recorder = None
+progress = False
 micOn = False
 kivy.require('1.0.7')
 lq_audio = "undefined in gui"
@@ -182,12 +184,26 @@ class SessionScreen(Screen):
             recorder = audio.Recorder(filename) #creates audio file
             filenames.append(filename) #adds filename to global list
             recorder.start() # Starts recording
+
+            global progress
+            progress = True
+            mythread = threading.Thread(target=self.record_progress)
+            mythread.start()
+
             print "Recording..."
         else:
+            progress = False
             self.ids.record_button.source = SessionScreen.record_black
             recorder.stop()
             self.add_clip() #adds to gui sidebar
             print "Done recording"
+
+    def record_progress(self):
+        global progress
+        while progress:
+            time.sleep(0.05)
+            self.ids.progress_bar.value = (self.ids.progress_bar.value + 1) % 31#datetime.now().second % 6.0
+
 
     def toggle_mute(self):
         global micOn
