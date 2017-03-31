@@ -51,9 +51,7 @@ class HQC(App):
         super(HQC, self).__init__(**kwargs)
         self.config = Config("conn.conf")
         self.phone = HQCPhone(self.config)
-        self.chat_client = HQCWSClient(self.config)
-        # Link chat to application
-        self.chat_client.app = self
+        self.chat_client = None
         # Recorder object from audio module
         self.recorder = None
         # Boolean of whether or not the user is recording
@@ -66,7 +64,7 @@ class HQC(App):
     # Build should only handle setting up GUI-specific items
     def build(self):
         # Kivy is stubborn and overrides self.config with a built-in ConfigParser
-        self.config = self.chat_client.config
+        self.config = Config("conn.conf")
         gui_logger.debug("Building HQC application")
         # Give the web socket a reference to the app
         gui = Builder.load_file("HQC.kv")
@@ -79,7 +77,6 @@ class HQC(App):
         self.root.screens[3].update_chat(username, message)
 
     def update_role(self, role):
-        self.chat_client.role = role
         self.config.update_setting("ChatSettings", "role", role)
 
 
@@ -118,6 +115,9 @@ class SessionScreen(Screen):
         # to contain all the childs. (otherwise, we'll child outside the
         # bounding box of the childs)
         self.ids.audioSidebar.bind(minimum_height=self.ids.audioSidebar.setter('height'))
+        self.app.chat_client = HQCWSClient(self.app.config)
+        self.app.chat_client.app = self.app
+        self.app.chat_client.config = self.app.config
         # create a scroll view, with a size < size of the grid
         # root = ScrollView(size_hint=(None, None), size=(310, 460),
         #                   pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
@@ -312,7 +312,7 @@ class ArtistJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
     def get_text(self, conn_string):
-        try:
+        if conn_string != None:
             decoded = base64.b64decode(conn_string)
             mark1 = decoded.find(';')
             mark2 = decoded.rfind(';')
@@ -334,8 +334,7 @@ class ArtistJoiningScreen(Screen):
             self.app.lq_audio = self.app.phone.get_lq_start_time()
             print "passing lq_audio to gui: " + self.app.lq_audio
 
-        except Exception as e:
-            print "Error: " + str(e)
+        else:
             error_message = 'Sorry, that string is not valid'
             popup = Popup(title='Connection String Error',
                           content=Label(text=error_message),
