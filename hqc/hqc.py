@@ -128,15 +128,16 @@ class HQCPhone(object):
                 return os.path.join(folder_name, file_name)
 
         self.call.stop_recording()
+        # Move the file specified by recording_start into recording_current
+        new_name = generate_name(self.recording_current)
+        os.rename(self.recording_start, new_name)
+        self.recording_locations.append(new_name)
 
         if not final:
-            # Move the file specified by recording_start into recording_current
-            new_name = generate_name(self.recording_current)
-            os.rename(self.recording_start, new_name)
-            self.recording_locations.append(new_name)
+            # Update the new recording file
+            # Will still be recorded into recording_start, but allows us to rename it afterwards
             self.recording_current = lq_file
-
-
+            self.call.start_recording()
 
     def mute_mic(self):
         """
