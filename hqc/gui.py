@@ -329,23 +329,25 @@ class ArtistJoiningScreen(Screen):
     #       Currently a blank field means use existing values, even if none exists
     def get_text(self, conn_string):
         if conn_string is not None:
+            # TODO: Why is this done manually? There are functions for this
             decoded = base64.b64decode(conn_string)
             mark1 = decoded.find(';')
             mark2 = decoded.rfind(';')
             username = decoded[:mark1]
             password = decoded[mark1 + 1:mark2]
             server = decoded[mark2 + 1:]
+
             if server != '':
                 self.app.config.update_setting('ConnectionDetails', 'server', server)
             if username != '':
                 self.app.config.update_setting('ConnectionDetails', 'user', username)
             if password != '':
                 self.app.config.update_setting('ConnectionDetails', 'password', password)
-
             self.parent.current = 'session'
 
             self.app.phone.add_proxy_config()
             self.app.phone.add_auth_info()
+            # TODO: Update make_call, it now takes a mandatory file name
             self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
             self.app.lq_audio = self.app.phone.recording_start
             print "passing lq_audio to gui: " + self.app.lq_audio
