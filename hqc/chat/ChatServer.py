@@ -101,6 +101,12 @@ class HQCWebSocket(EchoWebSocket):
         print "Sent sync message to %d clients" % (len(app.clients))
 
     def closed(self, code, reason="A client left the room without a proper explanation."):
+        """
+        Handle the removal of a client that leaves
+        :param code: Status code
+        :param reason: Reason given for exit
+        :return: 
+        """
         app = self.environ.pop('ws4py.app')
         if self in app.clients:
             app.clients.remove(self)

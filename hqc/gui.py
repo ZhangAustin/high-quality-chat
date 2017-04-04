@@ -1,5 +1,8 @@
 import base64
 import logging
+import os
+import threading
+import time
 from datetime import datetime
 
 import kivy
@@ -30,6 +33,11 @@ from hqc import HQCPhone
 # layout2 = GridLayout(cols=1, padding=10, spacing=5,
 #                      size_hint=(None, None), width=410)
 
+# TODO: REMOVE GLOBAL VARIABLES. Put them in the config, a class definition, or default parameter.
+start_recording = False
+filenames = []
+recorder = None
+progress = False
 kivy.require('1.0.7')
 
 #  Load logging configuration from file
@@ -94,16 +102,13 @@ class SessionScreen(Screen):
 
     stop_black = '../img/stop_black.png'
     record_black = '../img/record_black.png'
-    record_orange = '../img/record_orange.png'
+    record_red = '../img/record_red.png'
 
     # Store a large string of all chat messages
     chat_messages = StringProperty()
 
     # List of audio file names
     audio_files = []
-
-    # List of requested audio files
-    requested_files = []
 
     def on_enter(self):
         # global audioClipLayout
@@ -113,10 +118,15 @@ class SessionScreen(Screen):
         # to contain all the childs. (otherwise, we'll child outside the
         # bounding box of the childs)
         self.ids.audioSidebar.bind(minimum_height=self.ids.audioSidebar.setter('height'))
+        progress_bar = ProgressBar( value=0, size_hint= (0.5, None))
+        label = Label(text = 'Waiting', size_hint= (0.32, None))
+        label2 = Label(text='N/A%', size_hint= (0.18, None))
+        self.ids.audioSidebar.add_widget(label2)
+        self.ids.audioSidebar.add_widget(progress_bar)
+        self.ids.audioSidebar.add_widget(label)
         self.app.chat_client = HQCWSClient(self.app.config)
         self.app.chat_client.app = self.app
         self.app.chat_client.config = self.app.config
-        print "Joined Chat Client"
         # create a scroll view, with a size < size of the grid
         # root = ScrollView(size_hint=(None, None), size=(310, 460),
         #                   pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
@@ -129,52 +139,47 @@ class SessionScreen(Screen):
 
         global audioClipLayout
 
-        #add play button and filename index # for later playback
+        # add play button and filename index # for later playback
         btn = ToggleButton(background_normal= '../img/play.png',
                    size_hint=(.18, 1), group = 'play', allow_stretch=False)
-        btn.apply_property(np=NumericProperty(SessionScreen.clip_no))
+        btn.apply_property(clip_no=NumericProperty(SessionScreen.clip_no))
         btn.bind(on_press=self.play_clip)
-        #audioClipLayout.add_widget(btn)
+        # audioClipLayout.add_widget(btn)
 
         # add filename label
-        label = Label(text=self.audio_files[-1], halign='left', size_hint=(.5, 0.2))
-        #audioClipLayout.add_widget(label)
+        label = Label(text=os.path.basename(self.audio_files[-1])[0:9], halign='left', size_hint=(.5, 0.2))
+        # audioClipLayout.add_widget(label)
 
-        #add request button
-        filename = self.audio_files[-1]
+        # add request button
         btn2 = Button(text="Request", size=(100, 50),
                       size_hint=(0.32, None))
-        btn2.bind(on_press=self.add_file(filename))
-        #audioClipLayout.add_widget(btn2)
+        # audioClipLayout.add_widget(btn2)
 
         self.ids.audioSidebar.add_widget(btn)
         self.ids.audioSidebar.add_widget(label)
         self.ids.audioSidebar.add_widget(btn2)
 
-    def add_file(self, file):
-        self.requested_files += file
-
     def play_clip(self, obj):
 
         # Get filename of the high quality clip associated with this play button
         # TODO: explain what obj.np is/does
-        filename = self.audio_files[obj.np]
+        filename = self.audio_files[obj.clip_no]
 
         # Get filename of the session low quality audio stream
         lq_audio = self.app.lq_audio
 
-        #get the # seconds after playback that HQ clip starts in the LQ stream:
-        #HQ start time in s - LQ start time in s (= int)
+        # get the # seconds after playback that HQ clip starts in the LQ stream:
+        # HQ start time in s - LQ start time in s (= int)
         start_time_seconds = int(lq_audio[3:5]) * 3600 + int(lq_audio[6:8]) * 60 + int (lq_audio[9:11])
         filename_seconds = int(filename[3:5]) * 3600 + int(filename[6:8]) * 60 + int (filename[9:11])
 
-        #gets the offset in seconds of the HQ file start time from the LQ stream
+        # gets the offset in seconds of the HQ file start time from the LQ stream
         hq_start_time = filename_seconds - start_time_seconds
         print filename + " session offset: " + str(hq_start_time) + " seconds"
-        #gets the file associated with this button's label friend
+        # gets the file associated with this button's label friend
 
-        #audio.get_length(filename)
-        #audio.playback(lq_audio, hq_start_time, None, 2)
+        # audio.get_length(filename)
+        # audio.playback(lq_audio, hq_start_time, None, 2)
 
     def record_button(self):
 
@@ -183,16 +188,31 @@ class SessionScreen(Screen):
 
         if self.app.recording:
             self.ids.record_button.source = SessionScreen.stop_black
-            filename = datetime.now().strftime('HQ_%H%M%S.mp3')
-            self.app.recorder = audio.Recorder(filename) #creates audio file
-            self.audio_files.append(filename) #adds filename to global list
-            self.app.recorder.start() # Starts recording
+
+            global progress
+            progress = True
+            mythread = threading.Thread(target=self.record_progress)
+            mythread.start()
+
+            filename = os.path.join(self.app.config.get('AudioSettings', 'recording_location'),
+                                    datetime.now().strftime('HQ_%H%M%S.mp3'))
+            self.app.recorder = audio.Recorder(filename)  # creates audio file
+            self.audio_files.append(filename)  # adds filename to global list
+            self.app.recorder.start()  # Starts recording
             print "Recording..."
         else:
-            self.ids.record_button.source = SessionScreen.record_black
+            progress = False
+            self.ids.record_button.source = SessionScreen.record_red
             self.app.recorder.stop()
-            self.add_clip() #adds to gui sidebar
+            self.add_clip()  # adds to gui sidebar
             print "Done recording"
+
+    def record_progress(self):
+        global progress
+        while progress:
+            time.sleep(0.05)
+            self.ids.progress_bar.value = (self.ids.progress_bar.value + 1) % 31#datetime.now().second % 6.0
+
 
     def toggle_mute(self):
 
@@ -239,8 +259,8 @@ class SessionScreen(Screen):
     def on_leave(self, *args):
         """
         Makes sure the SessionScreen is left properly
-        :param args:
-        :return:
+        :param args: 
+        :return: 
         """
         # If leaving the SessionScreen, make sure to stop recording
         if self.app.recording:
@@ -274,7 +294,7 @@ class ProducerJoiningScreen(Screen):
         self.app.config.update_setting('ConnectionDetails', 'conn_string', encoded)
         self.parent.current = 'session'
 
-        #  Make BoxLayout for multiple items
+        # Make BoxLayout for multiple items
         popup_box = BoxLayout(orientation='vertical')
         # Make "Connection String" TextInput
         popup_text = TextInput(text=encoded, size_hint=(1, .8))
@@ -292,7 +312,9 @@ class ProducerJoiningScreen(Screen):
 
         self.app.phone.add_proxy_config()
         self.app.phone.add_auth_info()
-        self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
+        file_name = os.path.join(self.app.config.get('AudioSettings', 'recording_location'),
+                                 datetime.now().strftime('LQ_%H%M%S.wav'))
+        self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'), file_name)
         self.app.lq_audio = self.app.phone.recording_start
         print "passing lq_audio to gui: " + self.app.lq_audio
 
@@ -306,29 +328,28 @@ class ArtistJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
     def get_text(self, conn_string):
-        if conn_string == '':
-            conn_string = self.app.config.get('ConnectionDetails', 'conn_string')
-            print "Got Conn String"
-        if conn_string != None:
+        if conn_string is not None:
+            # TODO: Why is this done manually? There are functions for this
             decoded = base64.b64decode(conn_string)
             mark1 = decoded.find(';')
             mark2 = decoded.rfind(';')
             username = decoded[:mark1]
             password = decoded[mark1 + 1:mark2]
             server = decoded[mark2 + 1:]
+
             if server != '':
                 self.app.config.update_setting('ConnectionDetails', 'server', server)
             if username != '':
                 self.app.config.update_setting('ConnectionDetails', 'user', username)
             if password != '':
                 self.app.config.update_setting('ConnectionDetails', 'password', password)
-            print "Joining Session"
             self.parent.current = 'session'
 
             self.app.phone.add_proxy_config()
             self.app.phone.add_auth_info()
+            # TODO: Update make_call, it now takes a mandatory file name
             self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
-            self.app.lq_audio = self.app.phone.get_lq_start_time()
+            self.app.lq_audio = self.app.phone.recording_start
             print "passing lq_audio to gui: " + self.app.lq_audio
 
         else:
@@ -352,12 +373,13 @@ class FileTransferScreen(Screen):
     app = ObjectProperty(None)
 
     def on_enter(self):
-        #To Do: find a better way to reference the requested files
-        files = self.app.root.screens[3].requested_files
+        files = [["File 1", 60], ["File 2", 40], ["File 3", 80], ["File 4", 20]]
         for file in files:
+            print(file[0])
             progress = ProgressBar(max=100)
-            self.app.chat_client.send_file(file)
-            label = Label(text=file, size_hint=(1/len(files), None))
+            progress.value = file[1]
+            filename = file[0]
+            label = Label(text=filename, size_hint=(1/len(files), None))
             self.ids.filelayout.add_widget(label)
             self.ids.filelayout.add_widget(progress)
 
