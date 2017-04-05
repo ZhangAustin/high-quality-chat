@@ -50,6 +50,18 @@ class Config(ConfigParser.SafeConfigParser):
                 if not self.has_option(section, option):
                     self.set(section, option, "None")
 
+        self.create_recording_location()
+
+    def create_recording_location(self):
+        """
+        If not present, create the folder specified in recording_location
+        :return: 
+        """
+        try:
+            os.makedirs(self.get('AudioSettings', 'recording_location'))
+        except os.error as e:  # Folder already exists
+            print e
+
     def update_setting(self, section, option, value):
         """
         Add or update settings to config file.
@@ -67,3 +79,6 @@ class Config(ConfigParser.SafeConfigParser):
         #  Write the settings back to disk
         with open(self.file, "w") as config_file:
             self.write(config_file)
+
+        if option == 'recording_location':
+            self.create_recording_location()
