@@ -7,9 +7,21 @@ ScreenManager:
     MainScreen:
         manager: screen_manager
         app: self.manager.app
+        canvas.before:
+            Color:
+                rgba: 0.95, 0.95, 0.95, 0.95
+            Rectangle:
+                pos: self.pos
+                size: self.size
     ProducerJoiningScreen:
         manager: screen_manager
         app: self.manager.app
+        canvas.before:
+            Color:
+                rgba: 0.95, 0.95, 0.95, 0.95
+            Rectangle:
+                pos: self.pos
+                size: self.size
         TextInput:
             id: servername
             size_hint: (.5, .15)
@@ -59,6 +71,12 @@ ScreenManager:
     ArtistJoiningScreen:
         manager: screen_manager
         app: self.manager.app
+        canvas.before:
+            Color:
+                rgba: 0.95, 0.95, 0.95, 0.95
+            Rectangle:
+                pos: self.pos
+                size: self.size
         TextInput:
             id: artconnection
             size_hint: (.8, .15)
@@ -92,6 +110,12 @@ ScreenManager:
     SessionScreen:
         manager: screen_manager
         app: self.manager.app
+        canvas.before:
+            Color:
+                rgba: 0.95, 0.95, 0.95, 0.95
+            Rectangle:
+                pos: self.pos
+                size: self.size
         TextInput:
             id: chatText
             size_hint: (.50, .10)
@@ -105,6 +129,12 @@ ScreenManager:
     SettingsScreen:
         manager: screen_manager
         app: self.manager.app
+        canvas.before:
+            Color:
+                rgba: 0.95, 0.95, 0.95, 0.95
+            Rectangle:
+                pos: self.pos
+                size: self.size
         DropDown:
             id: username_setting
             Button:
@@ -133,18 +163,19 @@ ScreenManager:
     FileTransferScreen:
         app: self.manager.app
         manager: screen_manager
+        canvas.before:
+            Color:
+                rgba: 0.95, 0.95, 0.95, 0.95
+            Rectangle:
+                pos: self.pos
+                size: self.size
 
 <MainScreen>:
     name: "main"
-    Label:
-        id: title
-        text: 'High Quality Chat'
-        text_size: root.width, None
-        size: self.texture_size
-        font_size: '70sp'
-        pos: (135, 175)
-        bold: True
-        markup: True
+    Image:
+        source: '../img/hqc_logo_words.png'
+        size_hint: (1, 1)
+        pos: (85, 5)
     BoxLayout:
         pos: (350, 520)
         spacing: '50'
@@ -152,27 +183,30 @@ ScreenManager:
             source: '../img/settings.png'
             size_hint: .1, .1
             on_release: app.root.current = 'settings'
-    BoxLayout:
-        spacing: '5'
-        padding: [150, 225, 150, 150]
-        Button:
-            id: producer
-            text: "I'm a Producer"
-            on_release: app.root.current = "producersessionjoining"
-            size_hint: (.33, 1)
-            font_size: '20sp'
-        Button:
-            id: artist
-            text: "I'm an Artist"
-            on_release: app.root.current = "artistsessionjoining"
-            size_hint: (.33, 1)
-            font_size: '20sp'
-        Button:
-            id: listener
-            text: "I'm a Listener"
-            on_release: app.root.current = "artistsessionjoining"
-            size_hint: (.33, 1)
-            font_size: '20sp'
+    ImageButton:
+        id: producer
+        source: '../img/producer.png'
+        text: "I'm a Producer"
+        on_release: app.root.current = "producersessionjoining"
+        size_hint: (.23, .23)
+        font_size: '20sp'
+        pos: (50, 400)
+    ImageButton:
+        id: artist
+        source: '../img/artist.png'
+        text: "I'm an Artist"
+        on_release: app.root.current = "artistsessionjoining"
+        size_hint: (.23, .23)
+        font_size: '20sp'
+        pos: (50, 235)
+    ImageButton:
+        id: listener
+        source: '../img/listener.png'
+        text: "I'm a Listener"
+        on_release: app.root.current = "artistsessionjoining"
+        size_hint: (.23, .23)
+        font_size: '20sp'
+        pos: (50, 70)
 <ProducerJoiningScreen>
     name: "producersessionjoining"
     Label:
