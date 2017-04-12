@@ -36,15 +36,26 @@ ScreenManager:
             hint_text: '********'
             pos: (350, 200)
         ImageButton:
-            id: joinsess
+            id: producerjoinsess
             source: '../img/right_arrow.png'
             halign: 'center'
             valign: 'middle'
-            size_hint: (.35, .15)
+            size_hint: (.5, None)
             text_size: root.width, None
             font_size: '25sp'
-            pos: (420, 50)
+            pos: (200, 60)
             on_release: self.parent.get_text(servername.text, username.text, password.text)
+        ImageButton:
+            id: main_menu
+            source: '../img/left_arrow.png'
+            text: 'Main Menu'
+            halign: 'center'
+            valign: 'middle'
+            size_hint: (.20, .10)
+            text_size: root.width, None
+            font_size: '25sp'
+            pos: (0, 510)
+            on_release: app.root.current = 'main'
     ArtistJoiningScreen:
         manager: screen_manager
         app: self.manager.app
@@ -67,6 +78,17 @@ ScreenManager:
             font_size: '25sp'
             pos: (200, 100)
             on_release: self.parent.get_text(artconnection.text)
+        ImageButton:
+            id: main_menu
+            source: '../img/left_arrow.png'
+            text: 'Main Menu'
+            halign: 'center'
+            valign: 'middle'
+            size_hint: (.20, .10)
+            text_size: root.width, None
+            font_size: '25sp'
+            pos: (0, 510)
+            on_release: app.root.current = 'main'
     SessionScreen:
         manager: screen_manager
         app: self.manager.app
@@ -83,15 +105,14 @@ ScreenManager:
     SettingsScreen:
         manager: screen_manager
         app: self.manager.app
-        TextInput:
+        DropDown:
             id: username_setting
-            size_hint: (.5, .10)
-            text_size: root.width, None
-            font_size: '25sp'
-            multiline: False
-            hint_text: 'TRUE'
-            pos: (170, 480)
-            on_text_validate: self.parent.update_username(username_setting.text)
+            Button:
+                text: 'Setting1'
+                size_hint: (.5, .10)
+                text_size: root.width, None
+                font_size: '25sp'
+                pos: (170, 480)
         TextInput:
             id: setting2
             size_hint: (.5, .10)
@@ -206,9 +227,15 @@ ScreenManager:
                     source: '../img/sign_out_option.png'
                     text: 'Leave Session'
                     on_release: app.root.current = "main"
+    ProgressBar:
+        id: progress_bar
+        size_hint: (0.6, 0.25)
+        pos: (0, 5)
+        value: 0
+        max: 30
     ImageButton:
         id: record_button
-        source: '../img/record_black.png'
+        source: '../img/record_red.png'
         font_size: '25sp'
         size_hint: (.25, .25)
         pos: (100, 100)
@@ -218,8 +245,6 @@ ScreenManager:
         source: '../img/pause_black.png'
         size_hint: (.17, .17)
         pos: (280, 120)
-        on_release: self.parent.get_text(chatText.text)
-
     TabbedPanel:
         size_hint: (.4, .9)
         pos_hint: {'center_x': .8, 'center_y': .55}

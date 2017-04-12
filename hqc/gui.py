@@ -1,6 +1,8 @@
 import base64
 import logging
 import os
+import threading
+import time
 from datetime import datetime
 
 import kivy
@@ -31,6 +33,11 @@ from hqc import HQCPhone
 # layout2 = GridLayout(cols=1, padding=10, spacing=5,
 #                      size_hint=(None, None), width=410)
 
+# TODO: REMOVE GLOBAL VARIABLES. Put them in the config, a class definition, or default parameter.
+start_recording = False
+filenames = []
+recorder = None
+progress = False
 kivy.require('1.0.7')
 
 #  Load logging configuration from file
@@ -95,7 +102,7 @@ class SessionScreen(Screen):
 
     stop_black = '../img/stop_black.png'
     record_black = '../img/record_black.png'
-    record_orange = '../img/record_orange.png'
+    record_red = '../img/record_red.png'
 
     # Store a large string of all chat messages
     chat_messages = StringProperty()
@@ -111,6 +118,12 @@ class SessionScreen(Screen):
         # to contain all the childs. (otherwise, we'll child outside the
         # bounding box of the childs)
         self.ids.audioSidebar.bind(minimum_height=self.ids.audioSidebar.setter('height'))
+        progress_bar = ProgressBar( value=0, size_hint= (0.5, None))
+        label = Label(text = 'Waiting', size_hint= (0.32, None))
+        label2 = Label(text='N/A%', size_hint= (0.18, None))
+        self.ids.audioSidebar.add_widget(label2)
+        self.ids.audioSidebar.add_widget(progress_bar)
+        self.ids.audioSidebar.add_widget(label)
         self.app.chat_client = HQCWSClient(self.app.config)
         self.app.chat_client.app = self.app
         self.app.chat_client.config = self.app.config
@@ -129,12 +142,12 @@ class SessionScreen(Screen):
         # add play button and filename index # for later playback
         btn = ToggleButton(background_normal= '../img/play.png',
                    size_hint=(.18, 1), group = 'play', allow_stretch=False)
-        btn.apply_property(np=NumericProperty(SessionScreen.clip_no))
+        btn.apply_property(clip_no=NumericProperty(SessionScreen.clip_no))
         btn.bind(on_press=self.play_clip)
         # audioClipLayout.add_widget(btn)
 
         # add filename label
-        label = Label(text=self.audio_files[-1], halign='left', size_hint=(.5, 0.2))
+        label = Label(text=os.path.basename(self.audio_files[-1])[0:9], halign='left', size_hint=(.5, 0.2))
         # audioClipLayout.add_widget(label)
 
         # add request button
@@ -150,7 +163,7 @@ class SessionScreen(Screen):
 
         # Get filename of the high quality clip associated with this play button
         # TODO: explain what obj.np is/does
-        filename = self.audio_files[obj.np]
+        filename = self.audio_files[obj.clip_no]
 
         # Get filename of the session low quality audio stream
         lq_audio = self.app.lq_audio
@@ -175,6 +188,12 @@ class SessionScreen(Screen):
 
         if self.app.recording:
             self.ids.record_button.source = SessionScreen.stop_black
+
+            global progress
+            progress = True
+            mythread = threading.Thread(target=self.record_progress)
+            mythread.start()
+
             filename = os.path.join(self.app.config.get('AudioSettings', 'recording_location'),
                                     datetime.now().strftime('HQ_%H%M%S.mp3'))
             self.app.recorder = audio.Recorder(filename)  # creates audio file
@@ -182,10 +201,18 @@ class SessionScreen(Screen):
             self.app.recorder.start()  # Starts recording
             print "Recording..."
         else:
-            self.ids.record_button.source = SessionScreen.record_black
+            progress = False
+            self.ids.record_button.source = SessionScreen.record_red
             self.app.recorder.stop()
             self.add_clip()  # adds to gui sidebar
             print "Done recording"
+
+    def record_progress(self):
+        global progress
+        while progress:
+            time.sleep(0.05)
+            self.ids.progress_bar.value = (self.ids.progress_bar.value + 1) % 31#datetime.now().second % 6.0
+
 
     def toggle_mute(self):
 
@@ -285,7 +312,9 @@ class ProducerJoiningScreen(Screen):
 
         self.app.phone.add_proxy_config()
         self.app.phone.add_auth_info()
-        self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
+        file_name = os.path.join(self.app.config.get('AudioSettings', 'recording_location'),
+                                 datetime.now().strftime('LQ_%H%M%S.wav'))
+        self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'), file_name)
         self.app.lq_audio = self.app.phone.recording_start
         print "passing lq_audio to gui: " + self.app.lq_audio
 
@@ -300,25 +329,27 @@ class ArtistJoiningScreen(Screen):
     #       Currently a blank field means use existing values, even if none exists
     def get_text(self, conn_string):
         if conn_string is not None:
+            # TODO: Why is this done manually? There are functions for this
             decoded = base64.b64decode(conn_string)
             mark1 = decoded.find(';')
             mark2 = decoded.rfind(';')
             username = decoded[:mark1]
             password = decoded[mark1 + 1:mark2]
             server = decoded[mark2 + 1:]
+
             if server != '':
                 self.app.config.update_setting('ConnectionDetails', 'server', server)
             if username != '':
                 self.app.config.update_setting('ConnectionDetails', 'user', username)
             if password != '':
                 self.app.config.update_setting('ConnectionDetails', 'password', password)
-
             self.parent.current = 'session'
 
             self.app.phone.add_proxy_config()
             self.app.phone.add_auth_info()
+            # TODO: Update make_call, it now takes a mandatory file name
             self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
-            self.app.lq_audio = self.app.phone.get_lq_start_time()
+            self.app.lq_audio = self.app.phone.recording_start
             print "passing lq_audio to gui: " + self.app.lq_audio
 
         else:
