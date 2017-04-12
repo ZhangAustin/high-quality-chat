@@ -81,6 +81,12 @@ class HQC(App):
     def update_role(self, role):
         self.config.update_setting("ChatSettings", "role", role)
 
+    def update_requested_files(self, username, message):
+        self.root.screens[3].update_requested_files(username, message)
+
+    def update_send_files(self, username, message):
+        self.root.screens[3].update_send_files(username, message)
+
 
 class MainScreen(Screen):
     app = ObjectProperty(None)
@@ -109,6 +115,7 @@ class SessionScreen(Screen):
 
     # List of audio file names
     audio_files = []
+    requested_files = []
 
     def on_enter(self):
         # global audioClipLayout
@@ -151,13 +158,44 @@ class SessionScreen(Screen):
         # audioClipLayout.add_widget(label)
 
         # add request button
+        filename = self.audio_files[-1]
+        print self.audio_files[-1]
         btn2 = Button(text="Request", size=(100, 50),
-                      size_hint=(0.32, None))
+                      size_hint=(0.32, None), on_press=lambda a:self.add_file(filename))
         # audioClipLayout.add_widget(btn2)
 
         self.ids.audioSidebar.add_widget(btn)
         self.ids.audioSidebar.add_widget(label)
         self.ids.audioSidebar.add_widget(btn2)
+
+    def add_file(self, file):
+        if file not in self.requested_files:
+            if self.app.chat_client:
+                print "Adding file" + file
+                self.app.chat_client.send_sync(constants.SYNC_REQUESTFILE, file)
+            else:
+                print "Chat client not connected"
+        print self.requested_files
+
+    def update_requested_files(self, username, message):
+        """
+        Called upon when the user requests a file
+        :param username: name of user requesting file
+        :param message: string of file requested
+        :return: None
+        """
+        print message
+        self.requested_files += [message]
+
+    def update_send_files(self, username, message):
+        """
+        Called upon when the user requests a file
+        :param username: name of user requesting file
+        :param message: string of files requested
+        :return: None
+        """
+        if message in self.audio_files:
+            self.app.chat_client.send_file(message)
 
     def play_clip(self, obj):
 
@@ -180,6 +218,7 @@ class SessionScreen(Screen):
 
         # audio.get_length(filename)
         # audio.playback(lq_audio, hq_start_time, None, 2)
+
 
     def record_button(self):
 
@@ -255,6 +294,12 @@ class SessionScreen(Screen):
         :return: None
         """
         self.parent.ids.chatText.focus = True
+
+    def leave_session(self):
+        if self.config.get("ChatSettings", "role") == constants.PRODUCER:
+            self.parent.current = 'filetransfer'
+        else:
+            self.parent.current = 'main'
 
     def on_leave(self, *args):
         """
@@ -373,16 +418,13 @@ class FileTransferScreen(Screen):
     app = ObjectProperty(None)
 
     def on_enter(self):
-        files = [["File 1", 60], ["File 2", 40], ["File 3", 80], ["File 4", 20]]
+        files = self.app.root.screens[3].requested_files
         for file in files:
-            print(file[0])
             progress = ProgressBar(max=100)
-            progress.value = file[1]
-            filename = file[0]
-            label = Label(text=filename, size_hint=(1/len(files), None))
+            self.app.chat_client.send_sync(constants.SYNC_SENDFILE, file)
+            label = Label(text=file, size_hint=(1 / len(files), None))
             self.ids.filelayout.add_widget(label)
             self.ids.filelayout.add_widget(progress)
-
 
 class ImageButton(ButtonBehavior, Image):
     pass

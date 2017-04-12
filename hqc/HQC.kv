@@ -226,7 +226,7 @@ ScreenManager:
                 ActionImageButton:
                     source: '../img/sign_out_option.png'
                     text: 'Leave Session'
-                    on_release: app.root.current = "main"
+                    on_release: root.leave_session()
     ProgressBar:
         id: progress_bar
         size_hint: (0.6, 0.25)

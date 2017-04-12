@@ -162,6 +162,18 @@ class HQCWSClient(WebSocketClient):
             timestamp = parsed_json['message']
             print "{} stopped recording at {}".format(username, timestamp)
             # Do something in GUI
+        elif status_code == constants.SYNC_REQUESTFILE:
+            filename = parsed_json['message']
+            print "{} added {} as requested file".format(username, filename)
+            # Do something in GUI
+            if self.app is not None:
+                self.app.update_requested_files(username, filename)
+        elif status_code == constants.SYNC_SENDFILE:
+            filenames = parsed_json['message']
+            print "{} downloading {}".format(username, filenames)
+            # Do something in GUI
+            if self.app is not None:
+                self.app.update_send_files(username, filenames)
         else:
             print "Status code {} in constants.SYNC but has no handler (recv from {})".format(status_code, username)
 
@@ -193,7 +205,7 @@ class HQCWSClient(WebSocketClient):
             parsed_json = json.loads(str(message))
             # Get the message type
             message_type = parsed_json['type']
-
+            print message_type
             if message_type == constants.FILE:
                 self.handle_recv_file_message(parsed_json)
 
@@ -262,6 +274,13 @@ class HQCWSClient(WebSocketClient):
                 self.send(json.dumps(payload), False)
             else:
                 print "No timestamp provided for sync message"
+        elif sync_code == constants.SYNC_REQUESTFILE or sync_code == constants.SYNC_SENDFILE:
+            if timestamp is not None:
+                payload['message'] = timestamp
+                print "Message Sending"
+                self.send(json.dumps(payload), False)
+            else:
+                print "No filename provided for sync message"
         else:
             self.send(json.dumps(payload), False)
 

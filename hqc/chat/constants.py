@@ -17,8 +17,12 @@ SYNC_RECORDINGOFF = 10
 SYNC_RECORDINGSTART = 11
 SYNC_RECORDINGSTOP = 12
 # END --- Contains timestamp payload --- #
+# START --- Contains filename payload --- #
+SYNC_REQUESTFILE = 13
+SYNC_SENDFILE = 14
+# END --- Contains filname payload --- #
 
-SYNC = range(4, 13)
+SYNC = range(4, 15)
 
 # User roles
 ARTIST = "ARTIST"
