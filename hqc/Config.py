@@ -9,6 +9,7 @@ logging.config.fileConfig('../logging.conf')
 debug_logger = logging.getLogger('debugLog')
 
 
+# TODO: fix lossy encoding in "ConnectionDetails"
 #  Inherits methods such as get() from SafeConfigParser
 class Config(ConfigParser.SafeConfigParser):
     """Handles creation and updating of configuration settings."""
@@ -57,10 +58,8 @@ class Config(ConfigParser.SafeConfigParser):
         If not present, create the folder specified in recording_location
         :return: 
         """
-        try:
+        if not os.path.exists(self.get('AudioSettings', 'recording_location')):
             os.makedirs(self.get('AudioSettings', 'recording_location'))
-        except os.error as e:  # Folder already exists
-            print e
 
     def update_setting(self, section, option, value):
         """

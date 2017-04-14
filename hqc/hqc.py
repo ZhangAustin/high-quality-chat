@@ -93,14 +93,17 @@ class HQCPhone(object):
         params.video_enabled = False
 
         url = 'sip:' + str(number) + '@' + server
-
-        self.call = self.core.invite_with_params(url, params)
-
-        while self.call.media_in_progress():
-            self.hold_open()
-
-        # start_recording() is a linphone built-in function
-        self.call.start_recording()
+        try:
+            self.call = self.core.invite_with_params(url, params)
+        except err:
+            print err
+        if self.call is None:
+            print "Error: Cannot make a call"
+        else:
+            while self.call.media_in_progress():
+                self.hold_open()
+            # start_recording() is a linphone built-in function
+            self.call.start_recording()
 
     def stop_start_recording(self, lq_file, final=False):
         """
