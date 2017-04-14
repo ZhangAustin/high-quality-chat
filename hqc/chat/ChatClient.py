@@ -1,10 +1,10 @@
 import base64
-import datetime
 import json
 import ntpath
 import socket
 import threading
 import time
+import os
 
 from ws4py.client.threadedclient import WebSocketClient
 
@@ -162,6 +162,18 @@ class HQCWSClient(WebSocketClient):
             timestamp = parsed_json['message']
             print "{} stopped recording at {}".format(username, timestamp)
             # Do something in GUI
+        elif status_code == constants.SYNC_REQUESTFILE:
+            filename = parsed_json['message']
+            print "{} added {} as requested file".format(username, filename)
+            # Do something in GUI
+            if self.app is not None:
+                self.app.update_requested_files(username, filename)
+        elif status_code == constants.SYNC_SENDFILE:
+            filenames = parsed_json['message']
+            print "{} downloading {}".format(username, filenames)
+            # Do something in GUI
+            if self.app is not None:
+                self.app.update_send_files(username, filenames)
         else:
             print "Status code {} in constants.SYNC but has no handler (recv from {})".format(status_code, username)
 
@@ -193,7 +205,7 @@ class HQCWSClient(WebSocketClient):
             parsed_json = json.loads(str(message))
             # Get the message type
             message_type = parsed_json['type']
-
+            print message_type
             if message_type == constants.FILE:
                 self.handle_recv_file_message(parsed_json)
 
@@ -231,20 +243,18 @@ class HQCWSClient(WebSocketClient):
         # Avoid feedback
         time.sleep(0.2)
 
-    def send_file(self, filepath=None):
+    def send_file(self, filepath):
         """
         Send a base64 encoded string to the server.
         :param filepath: string path to file
         :return: None
         """
-        if not filepath:
-            filepath = raw_input("Insert filepath of file to send: ")
         fh = open(filepath, 'rb')
         content = base64.b64encode(fh.read())
         payload = self.new_payload()
         payload['content'] = content
         payload['type'] = constants.FILE
-        payload['filename'] = datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d%H%M%S') + '.wav'
+        payload['filename'] = os.path.basename(filepath)
         # Send the payload as a binary message by marking binary=True
         self.send(str(json.dumps(payload)), True)
         fh.close()
@@ -264,6 +274,13 @@ class HQCWSClient(WebSocketClient):
                 self.send(json.dumps(payload), False)
             else:
                 print "No timestamp provided for sync message"
+        elif sync_code == constants.SYNC_REQUESTFILE or sync_code == constants.SYNC_SENDFILE:
+            if timestamp is not None:
+                payload['message'] = timestamp
+                print "Message Sending"
+                self.send(json.dumps(payload), False)
+            else:
+                print "No filename provided for sync message"
         else:
             self.send(json.dumps(payload), False)
 

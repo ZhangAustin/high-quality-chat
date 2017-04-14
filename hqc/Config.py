@@ -29,7 +29,7 @@ class Config(ConfigParser.SafeConfigParser):
         Checks the config file and ensure all sections exist
         If not, add the sections and initialize to "None"
         """
-        connection = ['user', 'password', 'server', 'conn_string']
+        connection = ['user', 'password', 'server', 'call_no']
         audio_settings = ['mic', 'speakers', 'recording_location']
         chat_settings = ['ip_address', 'port', 'username', 'role']
         sections = {'ConnectionDetails': connection,
