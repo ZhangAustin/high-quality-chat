@@ -1,5 +1,4 @@
 import base64
-import logging
 import os
 import threading
 import time
@@ -40,11 +39,6 @@ recorder = None
 progress = False
 kivy.require('1.0.7')
 
-#  Load logging configuration from file
-logging.config.fileConfig('../logging.conf')
-#  Reference logger
-gui_logger = logging.getLogger('gui')
-
 
 class HQC(App):
     manager = ObjectProperty(None)
@@ -67,7 +61,6 @@ class HQC(App):
     def build(self):
         # Kivy is stubborn and overrides self.config with a built-in ConfigParser
         self.config = Config("conn.conf")
-        gui_logger.debug("Building HQC application")
         # Give the web socket a reference to the app
         gui = Builder.load_file("HQC.kv")
         self.root = gui

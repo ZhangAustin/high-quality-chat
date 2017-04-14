@@ -157,7 +157,3 @@ if __name__ == '__main__':
     time.sleep(5)
     print "Stopping recording async2.wav"
     recorder2.stop()
-
-    # record_audio("test.mp3", 5)
-    # segment_list = split_audio_file("test.mp3", 2.5)
-    # save_audio_chunks(segment_list, "hello", ".mp3", (os.getcwd() + "/"))

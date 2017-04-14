@@ -1,12 +1,5 @@
 import ConfigParser
-import logging.config
 import os
-
-
-#  Load logging configuration from file
-logging.config.fileConfig('../logging.conf')
-#  Reference logger
-debug_logger = logging.getLogger('debugLog')
 
 
 # TODO: fix lossy encoding in "ConnectionDetails"
@@ -21,7 +14,6 @@ class Config(ConfigParser.SafeConfigParser):
         ConfigParser.SafeConfigParser.__init__(self)
         self.file = file
         if not os.path.isfile(self.file):
-            logging.warning("Creating config")
             # Touch the file
             f = open(file, 'w')
             f.close()
