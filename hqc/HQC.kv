@@ -49,7 +49,7 @@ ScreenManager:
             pos: (350, 200)
         ImageButton:
             id: producerjoinsess
-            source: '../img/right_arrow.png'
+            source: '../img/arrow_right.png'
             halign: 'center'
             valign: 'middle'
             size_hint: (.5, None)
@@ -59,7 +59,7 @@ ScreenManager:
             on_release: self.parent.get_text(servername.text, username.text, password.text)
         ImageButton:
             id: main_menu
-            source: '../img/left_arrow.png'
+            source: '../img/arrow_left.png'
             text: 'Main Menu'
             halign: 'center'
             valign: 'middle'
@@ -88,7 +88,7 @@ ScreenManager:
         ImageButton:
             id: artjoinsess
             text: 'Join Session'
-            source: '../img/right_arrow.png'
+            source: '../img/arrow_right.png'
             halign: 'center'
             valign: 'middle'
             size_hint: (.5, None)
@@ -98,7 +98,7 @@ ScreenManager:
             on_release: self.parent.get_text(artconnection.text)
         ImageButton:
             id: main_menu
-            source: '../img/left_arrow.png'
+            source: '../img/arrow_left.png'
             text: 'Main Menu'
             halign: 'center'
             valign: 'middle'
@@ -180,7 +180,7 @@ ScreenManager:
         pos: (350, 520)
         spacing: '50'
         ImageButton:
-            source: '../img/settings.png'
+            source: '../img/settings_dark.png'
             size_hint: .1, .1
             on_release: app.root.current = 'settings'
     ImageButton:
@@ -337,7 +337,7 @@ ScreenManager:
     name: "settings"
     ImageButton:
         id: main_menu
-        source: '../img/left_arrow.png'
+        source: '../img/arrow_left.png'
         text: 'Main Menu'
         halign: 'center'
         valign: 'middle'
