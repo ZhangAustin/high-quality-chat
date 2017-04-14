@@ -313,7 +313,7 @@ class ProducerJoiningScreen(Screen):
 
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
-    def get_text(self, servername, username, password):
+    def get_text(self, servername, username, password, callnumber):
 
         if servername != '':
             self.app.config.update_setting('ConnectionDetails', 'server', servername)
@@ -327,7 +327,11 @@ class ProducerJoiningScreen(Screen):
             self.app.config.update_setting('ConnectionDetails', 'password', password)
         else:
             password = self.app.config.get('ConnectionDetails', 'password')
-        conn_string = username + ';' + password + ";" + servername
+        if callnumber != '':
+            self.app.config.update_setting('ConnectionDetails', 'call_no', callnumber)
+        else:
+            callnumber = self.app.config.get('ConnectionDetails', 'call_no')
+        conn_string = username + ';' + password + ";" + servername + ";" + callnumber
         encoded = base64.b64encode(conn_string)
         self.app.config.update_setting('ConnectionDetails', 'conn_string', encoded)
         self.parent.current = 'session'
@@ -352,7 +356,7 @@ class ProducerJoiningScreen(Screen):
         self.app.phone.add_auth_info()
         file_name = os.path.join(self.app.config.get('AudioSettings', 'recording_location'),
                                  datetime.now().strftime('LQ_%H%M%S.wav'))
-        self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'), file_name)
+        self.app.phone.make_call(callnumber, self.app.config.get('ConnectionDetails', 'server'), file_name)
         self.app.lq_audio = self.app.phone.recording_start
         print "passing lq_audio to gui: " + self.app.lq_audio
 
@@ -371,9 +375,11 @@ class ArtistJoiningScreen(Screen):
             decoded = base64.b64decode(conn_string)
             mark1 = decoded.find(';')
             mark2 = decoded.rfind(';')
+            mark3 = decoded.rfind(';')
             username = decoded[:mark1]
             password = decoded[mark1 + 1:mark2]
-            server = decoded[mark2 + 1:]
+            server = decoded[mark2 + 1:mark3]
+            callnumber = decoded[mark3 + 1:]
 
             if server != '':
                 self.app.config.update_setting('ConnectionDetails', 'server', server)
@@ -381,12 +387,14 @@ class ArtistJoiningScreen(Screen):
                 self.app.config.update_setting('ConnectionDetails', 'user', username)
             if password != '':
                 self.app.config.update_setting('ConnectionDetails', 'password', password)
+            if callnumber != '':
+                self.app.config.update_setting('ConnectionDetails', 'call_no', callnumber)
             self.parent.current = 'session'
 
             self.app.phone.add_proxy_config()
             self.app.phone.add_auth_info()
             # TODO: Update make_call, it now takes a mandatory file name
-            self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'),
+            self.app.phone.make_call(callnumber, self.app.config.get('ConnectionDetails', 'server'),
                                          os.getcwd() + os.path.sep + "tmp")
             self.app.lq_audio = self.app.phone.recording_start
             print "passing lq_audio to gui: " + self.app.lq_audio
@@ -412,13 +420,22 @@ class FileTransferScreen(Screen):
     app = ObjectProperty(None)
 
     def on_enter(self):
-        files = self.app.root.screens[3].requested_files
-        for file in files:
-            progress = ProgressBar(max=100)
-            self.app.chat_client.send_sync(constants.SYNC_SENDFILE, file)
-            label = Label(text=file, size_hint=(1 / len(files), None))
-            self.ids.filelayout.add_widget(label)
-            self.ids.filelayout.add_widget(progress)
+        if self.app.config.get('ChatSettings', 'role') == "PRODUCER":
+            files = self.app.root.screens[3].requested_files
+            for file in files:
+                progress = ProgressBar(max=100)
+                self.app.chat_client.send_sync(constants.SYNC_SENDFILE, file)
+                label = Label(text=file, size_hint=(1 / len(files), None))
+                self.ids.filelayout.add_widget(label)
+                self.ids.filelayout.add_widget(progress)
+        else:
+            files = self.app.root.screens[3].requested_files
+            for file in files:
+                progress = ProgressBar(max=100)
+                self.app.chat_client.send_file(file)
+                label = Label(text=file, size_hint=(1 / len(files), None))
+                self.ids.filelayout.add_widget(label)
+                self.ids.filelayout.add_widget(progress)
 
 class ImageButton(ButtonBehavior, Image):
     pass

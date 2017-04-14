@@ -17,7 +17,7 @@ ScreenManager:
             font_size: '35sp'
             multiline: False
             hint_text: 'MyServer'
-            pos: (350, 400)
+            pos: (350, 475)
         TextInput:
             id: username
             size_hint: (.5, .15)
@@ -25,7 +25,7 @@ ScreenManager:
             font_size: '35sp'
             multiline: False
             hint_text: 'SvenTheMonkeyDr520'
-            pos: (350, 300)
+            pos: (350, 375)
         TextInput:
             id: password
             size_hint: (.5, .15)
@@ -34,7 +34,16 @@ ScreenManager:
             multiline: False
             password: True
             hint_text: '********'
-            pos: (350, 200)
+            pos: (350, 275)
+        TextInput:
+            id: callnumber
+            size_hint: (.5, .15)
+            text_size: root.width, None
+            font_size: '35sp'
+            multiline: False
+            password: True
+            hint_text: '1001'
+            pos: (350, 175)
         ImageButton:
             id: producerjoinsess
             source: '../img/right_arrow.png'
@@ -44,7 +53,7 @@ ScreenManager:
             text_size: root.width, None
             font_size: '25sp'
             pos: (200, 60)
-            on_release: self.parent.get_text(servername.text, username.text, password.text)
+            on_release: self.parent.get_text(servername.text, username.text, password.text, callnumber.text)
         ImageButton:
             id: main_menu
             source: '../img/left_arrow.png'
@@ -54,7 +63,7 @@ ScreenManager:
             size_hint: (.20, .10)
             text_size: root.width, None
             font_size: '25sp'
-            pos: (0, 510)
+            pos: (-25, 510)
             on_release: app.root.current = 'main'
     ArtistJoiningScreen:
         manager: screen_manager
@@ -180,21 +189,28 @@ ScreenManager:
         text_size: root.width, None
         size: self.texture_size
         font_size: '35sp'
-        pos: (90, 150)
+        pos: (90, 225)
         bold: True
     Label:
         text: 'User Name:'
         text_size: root.width, None
         size: self.texture_size
         font_size: '35sp'
-        pos: (153, 50)
+        pos: (153, 125)
         bold: True
     Label:
         text: 'Password:'
         text_size: root.width, None
         size: self.texture_size
         font_size: '35sp'
-        pos: (170, -50)
+        pos: (170, 25)
+        bold: True
+    Label:
+        text: 'Call Number:'
+        text_size: root.width, None
+        size: self.texture_size
+        font_size: '35sp'
+        pos: (130, -80)
         bold: True
 <ArtistJoiningScreen>
     name: "artistsessionjoining"
@@ -226,7 +242,7 @@ ScreenManager:
                 ActionImageButton:
                     source: '../img/sign_out_option.png'
                     text: 'Leave Session'
-                    on_release: root.leave_session()
+                    on_release: app.root.current = 'filetransfer'
     ProgressBar:
         id: progress_bar
         size_hint: (0.6, 0.25)
