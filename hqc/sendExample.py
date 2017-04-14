@@ -7,7 +7,7 @@ config = Config('conn.conf')
 
 if __name__ == '__main__':
     try:
-        class App():
+        class App:
             def update_chat(self, username, message):
                 print username
                 print message

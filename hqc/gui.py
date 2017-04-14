@@ -111,7 +111,6 @@ class SessionScreen(Screen):
     audio_files = []
 
     def on_enter(self):
-        # global audioClipLayout
 
         # when we add children to the grid layout, its size doesn't change at
         # all. we need to ensure that the height will be the minimum required
@@ -137,23 +136,18 @@ class SessionScreen(Screen):
         # Generate the index number of the clip for referencing in filenames
         SessionScreen.clip_no += 1
 
-        global audioClipLayout
-
         # add play button and filename index # for later playback
         btn = ToggleButton(background_normal= '../img/play.png',
                    size_hint=(.18, 1), group = 'play', allow_stretch=False)
         btn.apply_property(clip_no=NumericProperty(SessionScreen.clip_no))
         btn.bind(on_press=self.play_clip)
-        # audioClipLayout.add_widget(btn)
 
         # add filename label
         label = Label(text=os.path.basename(self.audio_files[-1])[0:9], halign='left', size_hint=(.5, 0.2))
-        # audioClipLayout.add_widget(label)
 
         # add request button
         btn2 = Button(text="Request", size=(100, 50),
                       size_hint=(0.32, None))
-        # audioClipLayout.add_widget(btn2)
 
         self.ids.audioSidebar.add_widget(btn)
         self.ids.audioSidebar.add_widget(label)
@@ -348,7 +342,8 @@ class ArtistJoiningScreen(Screen):
             self.app.phone.add_proxy_config()
             self.app.phone.add_auth_info()
             # TODO: Update make_call, it now takes a mandatory file name
-            self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
+            self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'),
+                                         os.getcwd() + os.path.sep + "tmp")
             self.app.lq_audio = self.app.phone.recording_start
             print "passing lq_audio to gui: " + self.app.lq_audio
 

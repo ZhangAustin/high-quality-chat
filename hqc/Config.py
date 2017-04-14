@@ -9,6 +9,7 @@ logging.config.fileConfig('../logging.conf')
 debug_logger = logging.getLogger('debugLog')
 
 
+# TODO: fix lossy encoding in "ConnectionDetails"
 #  Inherits methods such as get() from SafeConfigParser
 class Config(ConfigParser.SafeConfigParser):
     """Handles creation and updating of configuration settings."""
