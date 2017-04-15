@@ -1,4 +1,6 @@
+from ws4py.client.threadedclient import WebSocketClient
 import base64
+import constants
 import json
 import ntpath
 import socket
@@ -6,9 +8,6 @@ import threading
 import time
 import os
 
-from ws4py.client.threadedclient import WebSocketClient
-
-import constants
 
 class ClientThread(threading.Thread):
 
@@ -51,6 +50,7 @@ class HQCWSClient(WebSocketClient):
         except socket.error as error:
             print "Could not connect to the server:", error
         self.client_thread = ClientThread(self)
+        self.client_thread.daemon = True
         self.client_thread.start()
 
     def opened(self):
