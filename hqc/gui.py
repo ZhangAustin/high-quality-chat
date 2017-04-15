@@ -312,7 +312,7 @@ class ProducerJoiningScreen(Screen):
             self.app.config.update_setting('ConnectionDetails', 'call_no', callnumber)
 
         else:
-            servername, username, password, callnumber = self.app.config.get_connection_details()
+            username, password, servername, callnumber = self.app.config.get_connection_details()
 
         # TODO: All of this code needs to be moved to another screen
         # The generation of connection strings should occur in a completely different screen
@@ -345,7 +345,7 @@ class ProducerJoiningScreen(Screen):
 
         self.parent.current = 'session'
 
-        file_name = self.app.config.get_file_name(self.app.session, datetime.now().strftime(constants.DATETIME_LQ))
+        file_name = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
         self.app.phone.make_call(callnumber, servername, file_name)
         self.app.lq_audio = self.app.phone.recording_start
         print "passing lq_audio to gui: " + self.app.lq_audio
@@ -361,7 +361,7 @@ class ArtistJoiningScreen(Screen):
     #       Currently a blank field means use existing values, even if none exists
     def get_text(self, conn_string):
         if conn_string is not None and len(conn_string) != 0:  # Use the provided connection string
-            server, username, password, callnumber = self.app.config.parse_conn_string()
+            username, password, server, callnumber = self.app.config.parse_conn_string()
 
             if not server and not username and not password and not callnumber:
                 self.app.config.update_setting('ConnectionDetails', 'server', server)
