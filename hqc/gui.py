@@ -161,7 +161,7 @@ class SessionScreen(Screen):
     def play_clip(self, obj):
 
         # Get filename of the high quality clip associated with this play button
-        # TODO: explain what obj.np is/does
+        # get clip number assigned to this button(obj)
         filename = self.audio_files[obj.clip_no]
 
         # Get filename of the session low quality audio stream
@@ -169,16 +169,17 @@ class SessionScreen(Screen):
 
         # get the # seconds after playback that HQ clip starts in the LQ stream:
         # HQ start time in s - LQ start time in s (= int)
-        start_time_seconds = int(lq_audio[3:5]) * 3600 + int(lq_audio[6:8]) * 60 + int (lq_audio[9:11])
-        filename_seconds = int(filename[3:5]) * 3600 + int(filename[6:8]) * 60 + int (filename[9:11])
-
-        # gets the offset in seconds of the HQ file start time from the LQ stream
+        start_time_seconds = int(lq_audio[3:5]) * 3600 + int(lq_audio[5:7]) * 60 + int (lq_audio[7:9])
+        filename_seconds = int(filename[-10:-8]) * 3600 + int(filename[-8:-6]) * 60 + int (filename[-6:-4])
         hq_start_time = filename_seconds - start_time_seconds
-        print filename + " session offset: " + str(hq_start_time) + " seconds"
-        # gets the file associated with this button's label friend
+        # gets the offset in seconds of the HQ file start time from the LQ stream
 
         # audio.get_length(filename)
-        # audio.playback(lq_audio, hq_start_time, None, 2)
+
+        print lq_audio
+        #print filename
+        self.app.phone.stop_start_recording(datetime.now().strftime('LQ_%H%M%S.wav'), False)
+        #audio.playback(lq_audio, hq_start_time, None, 2)
 
     def record_button(self):
 
@@ -197,11 +198,12 @@ class SessionScreen(Screen):
                                     datetime.now().strftime('HQ_%H%M%S.mp3'))
             self.app.recorder = audio.Recorder(filename)  # creates audio file
             self.audio_files.append(filename)  # adds filename to global list
-            self.app.recorder.start()  # Starts recording
+            self.app.recorder.start()  # Starts HQ recording
             print "Recording..."
         else:
             progress = False
             self.ids.record_button.source = SessionScreen.record_red
+            self.app.phone.stop_start_recording(datetime.now().strftime('LQ_%H%M%S.wav'), False)
             self.app.recorder.stop()
             self.add_clip()  # adds to gui sidebar
             print "Done recording"
@@ -311,7 +313,7 @@ class ProducerJoiningScreen(Screen):
 
         self.app.phone.add_proxy_config()
         self.app.phone.add_auth_info()
-        self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
+        self.app.phone.make_call(1000, self.app.config.get('ConnectionDetails', 'server'))
         self.app.lq_audio = self.app.phone.recording_start
         print "passing lq_audio to gui: " + self.app.lq_audio
 
@@ -343,7 +345,7 @@ class ArtistJoiningScreen(Screen):
 
             self.app.phone.add_proxy_config()
             self.app.phone.add_auth_info()
-            self.app.phone.make_call(1001, self.app.config.get('ConnectionDetails', 'server'))
+            self.app.phone.make_call(1000, self.app.config.get('ConnectionDetails', 'server'))
             self.app.lq_audio = self.app.phone.recording_start
             print "passing lq_audio to gui: " + self.app.lq_audio
 

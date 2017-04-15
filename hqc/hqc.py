@@ -14,7 +14,6 @@ logging.config.fileConfig('../logging.conf')
 linphone_logger = logging.getLogger('linphone')
 debug_logger = logging.getLogger('debug')
 
-
 class Singleton(type):
     _instance = None
 
