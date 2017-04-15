@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+from threading import Thread
 
 import linphone
 
@@ -22,6 +23,8 @@ class HQCPhone(object):
     core = ''
     mic_gain = 0
     call = ''
+    current_call = None  # Thread for the call
+    update = False
 
     # For testing purposes, these are relative paths
     # For implementation, these are absolute paths as defined in the config
@@ -73,6 +76,11 @@ class HQCPhone(object):
         self.core.playback_device = self.config.get('AudioSettings', 'speakers')
 
     def make_call(self, number, server, lq_file):
+        """Pop a thread open that targets _make_call"""
+        self.current_call = Thread(target=self._make_call, args=(number, server, lq_file))
+        self.current_call.start()
+
+    def _make_call(self, number, server, lq_file):
         """
         Make a SIP call to a number on a server
         :param number: number to call (should be a conference number)
@@ -96,6 +104,10 @@ class HQCPhone(object):
 
         print "Recording into {}".format(lq_file)
         self.call.start_recording()
+
+        while not self.update:
+            self.hold_open()
+
 
     def stop_start_recording(self, lq_file, final=False):
         """
