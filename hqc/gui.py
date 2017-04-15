@@ -1,5 +1,4 @@
 import base64
-import logging
 import os
 import threading
 import time
@@ -40,11 +39,6 @@ recorder = None
 progress = False
 kivy.require('1.0.7')
 
-#  Load logging configuration from file
-logging.config.fileConfig('../logging.conf')
-#  Reference logger
-gui_logger = logging.getLogger('gui')
-
 
 class HQC(App):
     manager = ObjectProperty(None)
@@ -67,7 +61,6 @@ class HQC(App):
     def build(self):
         # Kivy is stubborn and overrides self.config with a built-in ConfigParser
         self.config = Config("conn.conf")
-        gui_logger.debug("Building HQC application")
         # Give the web socket a reference to the app
         gui = Builder.load_file("HQC.kv")
         self.root = gui
@@ -80,6 +73,12 @@ class HQC(App):
 
     def update_role(self, role):
         self.config.update_setting("ChatSettings", "role", role)
+
+    def update_requested_files(self, username, message):
+        self.root.screens[3].update_requested_files(username, message)
+
+    def update_send_files(self, username, message):
+        self.root.screens[3].update_send_files(username, message)
 
 
 class MainScreen(Screen):
@@ -109,9 +108,9 @@ class SessionScreen(Screen):
 
     # List of audio file names
     audio_files = []
+    requested_files = []
 
     def on_enter(self):
-        # global audioClipLayout
 
         # when we add children to the grid layout, its size doesn't change at
         # all. we need to ensure that the height will be the minimum required
@@ -137,32 +136,58 @@ class SessionScreen(Screen):
         # Generate the index number of the clip for referencing in filenames
         SessionScreen.clip_no += 1
 
-        global audioClipLayout
-
         # add play button and filename index # for later playback
         btn = ToggleButton(background_normal= '../img/play.png',
                    size_hint=(.18, 1), group = 'play', allow_stretch=False)
         btn.apply_property(clip_no=NumericProperty(SessionScreen.clip_no))
         btn.bind(on_press=self.play_clip)
-        # audioClipLayout.add_widget(btn)
 
         # add filename label
         label = Label(text=os.path.basename(self.audio_files[-1])[0:9], halign='left', size_hint=(.5, 0.2))
-        # audioClipLayout.add_widget(label)
 
         # add request button
+        filename = self.audio_files[-1]
+        print self.audio_files[-1]
         btn2 = Button(text="Request", size=(100, 50),
                       size_hint=(0.32, None))
-        # audioClipLayout.add_widget(btn2)
 
         self.ids.audioSidebar.add_widget(btn)
         self.ids.audioSidebar.add_widget(label)
         self.ids.audioSidebar.add_widget(btn2)
 
+    def add_file(self, file):
+        if file not in self.requested_files:
+            if self.app.chat_client:
+                print "Adding file" + file
+                self.app.chat_client.send_sync(constants.SYNC_REQUESTFILE, file)
+            else:
+                print "Chat client not connected"
+        print self.requested_files
+
+    def update_requested_files(self, username, message):
+        """
+        Called upon when the user requests a file
+        :param username: name of user requesting file
+        :param message: string of file requested
+        :return: None
+        """
+        print message
+        self.requested_files += [message]
+
+    def update_send_files(self, username, message):
+        """
+        Called upon when the user requests a file
+        :param username: name of user requesting file
+        :param message: string of files requested
+        :return: None
+        """
+        if message in self.audio_files:
+            self.app.chat_client.send_file(message)
+
     def play_clip(self, obj):
 
         # Get filename of the high quality clip associated with this play button
-        # get clip number assigned to this button(obj)
+        # TODO: explain what obj.np is/does
         filename = self.audio_files[obj.clip_no]
 
         # Get filename of the session low quality audio stream
@@ -170,17 +195,16 @@ class SessionScreen(Screen):
 
         # get the # seconds after playback that HQ clip starts in the LQ stream:
         # HQ start time in s - LQ start time in s (= int)
-        start_time_seconds = int(lq_audio[3:5]) * 3600 + int(lq_audio[5:7]) * 60 + int (lq_audio[7:9])
-        filename_seconds = int(filename[-10:-8]) * 3600 + int(filename[-8:-6]) * 60 + int (filename[-6:-4])
-        hq_start_time = filename_seconds - start_time_seconds
+        start_time_seconds = int(lq_audio[3:5]) * 3600 + int(lq_audio[6:8]) * 60 + int (lq_audio[9:11])
+        filename_seconds = int(filename[3:5]) * 3600 + int(filename[6:8]) * 60 + int (filename[9:11])
+
         # gets the offset in seconds of the HQ file start time from the LQ stream
+        hq_start_time = filename_seconds - start_time_seconds
+        print filename + " session offset: " + str(hq_start_time) + " seconds"
+        # gets the file associated with this button's label friend
 
         # audio.get_length(filename)
-
-        print lq_audio
-        #print filename
-        self.app.phone.stop_start_recording(datetime.now().strftime('LQ_%H%M%S.wav'), False)
-        #audio.playback(lq_audio, hq_start_time, None, 2)
+        # audio.playback(lq_audio, hq_start_time, None, 2)
 
     def record_button(self):
 
@@ -199,12 +223,11 @@ class SessionScreen(Screen):
                                     datetime.now().strftime('HQ_%H%M%S.mp3'))
             self.app.recorder = audio.Recorder(filename)  # creates audio file
             self.audio_files.append(filename)  # adds filename to global list
-            self.app.recorder.start()  # Starts HQ recording
+            self.app.recorder.start()  # Starts recording
             print "Recording..."
         else:
             progress = False
             self.ids.record_button.source = SessionScreen.record_red
-            self.app.phone.stop_start_recording(datetime.now().strftime('LQ_%H%M%S.wav'), False)
             self.app.recorder.stop()
             self.add_clip()  # adds to gui sidebar
             print "Done recording"
@@ -277,7 +300,7 @@ class ProducerJoiningScreen(Screen):
 
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
-    def get_text(self, servername, username, password):
+    def get_text(self, servername, username, password, callnumber):
 
         if servername != '':
             self.app.config.update_setting('ConnectionDetails', 'server', servername)
@@ -291,7 +314,11 @@ class ProducerJoiningScreen(Screen):
             self.app.config.update_setting('ConnectionDetails', 'password', password)
         else:
             password = self.app.config.get('ConnectionDetails', 'password')
-        conn_string = username + ';' + password + ";" + servername
+        if callnumber != '':
+            self.app.config.update_setting('ConnectionDetails', 'call_no', callnumber)
+        else:
+            callnumber = self.app.config.get('ConnectionDetails', 'call_no')
+        conn_string = username + ';' + password + ";" + servername + ";" + callnumber
         encoded = base64.b64encode(conn_string)
         self.app.config.update_setting('ConnectionDetails', 'conn_string', encoded)
         self.parent.current = 'session'
@@ -314,9 +341,9 @@ class ProducerJoiningScreen(Screen):
 
         self.app.phone.add_proxy_config()
         self.app.phone.add_auth_info()
-        lq_file = datetime.now().strftime('LQ_%H%M%S.wav')
-        lq_file = os.path.join(self.app.config.get('AudioSettings', 'recording_location'), lq_file)
-        self.app.phone.make_call(1000, self.app.config.get('ConnectionDetails', 'server'), lq_file)
+        file_name = os.path.join(self.app.config.get('AudioSettings', 'recording_location'),
+                                 datetime.now().strftime('LQ_%H%M%S.wav'))
+        self.app.phone.make_call(callnumber, self.app.config.get('ConnectionDetails', 'server'), file_name)
         self.app.lq_audio = self.app.phone.recording_start
         print "passing lq_audio to gui: " + self.app.lq_audio
 
@@ -331,26 +358,31 @@ class ArtistJoiningScreen(Screen):
     #       Currently a blank field means use existing values, even if none exists
     def get_text(self, conn_string):
         if conn_string is not None:
+            # TODO: Why is this done manually? There are functions for this
             decoded = base64.b64decode(conn_string)
             mark1 = decoded.find(';')
             mark2 = decoded.rfind(';')
+            mark3 = decoded.rfind(';')
             username = decoded[:mark1]
             password = decoded[mark1 + 1:mark2]
-            server = decoded[mark2 + 1:]
+            server = decoded[mark2 + 1:mark3]
+            callnumber = decoded[mark3 + 1:]
+
             if server != '':
                 self.app.config.update_setting('ConnectionDetails', 'server', server)
             if username != '':
                 self.app.config.update_setting('ConnectionDetails', 'user', username)
             if password != '':
                 self.app.config.update_setting('ConnectionDetails', 'password', password)
-
+            if callnumber != '':
+                self.app.config.update_setting('ConnectionDetails', 'call_no', callnumber)
             self.parent.current = 'session'
 
             self.app.phone.add_proxy_config()
             self.app.phone.add_auth_info()
-            lq_file = datetime.now().strftime('LQ_%H%M%S.wav')
-            lq_file = os.path.join(self.app.config.get('AudioSettings', 'recording_location'), lq_file)
-            self.app.phone.make_call(1000, self.app.config.get('ConnectionDetails', 'server'), lq_file)
+            # TODO: Update make_call, it now takes a mandatory file name
+            self.app.phone.make_call(callnumber, self.app.config.get('ConnectionDetails', 'server'),
+                                         os.getcwd() + os.path.sep + "tmp")
             self.app.lq_audio = self.app.phone.recording_start
             print "passing lq_audio to gui: " + self.app.lq_audio
 
@@ -375,16 +407,22 @@ class FileTransferScreen(Screen):
     app = ObjectProperty(None)
 
     def on_enter(self):
-        files = [["File 1", 60], ["File 2", 40], ["File 3", 80], ["File 4", 20]]
-        for file in files:
-            print(file[0])
-            progress = ProgressBar(max=100)
-            progress.value = file[1]
-            filename = file[0]
-            label = Label(text=filename, size_hint=(1/len(files), None))
-            self.ids.filelayout.add_widget(label)
-            self.ids.filelayout.add_widget(progress)
+        if self.app.config.get('ChatSettings', 'role') == "PRODUCER":
+            files = self.app.root.screens[3].requested_files
+            for file in files:
+                label = Label(text=file, size_hint=(1 / len(files), None))
+                self.ids.filelayout.add_widget(label)
+        elif self.app.config.get('ChatSettings', 'role') == "ARTIST":
+            files = self.app.root.screens[3].requested_files
+            for file in files:
+                self.app.chat_client.send_file(file)
+                label = Label(text=file, size_hint=(1 / len(files), None))
+                self.ids.filelayout.add_widget(label)
 
+    def leave_session(self):
+        self.app.chat_client.finish()
+        self.app.phone.hangup()
+        App.get_running_app().stop()
 
 class ImageButton(ButtonBehavior, Image):
     pass

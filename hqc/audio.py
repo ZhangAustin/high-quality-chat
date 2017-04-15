@@ -20,6 +20,13 @@ class Recorder:
     _exit = False
 
     def __init__(self, filename, width=2, channels=2, rate=48000):
+        """
+        Creates the high quality recorder
+        :param filename: Filename to record into
+        :param width: Width of the audio recording
+        :param channels: Number of channels to record
+        :param rate: Bitrate to record at
+        """
         self._p = pyaudio.PyAudio()
         self._stream = self._p.open(format=self._p.get_format_from_width(width),
                                     channels=channels,
@@ -37,11 +44,19 @@ class Recorder:
         self._audio_writer.start()
 
     def start(self):
+        """
+        Start the recording process, which will include the disk writer
+        :return: 
+        """
         self._recording = True
         self._audio_recorder = Thread(target=self._async_record)
         self._audio_recorder.start()
 
     def stop(self):
+        """
+        Stop the recording process, which will flush buffers and spin down started threads
+        :return: 
+        """
         self._recording = False
         self._frames.join()
         self._exit = True
@@ -142,7 +157,3 @@ if __name__ == '__main__':
     time.sleep(5)
     print "Stopping recording async2.wav"
     recorder2.stop()
-
-    # record_audio("test.mp3", 5)
-    # segment_list = split_audio_file("test.mp3", 2.5)
-    # save_audio_chunks(segment_list, "hello", ".mp3", (os.getcwd() + "/"))
