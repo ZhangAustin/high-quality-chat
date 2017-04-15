@@ -56,6 +56,8 @@ class HQC(App):
         self.recording = False
         # TODO: Description
         self.lq_audio = None
+        self.session_name = None
+
 
     # Build should only handle setting up GUI-specific items
     def build(self):
@@ -353,34 +355,49 @@ class ArtistJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
     def get_text(self, conn_string):
-        if conn_string is not None:
+        if conn_string is not None and len(conn_string) != 0:  # Use the provided connection string
             server, username, password, callnumber = self.app.config.parse_conn_string()
-            decoded = base64.b64decode(conn_string)
 
-            if server != '':
+            if not server and not username and not password and not callnumber:
                 self.app.config.update_setting('ConnectionDetails', 'server', server)
-            if username != '':
                 self.app.config.update_setting('ConnectionDetails', 'user', username)
-            if password != '':
                 self.app.config.update_setting('ConnectionDetails', 'password', password)
-            if callnumber != '':
                 self.app.config.update_setting('ConnectionDetails', 'call_no', callnumber)
-            self.parent.current = 'session'
 
-            self.app.phone.add_proxy_config()
-            self.app.phone.add_auth_info()
-            # TODO: Update make_call, it now takes a mandatory file name
-            filename = self.app.config.get_file_name(datetime.now().strftime('LQ_%H%M%S.mp3'))
-            self.app.phone.make_call(callnumber, self.app.config.get('ConnectionDetails', 'server'), filename)
-            self.app.lq_audio = self.app.phone.recording_start
-            print "passing lq_audio to gui: " + self.app.lq_audio
+            else:
+                print "Bad connection string"
+                error_message = 'Sorry, that string is not valid'
+                popup = Popup(title='Connection String Error',
+                              content=Label(text=error_message),
+                              size_hint=(None, None), size=(400, 400))
+                popup.open()
 
-        else:
-            error_message = 'Sorry, that string is not valid'
-            popup = Popup(title='Connection String Error',
-                          content=Label(text=error_message),
-                          size_hint=(None, None), size=(400, 400))
-            popup.open()
+        else:  # Use the saved config values
+            server, username, password, callnumber = self.app.config.get_connection_details()
+
+            def is_valid(value):
+                if value != '' and value != 'None' and value is not None:
+                    return True
+                return False
+
+            if not is_valid(server) or not is_valid(username) or not is_valid(password) or not is_valid(callnumber):
+                # If the stored values aren't valid, nogood
+                print "No connection string and bad config values"
+                error_message = 'Sorry, the configuration is not valid'
+                popup = Popup(title='Connection String Error',
+                              content=Label(text=error_message),
+                              size_hint=(None, None), size=(400, 400))
+                popup.open()
+
+        # TODO: Put all recordings into session name.
+        self.app.session_name = datetime.now().strftime(constants.DATETIME_SESSION)
+
+        self.parent.current = 'session'
+
+        filename = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
+        self.app.phone.make_call(callnumber, self.app.config.get('ConnectionDetails', 'server'), filename)
+        self.app.lq_audio = self.app.phone.recording_start
+        print "passing lq_audio to gui: " + self.app.lq_audio
 
 
 class SettingsScreen(Screen):

@@ -33,3 +33,8 @@ LISTENER = "LISTENER"
 IP = '127.0.0.1'
 PORT = 9000
 USERNAME = 'user'
+
+# String formattings
+DATETIME_SESSION = 'SESSION_%Y%m%d_%H%M%S'
+DATETIME_LQ = 'LQ_%H%M%S.wav'
+DATETIME_HQ = 'HQ_%H%M%S.wav'

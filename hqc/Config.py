@@ -75,12 +75,13 @@ class Config(ConfigParser.SafeConfigParser):
         if option == 'recording_location':
             self.create_recording_location()
 
-    def get_file_name(self, file_name):
+    def get_file_name(self, session_name, file_name):
         path = self.get('AudioSettings', 'recording_location')
         if path != "None":
-            return os.path.join(path, file_name)  # If it is set up, record here
+            return os.path.join(path, session_name, file_name)  # If it is set up, record here
         else:
-            return os.path.join(os.getcwd(), 'tmp_recordings', file_name)  # If it is not set up, record to cwd/tmp
+            return os.path.join(os.getcwd(), 'tmp_recordings', session_name,
+                                file_name)  # If it is not set up, record to cwd/tmp
 
     def parse_conn_string(self, conn_string):
         """
@@ -108,3 +109,24 @@ class Config(ConfigParser.SafeConfigParser):
         """
         conn_string = username + ';' + password + ";" + server + ';' + call_no
         return base64.b64encode(conn_string)
+
+    # TODO: Update these classes so they return objects instead of tuples, keep things organized
+    def get_connection_details(self):
+        user = self.get('ConnectionDetails', 'user')
+        password = self.get('ConnectionDetails', 'password')
+        server = self.get('ConnectionDetails', 'server')
+        call_no = self.get('ConnectionDetails', 'call_no')
+        return user, password, server, call_no
+
+    def get_audio_settings(self):
+        mic = self.get('AudioSettings', 'mic')
+        speakers = self.get('AudioSettings', 'speakers')
+        recording_location = self.get('AudioSettings', 'recording_location')
+        return mic, speakers, recording_location
+
+    def get_chat_settings(self):
+        ip_address = self.get('ChatSettings', 'ip_address')
+        port = self.get('ChatSettings', 'port')
+        username = self.get('ChatSettings', 'username')
+        role = self.get('ChatSettings', 'role')
+        return ip_address, port, username, role
