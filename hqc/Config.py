@@ -1,4 +1,5 @@
 import ConfigParser
+import base64
 import os
 
 
@@ -80,3 +81,30 @@ class Config(ConfigParser.SafeConfigParser):
             return os.path.join(path, file_name)  # If it is set up, record here
         else:
             return os.path.join(os.getcwd(), 'tmp_recordings', file_name)  # If it is not set up, record to cwd/tmp
+
+    def parse_conn_string(self, conn_string):
+        """
+        Decode the connection string and return its elements
+        :param conn_string: Base64 encoded connection string
+        :return: List containing decoded username, password, and server
+        """
+        decoded = base64.b64decode(conn_string)
+        mark1 = decoded.find(';')
+        mark3 = decoded.rfind(';')
+        mark2 = decoded.find(';', mark1 + 1, mark3 - 1)
+        username = decoded[:mark1]
+        password = decoded[mark1 + 1:mark2]
+        server = decoded[mark2 + 1:mark3]
+        call_no = decoded[mark3 + 1:]
+        return [username, password, server, call_no]
+
+    def make_conn_string(self, username, password, server, call_no):
+        """
+        Given a username, password, and server address, base64 encode them together
+        :param username: username (or phone number) to register to the SIP server
+        :param password: password associated with the username
+        :param server: IP or hostname of the SIP server
+        :return: a base 64 encoded string containing all parameters
+        """
+        conn_string = username + ';' + password + ";" + server + ';' + call_no
+        return base64.b64encode(conn_string)

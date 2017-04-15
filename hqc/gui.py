@@ -354,15 +354,8 @@ class ArtistJoiningScreen(Screen):
     #       Currently a blank field means use existing values, even if none exists
     def get_text(self, conn_string):
         if conn_string is not None:
-            # TODO: Why is this done manually? There are functions for this
+            server, username, password, callnumber = self.app.config.parse_conn_string()
             decoded = base64.b64decode(conn_string)
-            mark1 = decoded.find(';')
-            mark2 = decoded.rfind(';')
-            mark3 = decoded.rfind(';')
-            username = decoded[:mark1]
-            password = decoded[mark1 + 1:mark2]
-            server = decoded[mark2 + 1:mark3]
-            callnumber = decoded[mark3 + 1:]
 
             if server != '':
                 self.app.config.update_setting('ConnectionDetails', 'server', server)
