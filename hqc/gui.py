@@ -219,7 +219,7 @@ class SessionScreen(Screen):
             mythread = threading.Thread(target=self.record_progress)
             mythread.start()
 
-            filename = self.app.config.get_recording_location(datetime.now().strftime('HQ_%H%M%S.mp3'))
+            filename = self.app.config.get_file_name(datetime.now().strftime('HQ_%H%M%S.mp3'))
             self.app.recorder = audio.Recorder(filename)  # creates audio file
             self.audio_files.append(filename)  # adds filename to global list
             self.app.recorder.start()  # Starts recording
@@ -338,7 +338,7 @@ class ProducerJoiningScreen(Screen):
 
         self.app.phone.add_proxy_config()
         self.app.phone.add_auth_info()
-        file_name = self.app.config.get_recording_location(datetime.now().strftime('LQ_%H%M%S.wav'))
+        file_name = self.app.config.get_file_name(datetime.now().strftime('LQ_%H%M%S.wav'))
         self.app.phone.make_call(callnumber, self.app.config.get('ConnectionDetails', 'server'), file_name)
         self.app.lq_audio = self.app.phone.recording_start
         print "passing lq_audio to gui: " + self.app.lq_audio
@@ -377,7 +377,7 @@ class ArtistJoiningScreen(Screen):
             self.app.phone.add_proxy_config()
             self.app.phone.add_auth_info()
             # TODO: Update make_call, it now takes a mandatory file name
-            filename = self.app.config.get_recording_location(datetime.now().strftime('LQ_%H%M%S.mp3'))
+            filename = self.app.config.get_file_name(datetime.now().strftime('LQ_%H%M%S.mp3'))
             self.app.phone.make_call(callnumber, self.app.config.get('ConnectionDetails', 'server'), filename)
             self.app.lq_audio = self.app.phone.recording_start
             print "passing lq_audio to gui: " + self.app.lq_audio
