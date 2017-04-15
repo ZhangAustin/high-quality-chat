@@ -12,30 +12,37 @@ pip install gevent
 ### Server
 First start the server with desired port number i.e. 9000
 ```
-python server.py PORT_NUMBER
+python ChatServer.py PORT_NUMBER
 ```
-<!-- ### Chat Window
-Start the chat window
-```
-python ChatWindow.py
-``` -->
 
 ### Client
 ```
-import chat
+from chat.ChatClient import HQCWSClient
+from chat import constants
 
-IP = '127.0.0.1'
-PORT = '9000'
-username = 'User1' #get this from user
-def gui_func(username, message):
-    print "[%s]: %s" % (username, message)
+from Config import Config
+config = Config('conn.conf')
 
-ws = chat.client.HQCWSClient(username, chat.constants.PRODUCER, IP, PORT, gui_func)
+if __name__ == '__main__':
+    try:
+        client = HQCWSClient(config)
+        class App():
+            def update_chat(self, username, message):
+                print username
+                print message
+                self.client.finish()
+
+        sampleApp = App()
+        sampleApp.client = client
+
+        client.app = sampleApp
+    except:
+        client.finish()
 ```
-Here `guiF_func` is any function passed into HQCWSClient which will run whenever a new message is received from the server. The function should take in a `username` and `message` as a `String`
+Here `update_chat` is any function passed into HQCWSClient which will run whenever a new message is received from the server. The function should take in a `username` and `message` as a `String`
 
-`chat.constants.PRODUCER` is a user role that needs to be passed in when initializing a new client. The different roles are defined in `constants.py`
+<!-- `chat.constants.PRODUCER` is a user role that needs to be passed in when initializing a new client. The different roles are defined in `constants.py` -->
 
-Now with the `ws` object you can send chat messages and files:
-* `ws.chat(message)` will send a `String` message to all connected clients.
-* `ws.send_file(filepath)` takes in a `String` for a filepath and will send that file to the connected Producer.
+Now with the `client` object you can send chat messages and files:
+* `client.chat(message)` will send a `String` message to all connected clients.
+* `client.send_file(filepath)` takes in a `String` for a filepath and will send that file to the connected Producer.

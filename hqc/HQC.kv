@@ -34,9 +34,8 @@ ScreenManager:
             size_hint: (.5, .1)
             font_size: '24sp'
             multiline: False
-            password: True
-            hint_text: 'e.g. 1004'
-            pos: (330, 340)
+            hint_text: 'MyServer'
+            pos: (350, 475)
         TextInput:
             id: username
             size_hint: (.5, .1)
@@ -51,7 +50,16 @@ ScreenManager:
             multiline: False
             password: True
             hint_text: '********'
-            pos: (330, 200)
+            pos: (350, 275)
+        TextInput:
+            id: callnumber
+            size_hint: (.5, .15)
+            text_size: root.width, None
+            font_size: '35sp'
+            multiline: False
+            password: True
+            hint_text: '1001'
+            pos: (350, 175)
         ImageButton:
             id: producerjoinsess
             source: '../img/arrow_right.png'
@@ -61,7 +69,7 @@ ScreenManager:
             text_size: root.width, None
             font_size: '25sp'
             pos: (200, 60)
-            on_release: self.parent.get_text(servername.text, username.text, password.text)
+            on_release: self.parent.get_text(servername.text, username.text, password.text, callnumber.text)
         ImageButton:
             id: main_menu
             source: '../img/arrow_left.png'
@@ -71,7 +79,7 @@ ScreenManager:
             size_hint: (.20, .10)
             text_size: root.width, None
             font_size: '25sp'
-            pos: (0, 510)
+            pos: (-25, 510)
             on_release: app.root.current = 'main'
     ArtistJoiningScreen:
         manager: screen_manager
@@ -251,7 +259,7 @@ ScreenManager:
                 ActionImageButton:
                     source: '../img/sign_out_option.png'
                     text: 'Leave Session'
-                    on_release: app.root.current = "main"
+                    on_release: app.root.current = 'filetransfer'
     ProgressBar:
         id: progress_bar
         size_hint: (0.6, 0.25)
@@ -360,11 +368,11 @@ ScreenManager:
         padding: [0, 0, 0, 150]
     Button:
         id: leave_file
-        text: 'Return to Main Menu'
+        text: 'Exit Application'
         halign: 'center'
         valign: 'middle'
         size_hint: (.4, .10)
         text_size: root.width, None
         font_size: '25sp'
         pos: (250, 50)
-        on_release: app.root.current = 'main'
+        on_release: root.leave_session()

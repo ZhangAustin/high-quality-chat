@@ -1,17 +1,9 @@
+from Config import Config
 import base64
+import linphone
 import logging
 import os
 import time
-
-import linphone
-
-from Config import Config
-
-#  Load logging configuration from file
-logging.config.fileConfig('../logging.conf')
-#  Reference logger
-linphone_logger = logging.getLogger('linphone')
-debug_logger = logging.getLogger('debug')
 
 
 class Singleton(type):
@@ -47,12 +39,13 @@ class HQCPhone(object):
         :param config: A Config object to retrieve setting information from
         """
         self.config = config
+        logging.basicConfig(level=logging.INFO)
 
         def global_state_changed(*args, **kwargs):
-            debug_logger.warning("global_state_changed: %r %r" % (args, kwargs))
+            print "global_state_changed: %r %r" % (args, kwargs)
 
         def registration_state_changed(core, call, state, message):
-            debug_logger.warning("registration_state_changed: " + str(state) + ", " + message)
+            print "registration_state_changed: " + str(state) + ", " + message
         callbacks = {
             'global_state_changed': global_state_changed,
             'registration_state_changed': registration_state_changed,
@@ -69,7 +62,7 @@ class HQCPhone(object):
             :return: None
             """
             #  Choose the appropriate logging handle
-            debug_method = getattr(linphone_logger, 'info')
+            debug_method = getattr(logging, level)
             debug_method(msg)
 
         linphone.set_log_handler(log_handler)
@@ -93,14 +86,17 @@ class HQCPhone(object):
         params.video_enabled = False
 
         url = 'sip:' + str(number) + '@' + server
-
-        self.call = self.core.invite_with_params(url, params)
-
-        while self.call.media_in_progress():
-            self.hold_open()
-
-        # start_recording() is a linphone built-in function
-        self.call.start_recording()
+        try:
+            self.call = self.core.invite_with_params(url, params)
+        except err:
+            print err
+        if self.call is None:
+            print "Error: Cannot make a call"
+        else:
+            while self.call.media_in_progress():
+                self.hold_open()
+            # start_recording() is a linphone built-in function
+            self.call.start_recording()
 
     def stop_start_recording(self, lq_file, final=False):
         """
@@ -267,7 +263,6 @@ class HQCPhone(object):
         proxy_cfg.server_addr = "sip:" + self.config.get('ConnectionDetails', 'server')
         proxy_cfg.register_enabled = True
         self.core.add_proxy_config(proxy_cfg)
-        debug_logger.info("Added proxy config")
 
     def add_auth_info(self):
         """
@@ -284,7 +279,6 @@ class HQCPhone(object):
         # References to linphone_auth_destroy() in api to securely delete auth_info?
 
         self.core.add_auth_info(auth_info)
-        debug_logger.info("Added auth info")
 
     def hangup(self):
         """
@@ -337,13 +331,10 @@ if __name__ == '__main__':
 
 
     def dial_no(number):
-        debug_logger.info("Adding proxy config")
         phone.add_proxy_config()
 
-        debug_logger.info("Adding authentication info")
         phone.add_auth_info()
 
-        debug_logger.info("Dialing...")
         phone.make_call(number, config.get('ConnectionDetails', 'server'), 'test3')
 
 
@@ -370,12 +361,11 @@ if __name__ == '__main__':
 
 
     def make_core_objects():
-        config = Config('conn.conf')
 
-        debug_logger.info("Making LinPhone.Core")
+        config = Config('conn.conf')
         phone = HQCPhone(config)
         return phone, config
 
-
+    # TODO: comment
     phone, config = make_core_objects()
     test_lq_recording_toggle()

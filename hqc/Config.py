@@ -1,14 +1,8 @@
 import ConfigParser
-import logging.config
 import os
 
 
-#  Load logging configuration from file
-logging.config.fileConfig('../logging.conf')
-#  Reference logger
-debug_logger = logging.getLogger('debugLog')
-
-
+# TODO: fix lossy encoding in "ConnectionDetails"
 #  Inherits methods such as get() from SafeConfigParser
 class Config(ConfigParser.SafeConfigParser):
     """Handles creation and updating of configuration settings."""
@@ -20,7 +14,6 @@ class Config(ConfigParser.SafeConfigParser):
         ConfigParser.SafeConfigParser.__init__(self)
         self.file = file
         if not os.path.isfile(self.file):
-            logging.warning("Creating config")
             # Touch the file
             f = open(file, 'w')
             f.close()
@@ -36,7 +29,7 @@ class Config(ConfigParser.SafeConfigParser):
         Checks the config file and ensure all sections exist
         If not, add the sections and initialize to "None"
         """
-        connection = ['user', 'password', 'server', 'conn_string']
+        connection = ['user', 'password', 'server', 'call_no']
         audio_settings = ['mic', 'speakers', 'recording_location']
         chat_settings = ['ip_address', 'port', 'username', 'role']
         sections = {'ConnectionDetails': connection,
@@ -57,10 +50,8 @@ class Config(ConfigParser.SafeConfigParser):
         If not present, create the folder specified in recording_location
         :return: 
         """
-        try:
+        if not os.path.exists(self.get('AudioSettings', 'recording_location')):
             os.makedirs(self.get('AudioSettings', 'recording_location'))
-        except os.error as e:  # Folder already exists
-            print e
 
     def update_setting(self, section, option, value):
         """
