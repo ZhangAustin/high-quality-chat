@@ -55,7 +55,7 @@ class HQC(App):
         # Boolean of whether or not the user is recording
         self.recording = False
         # TODO: Description
-        self.lq_audio = "undefined in gui"
+        self.lq_audio = None
 
     # Build should only handle setting up GUI-specific items
     def build(self):
@@ -219,8 +219,7 @@ class SessionScreen(Screen):
             mythread = threading.Thread(target=self.record_progress)
             mythread.start()
 
-            filename = os.path.join(self.app.config.get('AudioSettings', 'recording_location'),
-                                    datetime.now().strftime('HQ_%H%M%S.mp3'))
+            filename = self.app.config.get_recording_location(datetime.now().strftime('HQ_%H%M%S.mp3'))
             self.app.recorder = audio.Recorder(filename)  # creates audio file
             self.audio_files.append(filename)  # adds filename to global list
             self.app.recorder.start()  # Starts recording
@@ -236,11 +235,9 @@ class SessionScreen(Screen):
         global progress
         while progress:
             time.sleep(0.05)
-            self.ids.progress_bar.value = (self.ids.progress_bar.value + 1) % 31#datetime.now().second % 6.0
-
+            self.ids.progress_bar.value = (self.ids.progress_bar.value + 1) % 31  # datetime.now().second % 6.0
 
     def toggle_mute(self):
-
         # Toggles the linphone mic
         self.app.phone.toggle_mic()
 
@@ -341,8 +338,7 @@ class ProducerJoiningScreen(Screen):
 
         self.app.phone.add_proxy_config()
         self.app.phone.add_auth_info()
-        file_name = os.path.join(self.app.config.get('AudioSettings', 'recording_location'),
-                                 datetime.now().strftime('LQ_%H%M%S.wav'))
+        file_name = self.app.config.get_recording_location(datetime.now().strftime('LQ_%H%M%S.wav'))
         self.app.phone.make_call(callnumber, self.app.config.get('ConnectionDetails', 'server'), file_name)
         self.app.lq_audio = self.app.phone.recording_start
         print "passing lq_audio to gui: " + self.app.lq_audio
@@ -381,8 +377,8 @@ class ArtistJoiningScreen(Screen):
             self.app.phone.add_proxy_config()
             self.app.phone.add_auth_info()
             # TODO: Update make_call, it now takes a mandatory file name
-            self.app.phone.make_call(callnumber, self.app.config.get('ConnectionDetails', 'server'),
-                                         os.getcwd() + os.path.sep + "tmp")
+            filename = self.app.config.get_recording_location(datetime.now().strftime('LQ_%H%M%S.mp3'))
+            self.app.phone.make_call(callnumber, self.app.config.get('ConnectionDetails', 'server'), filename)
             self.app.lq_audio = self.app.phone.recording_start
             print "passing lq_audio to gui: " + self.app.lq_audio
 

@@ -73,3 +73,10 @@ class Config(ConfigParser.SafeConfigParser):
 
         if option == 'recording_location':
             self.create_recording_location()
+
+    def get_file_name(self, file_name):
+        path = self.get('AudioSettings', 'recording_location')
+        if path != "None":
+            return os.path.join(path, file_name)  # If it is set up, record here
+        else:
+            return os.path.join(os.getcwd(), 'tmp_recordings', file_name)  # If it is not set up, record to cwd/tmp
