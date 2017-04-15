@@ -281,12 +281,6 @@ class SessionScreen(Screen):
         """
         self.parent.ids.chatText.focus = True
 
-    def leave_session(self):
-        if self.config.get("ChatSettings", "role") == constants.PRODUCER:
-            self.parent.current = 'filetransfer'
-        else:
-            self.parent.current = 'main'
-
     def on_leave(self, *args):
         """
         Makes sure the SessionScreen is left properly
@@ -416,19 +410,19 @@ class FileTransferScreen(Screen):
         if self.app.config.get('ChatSettings', 'role') == "PRODUCER":
             files = self.app.root.screens[3].requested_files
             for file in files:
-                progress = ProgressBar(max=100)
-                self.app.chat_client.send_sync(constants.SYNC_SENDFILE, file)
                 label = Label(text=file, size_hint=(1 / len(files), None))
                 self.ids.filelayout.add_widget(label)
-                self.ids.filelayout.add_widget(progress)
-        else:
+        elif self.app.config.get('ChatSettings', 'role') == "ARTIST":
             files = self.app.root.screens[3].requested_files
             for file in files:
-                progress = ProgressBar(max=100)
                 self.app.chat_client.send_file(file)
                 label = Label(text=file, size_hint=(1 / len(files), None))
                 self.ids.filelayout.add_widget(label)
-                self.ids.filelayout.add_widget(progress)
+
+    def leave_session(self):
+        self.app.chat_client.finish()
+        self.app.phone.hangup()
+        App.get_running_app().stop()
 
 class ImageButton(ButtonBehavior, Image):
     pass

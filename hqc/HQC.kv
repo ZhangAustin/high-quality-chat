@@ -367,11 +367,11 @@ ScreenManager:
         padding: [0, 0, 0, 150]
     Button:
         id: leave_file
-        text: 'Return to Main Menu'
+        text: 'Exit Application'
         halign: 'center'
         valign: 'middle'
         size_hint: (.4, .10)
         text_size: root.width, None
         font_size: '25sp'
         pos: (250, 50)
-        on_release: app.root.current = 'main'
+        on_release: root.leave_session()
