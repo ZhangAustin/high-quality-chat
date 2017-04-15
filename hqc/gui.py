@@ -35,6 +35,7 @@ filenames = []
 recorder = None
 progress = False
 kivy.require('1.0.7')
+from kivy.core.text import LabelBase
 
 
 class HQC(App):
@@ -56,6 +57,8 @@ class HQC(App):
         self.session_name = None
         self.storage_dir = None
 
+        # color for gui text
+        self.dark_blue = '2939b0'
 
     # Build should only handle setting up GUI-specific items
     def build(self):
@@ -436,6 +439,7 @@ class FileTransferScreen(Screen):
         self.app.chat_client.finish()
         self.app.phone.hangup()
         App.get_running_app().stop()
+
 
 class ImageButton(ButtonBehavior, Image):
     pass
