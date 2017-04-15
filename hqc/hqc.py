@@ -2,7 +2,6 @@ import base64
 import logging
 import os
 import time
-from datetime import datetime
 
 import linphone
 
@@ -43,6 +42,10 @@ class HQCPhone(object):
     recording_locations = []
 
     def __init__(self, config):
+        """
+        SIP client using liblinphone for underlying technologies
+        :param config: A Config object to retrieve setting information from
+        """
         self.config = config
 
         def global_state_changed(*args, **kwargs):
@@ -75,12 +78,12 @@ class HQCPhone(object):
         self.core.capture_device = self.config.get('AudioSettings', 'mic')
         self.core.playback_device = self.config.get('AudioSettings', 'speakers')
 
-    def make_call(self, number, server, lq_file=datetime.now().strftime('LQ_%H%M%S.wav')):
+    def make_call(self, number, server, lq_file):
         """
         Make a SIP call to a number on a server
         :param number: number to call (should be a conference number)
         :param server: server which hosts the call
-        :param lq_file: filename to store the LQ recordings
+        :param lq_file: filename to store the LQ recording
         :return:
         """
         params = self.core.create_call_params(None)
@@ -99,7 +102,7 @@ class HQCPhone(object):
         # start_recording() is a linphone built-in function
         self.call.start_recording()
 
-    def stop_start_recording(self, lq_file=datetime.now().strftime('LQ_%H%M%S.wav'), final=False):
+    def stop_start_recording(self, lq_file, final=False):
         """
         Stops, then starts the LQ recording process. Recordings need to be finalized before they can be accessed.
         :param lq_file: New file name to record into
@@ -284,7 +287,14 @@ class HQCPhone(object):
         debug_logger.info("Added auth info")
 
     def hangup(self):
-        self.stop_start_recording(final=True)
+        """
+        Gracefully disconnects the call
+        :return: 
+        """
+        # Gracefully end the LQ recording stream
+        self.stop_start_recording(None, final=True)
+
+        # Gracefully hang up
         self.core.terminate_all_calls()
 
 
@@ -320,9 +330,9 @@ if __name__ == '__main__':
         dial_no(1100)
 
         phone.hold_open(5)
-        phone.stop_start_recording()
+        phone.stop_start_recording('test1')
         phone.hold_open(5)
-        phone.stop_start_recording(final=True)
+        phone.stop_start_recording(None, final=True)
         phone.hold_open()
 
 
@@ -334,7 +344,7 @@ if __name__ == '__main__':
         phone.add_auth_info()
 
         debug_logger.info("Dialing...")
-        phone.make_call(number, config.get('ConnectionDetails', 'server'))
+        phone.make_call(number, config.get('ConnectionDetails', 'server'), 'test3')
 
 
     def test_codec_selection():

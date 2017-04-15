@@ -13,6 +13,10 @@ import constants
 
 class HQCWSClient(WebSocketClient):
     def __init__(self, config, *args, **kwargs):
+        """
+        Starts up a chat client and hooks it up to the GUI
+        :param config: A Config object to be parsed out for connection details
+        """
         self.config = config
         # Get connection details from config
         try:
@@ -52,6 +56,10 @@ class HQCWSClient(WebSocketClient):
         self.send(str(json.dumps(payload)), False)
 
     def finish(self):
+        """
+        Call to gracefully terminate the client from the web socket
+        :return: 
+        """
         self.close()
         print self.wst.is_alive
         if self.wst.is_alive:
@@ -88,6 +96,11 @@ class HQCWSClient(WebSocketClient):
         return tail or ntpath.basename(head)
 
     def handle_recv_file_message(self, parsed_json):
+        """
+        Writes the decoded contents of a file to disk
+        :param parsed_json: the original json message 
+        :return: 
+        """
         # Get the filename
         filename = parsed_json['filename']
 
@@ -98,11 +111,21 @@ class HQCWSClient(WebSocketClient):
         print "{} has been saved".format(filename)
 
     def handle_recv_chat_message(self, parsed_json):
+        """
+        Writes the received chat message to the GUI section
+        :param parsed_json: the original json message
+        :return: 
+        """
         username = parsed_json['username']
         message = parsed_json['message']
         self.update_app_chat(username, message)
 
     def handle_recv_sync_message(self, parsed_json):
+        """
+        Decides type and action for a variety of sync messages, as defined in constants.py
+        :param parsed_json: the original json message
+        :return: 
+        """
         status_code = parsed_json['type']
         username = parsed_json['username']
         if status_code == constants.SYNC_TESTSYNCMSG:
