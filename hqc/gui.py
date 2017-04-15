@@ -38,6 +38,7 @@ filenames = []
 recorder = None
 progress = False
 kivy.require('1.0.7')
+from kivy.core.text import LabelBase
 
 #  Load logging configuration from file
 logging.config.fileConfig('../logging.conf')
@@ -59,8 +60,11 @@ class HQC(App):
         self.recorder = None
         # Boolean of whether or not the user is recording
         self.recording = False
-        # TODO: Description
+        #color for gui text
+        self.dark_blue = '2939b0'
+        # name of current lq_audio file (fetched from audio class)
         self.lq_audio = "undefined in gui"
+        from kivy.core.text import LabelBase
 
     # Build should only handle setting up GUI-specific items
     def build(self):

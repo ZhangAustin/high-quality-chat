@@ -24,29 +24,34 @@ ScreenManager:
                 size: self.size
         TextInput:
             id: servername
-            size_hint: (.5, .15)
-            text_size: root.width, None
-            font_size: '35sp'
+            size_hint: (.5, .1)
+            font_size: '24sp'
             multiline: False
-            hint_text: 'MyServer'
-            pos: (350, 400)
+            hint_text: 'servername'
+            pos: (330, 410)
+        TextInput:
+            id: callnumber
+            size_hint: (.5, .1)
+            font_size: '24sp'
+            multiline: False
+            password: True
+            hint_text: 'e.g. 1004'
+            pos: (330, 340)
         TextInput:
             id: username
-            size_hint: (.5, .15)
-            text_size: root.width, None
-            font_size: '35sp'
+            size_hint: (.5, .1)
+            font_size: '24sp'
             multiline: False
-            hint_text: 'SvenTheMonkeyDr520'
-            pos: (350, 300)
+            hint_text: 'your_username'
+            pos: (330, 270)
         TextInput:
             id: password
-            size_hint: (.5, .15)
-            text_size: root.width, None
-            font_size: '35sp'
+            size_hint: (.5, .1)
+            font_size: '24sp'
             multiline: False
             password: True
             hint_text: '********'
-            pos: (350, 200)
+            pos: (330, 200)
         ImageButton:
             id: producerjoinsess
             source: '../img/arrow_right.png'
@@ -84,7 +89,7 @@ ScreenManager:
             font_size: '25sp'
             multiline: True
             hint_text: 'e.g. MTAwNDszYjIwODAyYzk1YmM0NjE3MTVlM2NmZ\nGQ4YzY2NGYyOzQ1LjE3LjE2MC43NA=='
-            pos: (80, 320)
+            pos: (80, 280)
         ImageButton:
             id: artjoinsess
             text: 'Join Session'
@@ -135,14 +140,14 @@ ScreenManager:
             Rectangle:
                 pos: self.pos
                 size: self.size
-        DropDown:
-            id: username_setting
-            Button:
-                text: 'Setting1'
-                size_hint: (.5, .10)
-                text_size: root.width, None
-                font_size: '25sp'
-                pos: (170, 480)
+        TextInput:
+            id: setting1
+            size_hint: (.5, .10)
+            text_size: root.width, None
+            font_size: '25sp'
+            multiline: False
+            hint_text: 'YES'
+            pos: (250, 430)
         TextInput:
             id: setting2
             size_hint: (.5, .10)
@@ -150,7 +155,7 @@ ScreenManager:
             font_size: '25sp'
             multiline: False
             hint_text: 'YES'
-            pos: (170, 415)
+            pos: (250, 365)
         TextInput:
             id: setting3
             size_hint: (.5, .10)
@@ -159,7 +164,7 @@ ScreenManager:
             multiline: False
             hint_text: 'ON'
             password: True
-            pos: (170, 350)
+            pos: (250, 300)
     FileTransferScreen:
         app: self.manager.app
         manager: screen_manager
@@ -186,59 +191,45 @@ ScreenManager:
     ImageButton:
         id: producer
         source: '../img/producer.png'
-        text: "I'm a Producer"
         on_release: app.root.current = "producersessionjoining"
         size_hint: (.23, .23)
-        font_size: '20sp'
         pos: (50, 400)
     ImageButton:
         id: artist
         source: '../img/artist.png'
-        text: "I'm an Artist"
         on_release: app.root.current = "artistsessionjoining"
         size_hint: (.23, .23)
-        font_size: '20sp'
         pos: (50, 235)
     ImageButton:
         id: listener
         source: '../img/listener.png'
-        text: "I'm a Listener"
         on_release: app.root.current = "artistsessionjoining"
         size_hint: (.23, .23)
-        font_size: '20sp'
         pos: (50, 70)
 <ProducerJoiningScreen>
     name: "producersessionjoining"
-    Label:
-        text: 'Server Address:'
-        text_size: root.width, None
-        size: self.texture_size
-        font_size: '35sp'
-        pos: (90, 150)
-        bold: True
-    Label:
-        text: 'User Name:'
-        text_size: root.width, None
-        size: self.texture_size
-        font_size: '35sp'
-        pos: (153, 50)
-        bold: True
-    Label:
-        text: 'Password:'
-        text_size: root.width, None
-        size: self.texture_size
-        font_size: '35sp'
-        pos: (170, -50)
-        bold: True
+    Image:
+        source: '../img/server_address.png'
+        size_hint: (0.28, 0.28)
+        pos: (70, 360)
+    Image:
+        source: '../img/username.png'
+        size_hint: (0.195, 0.195)
+        pos: (145, 310)
+    Image:
+        source: '../img/password.png'
+        size_hint: (0.16, 0.16)
+        pos: (160, 255)
+    Image:
+        source: '../img/call_number.png'
+        size_hint: (0.2, 0.2)
+        pos: (130, 170)
 <ArtistJoiningScreen>
     name: "artistsessionjoining"
-    Label:
-        text: 'Connection String:'
-        text_size: root.width, None
-        size: self.texture_size
-        font_size: '35sp'
-        pos: (40, 150)
-        bold: True
+    Image:
+        source: '../img/connection_string.png'
+        size_hint: (0.40, 0.40)
+        pos: (60, 295)
 <SessionScreen>:
     name: "session"
     ActionBar:
@@ -341,36 +332,25 @@ ScreenManager:
         font_size: '25sp'
         pos: (670, 520)
         on_release: app.root.current = 'main'
-    Label:
-        text: 'Username'
-        text_size: root.width, None
-        size: self.texture_size
-        font_size: '25sp'
-        pos: (30, 215)
-        bold: True
-    Label:
-        text: 'Microphone'
-        text_size: root.width, None
-        size: self.texture_size
-        font_size: '25sp'
-        pos: (20, 150)
-        bold: True
-    Label:
-        text: 'Speakers'
-        text_size: root.width, None
-        size: self.texture_size
-        font_size: '25sp'
-        pos: (30, 85)
-        bold: True
-    Button:
+    Image:
+        source: '../img/username.png'
+        size_hint: (0.20, 0.20)
+        pos: (68, 400)
+    Image:
+        source: '../img/microphone_text.png'
+        size_hint: (0.20, 0.20)
+        pos: (60, 335)
+    Image:
+        source: '../img/speakers.png'
+        size_hint: (0.16, 0.16)
+        pos: (90, 280)
+    ImageButton:
         id: save_settings
-        text: 'Save Settings'
+        source: '../img/save_settings.png'
         halign: 'center'
         valign: 'middle'
-        size_hint: (.25, .10)
-        text_size: root.width, None
-        font_size: '25sp'
-        pos: (300, 50)
+        size_hint: (.3, .3)
+        pos: (270, 50)
         on_release: app.root.current = 'main'
 <FileTransferScreen>
     name: "filetransfer"
