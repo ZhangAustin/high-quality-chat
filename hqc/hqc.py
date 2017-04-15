@@ -74,7 +74,7 @@ class HQCPhone(object):
         self.core.capture_device = self.config.get('AudioSettings', 'mic')
         self.core.playback_device = self.config.get('AudioSettings', 'speakers')
 
-    def make_call(self, number, server, lq_file=datetime.now().strftime('LQ_%H%M%S.wav')):
+    def make_call(self, number, server, lq_file):
         """
         Make a SIP call to a number on a server
         :param number: number to call (should be a conference number)
