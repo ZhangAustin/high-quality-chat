@@ -156,12 +156,12 @@ class SessionScreen(Screen):
         self.ids.audioSidebar.add_widget(btn2)
 
     def add_file(self, file):
-        if file not in self.requested_files:
-            if self.app.chat_client:
-                print "Adding file" + file
-                self.app.chat_client.send_sync(constants.SYNC_REQUESTFILE, file)
-            else:
-                print "Chat client not connected"
+        # Called when artist receives a sync request file
+        if file not in self.requested_files and self.app.chat_client:
+            print "Adding file" + file
+            self.app.chat_client.send_sync(constants.SYNC_REQUESTFILE, file)
+        else:
+            print "Chat client not connected"
         print self.requested_files
 
     def update_requested_files(self, username, message):
@@ -230,6 +230,10 @@ class SessionScreen(Screen):
             self.ids.record_button.source = SessionScreen.record_red
             self.app.recorder.stop()
             self.add_clip()  # adds to gui sidebar
+
+            # TODO
+            # Send a sync message for when a clip is available
+            # self.app.chat_client.send_sync(constants.SYNC_SENDFILE, )
             print "Done recording"
 
     def record_progress(self):
@@ -237,7 +241,6 @@ class SessionScreen(Screen):
         while progress:
             time.sleep(0.05)
             self.ids.progress_bar.value = (self.ids.progress_bar.value + 1) % 31#datetime.now().second % 6.0
-
 
     def toggle_mute(self):
 

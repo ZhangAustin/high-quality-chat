@@ -49,6 +49,7 @@ class HQCWebSocket(EchoWebSocket):
         elif message_type == constants.ROLE_VERIFICATION:
             self.handle_role_verification(received_message)
         elif message_type in constants.SYNC:
+            print "sync message received"
             self.handle_sync(received_message)
 
     def handle_chat_message(self, received_message):

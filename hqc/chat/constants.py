@@ -19,8 +19,9 @@ SYNC_RECORDINGSTOP = 12
 # END --- Contains timestamp payload --- #
 # START --- Contains filename payload --- #
 SYNC_REQUESTFILE = 13
+# Artist sends "SENDFILE" to notify producer of new recording
 SYNC_SENDFILE = 14
-# END --- Contains filname payload --- #
+# END --- Contains file name payload --- #
 
 SYNC = range(4, 15)
 
