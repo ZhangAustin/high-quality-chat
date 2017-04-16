@@ -34,8 +34,9 @@ ScreenManager:
             size_hint: (.5, .1)
             font_size: '24sp'
             multiline: False
-            hint_text: 'MyServer'
-            pos: (350, 475)
+            password: True
+            hint_text: 'e.g. 1004'
+            pos: (330, 340)
         TextInput:
             id: username
             size_hint: (.5, .1)
@@ -50,16 +51,7 @@ ScreenManager:
             multiline: False
             password: True
             hint_text: '********'
-            pos: (350, 275)
-        TextInput:
-            id: callnumber
-            size_hint: (.5, .15)
-            text_size: root.width, None
-            font_size: '35sp'
-            multiline: False
-            password: True
-            hint_text: '1001'
-            pos: (350, 175)
+            pos: (330, 200)
         ImageButton:
             id: producerjoinsess
             source: '../img/arrow_right.png'
