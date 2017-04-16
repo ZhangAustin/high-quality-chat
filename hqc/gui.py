@@ -104,8 +104,9 @@ class SessionScreen(Screen):
     muted_mic_image = '../img/muted.png'
 
     stop_black = '../img/stop_black.png'
+    stop_theme = '../img/stop_theme.png'
     record_black = '../img/record_black.png'
-    record_red = '../img/record_red.png'
+    record_red = '../img/record_theme2.png'
 
     # Store a large string of all chat messages
     chat_messages = StringProperty()
@@ -216,7 +217,7 @@ class SessionScreen(Screen):
         self.app.recording = not self.app.recording
 
         if self.app.recording:
-            self.ids.record_button.source = SessionScreen.stop_black
+            self.ids.record_button.source = SessionScreen.stop_theme
 
             global progress
             progress = True
