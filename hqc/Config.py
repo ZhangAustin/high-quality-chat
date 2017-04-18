@@ -79,7 +79,7 @@ class Config(ConfigParser.SafeConfigParser):
         """
         default_list = [('HQRecordingSettings', 'width', '2'),
                         ('HQRecordingSettings', 'channels', '2'),
-                        ('HQRecordingSettings', 'rate', '2248000')]
+                        ('HQRecordingSettings', 'rate', '48000')]
 
         for setting in default_list:
             if self.get(setting[0], setting[1]) == 'None':
