@@ -28,7 +28,7 @@ class Config(ConfigParser.SafeConfigParser):
     def __init__(self, file):
         if Config._instance is not None:
             print "test"
-            raise ValueError("Use get_instance when config instance alreay "
+            raise ValueError("Use get_instance when config instance already "
                              "exists.")
 
         """
@@ -43,7 +43,10 @@ class Config(ConfigParser.SafeConfigParser):
             f.close()
 
         self.read(self.file)
+        # Populates the config with sections
         self.check()
+        # Sets the default values for different sections
+        self.load_defaults()
 
         with open(self.file, 'w') as config_file:
             self.write(config_file)
@@ -68,6 +71,19 @@ class Config(ConfigParser.SafeConfigParser):
                     self.set(section, option, "None")
 
         self.create_recording_location()
+
+    def load_defaults(self):
+        """
+        Loads default values for fields that are 'None'
+        :return: 
+        """
+        default_list = [('HQRecordingSettings', 'width', '2'),
+                        ('HQRecordingSettings', 'channels', '2'),
+                        ('HQRecordingSettings', 'rate', '2248000')]
+
+        for setting in default_list:
+            if self.get(setting[0], setting[1]) == 'None':
+                self.update_setting(setting[0], setting[1], setting[2])
 
     def create_recording_location(self):
         """
