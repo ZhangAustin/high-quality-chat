@@ -476,7 +476,8 @@ class FileTransferScreen(Screen):
                 self.ids.filelayout.add_widget(label)
 
     def leave_session(self):
-        self.app.chat_client.finish()
+        # TODO: Uncomment for release
+        # self.app.chat_client.finish()
         self.app.phone.hangup()
         App.get_running_app().stop()
 
