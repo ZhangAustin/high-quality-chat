@@ -41,7 +41,10 @@ class HQCWebSocket(EchoWebSocket):
         :param received_message: JSON object of received message
         :return: None
         """
-        message_type = json.loads(str(received_message))['type']
+        message = json.loads(str(received_message))
+        message_type = message['type']
+        username = message['username']
+        print "Message type: {} from {}".format(message_type, username)
         if message_type == constants.CHAT:
             self.handle_chat_message(received_message)
         elif message_type == constants.FILE:
@@ -49,7 +52,6 @@ class HQCWebSocket(EchoWebSocket):
         elif message_type == constants.ROLE_VERIFICATION:
             self.handle_role_verification(received_message)
         elif message_type in constants.SYNC:
-            print "sync message received"
             self.handle_sync(received_message)
 
     def handle_chat_message(self, received_message):
@@ -96,6 +98,7 @@ class HQCWebSocket(EchoWebSocket):
         :param message: Sync message to forward
         :return: None
         """
+        # TODO: send to everybody but the sender
         app = self.environ['ws4py.app']
         for client in app.clients:
             client.send(message, False)

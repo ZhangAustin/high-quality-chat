@@ -131,8 +131,10 @@ class HQCWSClient(WebSocketClient):
         :param parsed_json: the original json message
         :return:
         """
+        print("Sync message received.")
         status_code = parsed_json['type']
         username = parsed_json['username']
+        message = parsed_json['message']
         if status_code == constants.SYNC_TESTSYNCMSG:
             print "Received a test sync message from {}".format(username)
         elif status_code == constants.SYNC_MICON:
@@ -166,14 +168,24 @@ class HQCWSClient(WebSocketClient):
             filename = parsed_json['message']
             print "{} added {} as requested file".format(username, filename)
             # Do something in GUI
-            if self.app is not None:
+            if self.app:
                 self.app.update_requested_files(username, filename)
         elif status_code == constants.SYNC_SENDFILE:
-            filenames = parsed_json['message']
-            print "{} downloading {}".format(username, filenames)
+            filename = message['filename']
+            _, file = os.path.split(filename)
+            length = message['length']
+            print "{} downloading {}: {} bytes".format(username, file, length)
             # Do something in GUI
-            if self.app is not None:
-                self.app.update_send_files(username, filenames)
+            if self.app:
+                self.app.update_send_files(username, message)
+        elif status_code == constants.SYNC_FILE_AVAILABLE:
+            sending_username = message['username']
+            filename = message['filename']
+            length = message['length']
+            if self.app:
+                self.app.update_available_files(sending_username, filename, length)
+            else:
+                print "App not connected"
         else:
             print "Status code {} in constants.SYNC but has no handler (recv from {})".format(status_code, username)
 
@@ -274,13 +286,29 @@ class HQCWSClient(WebSocketClient):
                 self.send(json.dumps(payload), False)
             else:
                 print "No timestamp provided for sync message"
-        elif sync_code == constants.SYNC_REQUESTFILE or sync_code == constants.SYNC_SENDFILE:
-            if kwargs['timestamp']:
-                payload['message'] = kwargs['timestamp']
-                print "Message Sending"
-                self.send(json.dumps(payload), False)
-            else:
-                print "No filename provided for sync message"
+        elif sync_code == constants.SYNC_SENDFILE:
+            # Name of the file available
+            try:
+                payload['message'] = {}
+                payload['message']['filename'] = kwargs['filename']
+                payload['message']['length'] = kwargs['length']
+            except KeyError:
+                print "SYNC_SENDFILE needs filename and length."
+            self.send(json.dumps(payload), False)
+        elif sync_code == constants.SYNC_REQUESTFILE:
+            print "SYNC_REQUESTFILE not implemented."
+
+        elif sync_code == constants.SYNC_FILE_AVAILABLE:
+            try:
+                _, tail = os.path.split(kwargs['filename'])
+                print "Sending {} availability".format(tail)
+                payload['message'] = {}
+                payload['message']['username'] = kwargs['username']
+                payload['message']['filename'] = kwargs['filename']
+                payload['message']['length'] = kwargs['length']
+            except KeyError:
+                print "SYNC_SENDFILE needs filename and length."
+            self.send(json.dumps(payload), False)
         else:
             self.send(json.dumps(payload), False)
 

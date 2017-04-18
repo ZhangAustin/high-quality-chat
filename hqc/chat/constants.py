@@ -23,7 +23,23 @@ SYNC_REQUESTFILE = 13
 SYNC_SENDFILE = 14
 # END --- Contains file name payload --- #
 
-SYNC = range(4, 15)
+# Contains username, filename, length
+SYNC_FILE_AVAILABLE = 15
+
+# IMPORTANT: Keep to date with sync messages that want to be used
+SYNC = [SYNC_TESTSYNCMSG,
+        SYNC_TESTSYNCMSG,
+        SYNC_MICON,
+        SYNC_MICOFF,
+        SYNC_SPEAKERON,
+        SYNC_SPEAKEROFF,
+SYNC_RECORDINGON,
+SYNC_RECORDINGOFF,
+SYNC_RECORDINGSTART,
+SYNC_RECORDINGSTOP,
+SYNC_REQUESTFILE,
+SYNC_SENDFILE,
+SYNC_FILE_AVAILABLE]
 
 # User roles
 ARTIST = "ARTIST"

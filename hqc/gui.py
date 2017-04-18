@@ -60,6 +60,10 @@ class HQC(App):
         # color for gui text
         self.dark_blue = '2939b0'
 
+        # dict with usernames having list of (filename, length) tuples for download.
+        # ex. filename, length = available_files['cptarnie'][0]
+        self.available_files = {}
+
     # Build should only handle setting up GUI-specific items
     def build(self):
         # Kivy is stubborn and overrides self.config with a built-in ConfigParser
@@ -82,6 +86,9 @@ class HQC(App):
 
     def update_send_files(self, username, message):
         self.root.screens[3].update_send_files(username, message)
+
+    def update_available_files(self, username, filename, length):
+        self.root.screens[3].update_available_files(username, filename, length)
 
 
 class MainScreen(Screen):
@@ -187,6 +194,15 @@ class SessionScreen(Screen):
         if message in self.audio_files:
             self.app.chat_client.send_file(message)
 
+    # TODO: GUI update
+    def update_available_files(self, username, filename, length):
+        if username not in self.app.available_files:
+            self.app.available_files[username] = []
+        _, tail = os.path.split(filename)
+        available_file_tuple = (tail, length)
+        self.app.available_files[username].append(available_file_tuple)
+        print "{} has {}: {} bytes".format(username, tail, length)
+
     def play_clip(self, obj):
 
         # Get filename of the high quality clip associated with this play button
@@ -237,9 +253,11 @@ class SessionScreen(Screen):
             self.app.recorder.stop()
             self.add_clip()  # adds to gui sidebar
 
-            # TODO
             # Send a sync message for when a clip is available
-            self.app.chat_client.send_sync(constants.SYNC_SENDFILE, timestamp=int(time.time()))
+            self.app.chat_client.send_sync(constants.SYNC_FILE_AVAILABLE,
+                                           username=self.app.config.get('ChatSettings', 'username'),
+                                           filename=self.audio_files[-1],
+                                           length=audio.get_length(self.audio_files[-1]))
             print "Done recording"
 
     def record_progress(self):
