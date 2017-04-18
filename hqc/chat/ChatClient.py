@@ -260,7 +260,7 @@ class HQCWSClient(WebSocketClient):
         fh.close()
         # self.close()
 
-    def send_sync(self, sync_code=constants.SYNC_TESTSYNCMSG, timestamp=None):
+    def send_sync(self, sync_code, **kwargs):
         """
         Forms and sends a sync message in order to reflect state changes in all connected users' GUI
         :param sync_code: Status to send, as defined in constants
@@ -269,14 +269,14 @@ class HQCWSClient(WebSocketClient):
         payload = self.new_payload()
         payload['type'] = sync_code
         if sync_code == constants.SYNC_RECORDINGSTART or sync_code == constants.SYNC_RECORDINGSTOP:
-            if timestamp is not None:
-                payload['message'] = timestamp
+            if kwargs['timestamp']:
+                payload['message'] = kwargs['timestamp']
                 self.send(json.dumps(payload), False)
             else:
                 print "No timestamp provided for sync message"
         elif sync_code == constants.SYNC_REQUESTFILE or sync_code == constants.SYNC_SENDFILE:
-            if timestamp is not None:
-                payload['message'] = timestamp
+            if kwargs['timestamp']:
+                payload['message'] = kwargs['timestamp']
                 print "Message Sending"
                 self.send(json.dumps(payload), False)
             else:

@@ -108,7 +108,6 @@ class HQCPhone(object):
         while not self.update:
             self.hold_open()
 
-
     def stop_start_recording(self, lq_file, final=False):
         """
         Stops, then starts the LQ recording process. Recordings need to be finalized before they can be accessed.

@@ -224,6 +224,9 @@ class SessionScreen(Screen):
 
             filename = self.app.config.get_file_name(self.app.session_name,
                                                      datetime.now().strftime(constants.DATETIME_HQ))
+            head, tail = os.path.split(filename)
+            if not os.path.exists(head):
+                os.makedirs(head)
             self.app.recorder = audio.Recorder(filename)  # creates audio file
             self.audio_files.append(filename)  # adds filename to global list
             self.app.recorder.start()  # Starts recording
@@ -236,7 +239,7 @@ class SessionScreen(Screen):
 
             # TODO
             # Send a sync message for when a clip is available
-            # self.app.chat_client.send_sync(constants.SYNC_SENDFILE, )
+            self.app.chat_client.send_sync(constants.SYNC_SENDFILE, timestamp=int(time.time()))
             print "Done recording"
 
     def record_progress(self):
