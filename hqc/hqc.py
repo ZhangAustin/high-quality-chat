@@ -1,9 +1,11 @@
-from Config import Config
-import base64
-import linphone
 import logging
 import os
 import time
+from threading import Thread
+
+import linphone
+
+from Config import Config
 
 
 class Singleton(type):
@@ -21,6 +23,8 @@ class HQCPhone(object):
     core = ''
     mic_gain = 0
     call = ''
+    current_call = None  # Thread for the call
+    update = False
 
     # For testing purposes, these are relative paths
     # For implementation, these are absolute paths as defined in the config
@@ -72,6 +76,11 @@ class HQCPhone(object):
         self.core.playback_device = self.config.get('AudioSettings', 'speakers')
 
     def make_call(self, number, server, lq_file):
+        """Pop a thread open that targets _make_call"""
+        self.current_call = Thread(target=self._make_call, args=(number, server, lq_file))
+        self.current_call.start()
+
+    def _make_call(self, number, server, lq_file):
         """
         Make a SIP call to a number on a server
         :param number: number to call (should be a conference number)
@@ -86,17 +95,19 @@ class HQCPhone(object):
         params.video_enabled = False
 
         url = 'sip:' + str(number) + '@' + server
-        try:
-            self.call = self.core.invite_with_params(url, params)
-        except err:
-            print err
+        self.call = self.core.invite_with_params(url, params)
+        while self.call.media_in_progress():
+            self.hold_open()
+
         if self.call is None:
             print "Error: Cannot make a call"
-        else:
-            while self.call.media_in_progress():
-                self.hold_open()
-            # start_recording() is a linphone built-in function
-            self.call.start_recording()
+
+        print "Recording into {}".format(lq_file)
+        self.call.start_recording()
+
+        while not self.update:
+            self.hold_open()
+
 
     def stop_start_recording(self, lq_file, final=False):
         """
@@ -291,32 +302,6 @@ class HQCPhone(object):
         # Gracefully hang up
         self.core.terminate_all_calls()
 
-
-def parse_conn_string(conn_string):
-    """
-    Decode the connection string and return its elements
-    :param conn_string: Base64 encoded connection string
-    :return: List containing decoded username, password, and server
-    """
-    decoded = base64.b64decode(conn_string)
-    mark1 = decoded.find(';')
-    mark2 = decoded.rfind(';')
-    username = decoded[:mark1]
-    password = decoded[mark1 + 1:mark2]
-    server = decoded[mark2 + 1:]
-    return [username, password, server]
-
-
-def make_conn_string(username, password, server):
-    """
-    Given a username, password, and server address, base64 encode them together
-    :param username: username (or phone number) to register to the SIP server
-    :param password: password associated with the username
-    :param server: IP or hostname of the SIP server
-    :return: a base 64 encoded string containing all parameters
-    """
-    conn_string = username + ';' + password + ";" + server
-    return base64.b64encode(conn_string)
 
 if __name__ == '__main__':
     def test_lq_recording_toggle():

@@ -1,4 +1,3 @@
-import base64
 import os
 import threading
 import time
@@ -11,14 +10,12 @@ from kivy.lang import Builder
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty
 from kivy.uix.actionbar import ActionItem
 from kivy.uix.behaviors import ButtonBehavior
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.progressbar import ProgressBar
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
 
 import audio
@@ -38,6 +35,7 @@ filenames = []
 recorder = None
 progress = False
 kivy.require('1.0.7')
+from kivy.core.text import LabelBase
 
 
 class HQC(App):
@@ -55,7 +53,12 @@ class HQC(App):
         # Boolean of whether or not the user is recording
         self.recording = False
         # TODO: Description
-        self.lq_audio = "undefined in gui"
+        self.lq_audio = None
+        self.session_name = None
+        self.storage_dir = None
+
+        # color for gui text
+        self.dark_blue = '2939b0'
 
     # Build should only handle setting up GUI-specific items
     def build(self):
@@ -219,8 +222,8 @@ class SessionScreen(Screen):
             mythread = threading.Thread(target=self.record_progress)
             mythread.start()
 
-            filename = os.path.join(self.app.config.get('AudioSettings', 'recording_location'),
-                                    datetime.now().strftime('HQ_%H%M%S.mp3'))
+            filename = self.app.config.get_file_name(self.app.session_name,
+                                                     datetime.now().strftime(constants.DATETIME_HQ))
             self.app.recorder = audio.Recorder(filename)  # creates audio file
             self.audio_files.append(filename)  # adds filename to global list
             self.app.recorder.start()  # Starts recording
@@ -240,10 +243,9 @@ class SessionScreen(Screen):
         global progress
         while progress:
             time.sleep(0.05)
-            self.ids.progress_bar.value = (self.ids.progress_bar.value + 1) % 31#datetime.now().second % 6.0
+            self.ids.progress_bar.value = (self.ids.progress_bar.value + 1) % 31  # datetime.now().second % 6.0
 
     def toggle_mute(self):
-
         # Toggles the linphone mic
         self.app.phone.toggle_mic()
 
@@ -284,12 +286,6 @@ class SessionScreen(Screen):
         """
         self.parent.ids.chatText.focus = True
 
-    def leave_session(self):
-        if self.config.get("ChatSettings", "role") == constants.PRODUCER:
-            self.parent.current = 'filetransfer'
-        else:
-            self.parent.current = 'main'
-
     def on_leave(self, *args):
         """
         Makes sure the SessionScreen is left properly
@@ -310,49 +306,54 @@ class ProducerJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
     def get_text(self, servername, username, password, callnumber):
+        def is_valid(value):
+            if value != '' and len(value) != 0:
+                return True
+            else:
+                return False
 
-        if servername != '':
+        if is_valid(servername) and is_valid(username) and is_valid(password) and is_valid(callnumber):
             self.app.config.update_setting('ConnectionDetails', 'server', servername)
-        else:
-            servername = self.app.config.get('ConnectionDetails', 'server')
-        if username != '':
             self.app.config.update_setting('ConnectionDetails', 'user', username)
-        else:
-            username = self.app.config.get('ConnectionDetails', 'user')
-        if password != '':
             self.app.config.update_setting('ConnectionDetails', 'password', password)
-        else:
-            password = self.app.config.get('ConnectionDetails', 'password')
-        if callnumber != '':
             self.app.config.update_setting('ConnectionDetails', 'call_no', callnumber)
+
         else:
-            callnumber = self.app.config.get('ConnectionDetails', 'call_no')
-        conn_string = username + ';' + password + ";" + servername + ";" + callnumber
-        encoded = base64.b64encode(conn_string)
-        self.app.config.update_setting('ConnectionDetails', 'conn_string', encoded)
+            username, password, servername, callnumber = self.app.config.get_connection_details()
+
+        # TODO: All of this code needs to be moved to another screen
+        # The generation of connection strings should occur in a completely different screen
+        # that is accessible from the main screen.  The producer should be able to enter in the 4 values
+        # and it should output a connection string
+        # conn_string = username + ';' + password + ";" + servername + ";" + callnumber
+        # encoded = base64.b64encode(conn_string)
+        # self.app.config.update_setting('ConnectionDetails', 'conn_string', encoded)
+        # self.parent.current = 'session'
+        #
+        # # Make BoxLayout for multiple items
+        # popup_box = BoxLayout(orientation='vertical')
+        # # Make "Connection String" TextInput
+        # popup_text = TextInput(text=encoded, size_hint=(1, .8))
+        # popup_box.add_widget(popup_text)
+        # # Make "Close" button for popup
+        # close_button = Button(text='Close', size_hint=(.4, .2), pos_hint={'center_x': .5})
+        # popup_box.add_widget(close_button)
+        # popup = Popup(title='Connection String',
+        #               content=popup_box,
+        #               size_hint=(None, None), size=(400, 400),
+        #               auto_dismiss=False)
+        # close_button.bind(on_press=popup.dismiss)
+        # # Open the popup
+        # popup.open()
+
+        self.app.session_name = datetime.now().strftime(constants.DATETIME_SESSION)
+        self.app.storage_dir = self.app.config.get('AudioSettings', 'recording_location')
+        os.makedirs(os.path.join(self.app.storage_dir, self.app.session_name))
+
         self.parent.current = 'session'
 
-        # Make BoxLayout for multiple items
-        popup_box = BoxLayout(orientation='vertical')
-        # Make "Connection String" TextInput
-        popup_text = TextInput(text=encoded, size_hint=(1, .8))
-        popup_box.add_widget(popup_text)
-        # Make "Close" button for popup
-        close_button = Button(text='Close', size_hint=(.4, .2), pos_hint={'center_x': .5})
-        popup_box.add_widget(close_button)
-        popup = Popup(title='Connection String',
-                      content=popup_box,
-                      size_hint=(None, None), size=(400, 400),
-                      auto_dismiss=False)
-        close_button.bind(on_press=popup.dismiss)
-        # Open the popup
-        popup.open()
-
-        self.app.phone.add_proxy_config()
-        self.app.phone.add_auth_info()
-        file_name = os.path.join(self.app.config.get('AudioSettings', 'recording_location'),
-                                 datetime.now().strftime('LQ_%H%M%S.wav'))
-        self.app.phone.make_call(callnumber, self.app.config.get('ConnectionDetails', 'server'), file_name)
+        file_name = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
+        self.app.phone.make_call(callnumber, servername, file_name)
         self.app.lq_audio = self.app.phone.recording_start
         print "passing lq_audio to gui: " + self.app.lq_audio
 
@@ -366,41 +367,51 @@ class ArtistJoiningScreen(Screen):
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
     def get_text(self, conn_string):
-        if conn_string is not None:
-            # TODO: Why is this done manually? There are functions for this
-            decoded = base64.b64decode(conn_string)
-            mark1 = decoded.find(';')
-            mark2 = decoded.rfind(';')
-            mark3 = decoded.rfind(';')
-            username = decoded[:mark1]
-            password = decoded[mark1 + 1:mark2]
-            server = decoded[mark2 + 1:mark3]
-            callnumber = decoded[mark3 + 1:]
+        if conn_string is not None and len(conn_string) != 0:  # Use the provided connection string
+            username, password, server, callnumber = self.app.config.parse_conn_string()
 
-            if server != '':
+            if not server and not username and not password and not callnumber:
                 self.app.config.update_setting('ConnectionDetails', 'server', server)
-            if username != '':
                 self.app.config.update_setting('ConnectionDetails', 'user', username)
-            if password != '':
                 self.app.config.update_setting('ConnectionDetails', 'password', password)
-            if callnumber != '':
                 self.app.config.update_setting('ConnectionDetails', 'call_no', callnumber)
-            self.parent.current = 'session'
 
-            self.app.phone.add_proxy_config()
-            self.app.phone.add_auth_info()
-            # TODO: Update make_call, it now takes a mandatory file name
-            self.app.phone.make_call(callnumber, self.app.config.get('ConnectionDetails', 'server'),
-                                         os.getcwd() + os.path.sep + "tmp")
-            self.app.lq_audio = self.app.phone.recording_start
-            print "passing lq_audio to gui: " + self.app.lq_audio
+            else:
+                print "Bad connection string"
+                error_message = 'Sorry, that string is not valid'
+                popup = Popup(title='Connection String Error',
+                              content=Label(text=error_message),
+                              size_hint=(None, None), size=(400, 400))
+                popup.open()
 
-        else:
-            error_message = 'Sorry, that string is not valid'
-            popup = Popup(title='Connection String Error',
-                          content=Label(text=error_message),
-                          size_hint=(None, None), size=(400, 400))
-            popup.open()
+        else:  # Use the saved config values
+            server, username, password, callnumber = self.app.config.get_connection_details()
+
+            def is_valid(value):
+                if value != '' and value != 'None' and value is not None:
+                    return True
+                return False
+
+            if not is_valid(server) or not is_valid(username) or not is_valid(password) or not is_valid(callnumber):
+                # If the stored values aren't valid, nogood
+                print "No connection string and bad config values"
+                error_message = 'Sorry, the configuration is not valid'
+                popup = Popup(title='Connection String Error',
+                              content=Label(text=error_message),
+                              size_hint=(None, None), size=(400, 400))
+                popup.open()
+
+        # TODO: Put all recordings into session name.
+        self.app.session_name = datetime.now().strftime(constants.DATETIME_SESSION)
+        self.app.storage_dir = self.app.config.get('AudioSettings', 'recording_location')
+        os.makedirs(os.path.join(self.app.storage_dir, self.app.session_name))
+
+        self.parent.current = 'session'
+
+        filename = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
+        self.app.phone.make_call(callnumber, server, filename)
+        self.app.lq_audio = self.app.phone.recording_start
+        print "passing lq_audio to gui: " + self.app.lq_audio
 
 
 class SettingsScreen(Screen):
@@ -419,19 +430,20 @@ class FileTransferScreen(Screen):
         if self.app.config.get('ChatSettings', 'role') == "PRODUCER":
             files = self.app.root.screens[3].requested_files
             for file in files:
-                progress = ProgressBar(max=100)
-                self.app.chat_client.send_sync(constants.SYNC_SENDFILE, file)
                 label = Label(text=file, size_hint=(1 / len(files), None))
                 self.ids.filelayout.add_widget(label)
-                self.ids.filelayout.add_widget(progress)
-        else:
+        elif self.app.config.get('ChatSettings', 'role') == "ARTIST":
             files = self.app.root.screens[3].requested_files
             for file in files:
-                progress = ProgressBar(max=100)
                 self.app.chat_client.send_file(file)
                 label = Label(text=file, size_hint=(1 / len(files), None))
                 self.ids.filelayout.add_widget(label)
-                self.ids.filelayout.add_widget(progress)
+
+    def leave_session(self):
+        self.app.chat_client.finish()
+        self.app.phone.hangup()
+        App.get_running_app().stop()
+
 
 class ImageButton(ButtonBehavior, Image):
     pass
