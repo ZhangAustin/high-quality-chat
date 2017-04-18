@@ -138,7 +138,7 @@ def get_length(filename):
     """
     file_name, file_extension = os.path.splitext(filename)
     audio = AudioSegment.from_file(filename, file_extension[1:])
-    return float(len(audio) / 1000)
+    return float(len(audio)) / 1000
 
 
 if __name__ == '__main__':

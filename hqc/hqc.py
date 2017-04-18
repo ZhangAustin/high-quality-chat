@@ -242,7 +242,7 @@ class HQCPhone(object):
     def force_codec_type(self, codec):
         """
         Disables all codecs except for the specified codec.  If the specified codec is not found, enable all codecs
-        :param codec: an array returned from get_codecs
+        :param codec: an array returned from get_codecs 
         :return: 1 on success, 0 on failure (no matching codec)
         """
         # Cannot reliably use core.find_audio_codec due to issue with bitrate selection
