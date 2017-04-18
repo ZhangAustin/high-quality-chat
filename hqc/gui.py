@@ -35,7 +35,6 @@ filenames = []
 recorder = None
 progress = False
 kivy.require('1.0.7')
-from kivy.core.text import LabelBase
 
 
 class HQC(App):
@@ -343,9 +342,10 @@ class ProducerJoiningScreen(Screen):
             self.app.config.update_setting('ConnectionDetails', 'user', username)
             self.app.config.update_setting('ConnectionDetails', 'password', password)
             self.app.config.update_setting('ConnectionDetails', 'call_no', callnumber)
+            connection_details = {'server': servername, 'user': username, 'password': password, 'call_no': callnumber}
 
         else:
-            username, password, servername, callnumber = self.app.config.get_connection_details()
+            connection_details = self.app.config.get_section('ConnectionDetails')
 
         # TODO: All of this code needs to be moved to another screen
         # The generation of connection strings should occur in a completely different screen
@@ -379,7 +379,7 @@ class ProducerJoiningScreen(Screen):
         self.parent.current = 'session'
 
         file_name = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
-        self.app.phone.make_call(callnumber, servername, file_name)
+        self.app.phone.make_call(connection_details['call_no'], connection_details['server'], file_name)
         self.app.lq_audio = self.app.phone.recording_start
         print "passing lq_audio to gui: " + self.app.lq_audio
 
@@ -394,13 +394,16 @@ class ArtistJoiningScreen(Screen):
     #       Currently a blank field means use existing values, even if none exists
     def get_text(self, conn_string):
         if conn_string is not None and len(conn_string) != 0:  # Use the provided connection string
-            username, password, server, callnumber = self.app.config.parse_conn_string()
+            connection_details = self.app.config.parse_conn_string()
 
-            if not server and not username and not password and not callnumber:
-                self.app.config.update_setting('ConnectionDetails', 'server', server)
-                self.app.config.update_setting('ConnectionDetails', 'user', username)
-                self.app.config.update_setting('ConnectionDetails', 'password', password)
-                self.app.config.update_setting('ConnectionDetails', 'call_no', callnumber)
+            if not connection_details['server'] \
+                    and not connection_details['user'] \
+                    and not connection_details['password'] \
+                    and not connection_details['call_no']:
+                self.app.config.update_setting('ConnectionDetails', 'server', connection_details['server'])
+                self.app.config.update_setting('ConnectionDetails', 'user', connection_details['user'])
+                self.app.config.update_setting('ConnectionDetails', 'password', connection_details['password'])
+                self.app.config.update_setting('ConnectionDetails', 'call_no', connection_details['call_no'])
 
             else:
                 print "Bad connection string"
@@ -411,14 +414,17 @@ class ArtistJoiningScreen(Screen):
                 popup.open()
 
         else:  # Use the saved config values
-            server, username, password, callnumber = self.app.config.get_connection_details()
+            connection_details = self.app.config.get_section('ConnectionDetails')
 
             def is_valid(value):
                 if value != '' and value != 'None' and value is not None:
                     return True
                 return False
 
-            if not is_valid(server) or not is_valid(username) or not is_valid(password) or not is_valid(callnumber):
+            if not is_valid(connection_details['server']) \
+                    or not is_valid(connection_details['username']) \
+                    or not is_valid(connection_details['password']) \
+                    or not is_valid(connection_details['call_no']):
                 # If the stored values aren't valid, nogood
                 print "No connection string and bad config values"
                 error_message = 'Sorry, the configuration is not valid'
@@ -435,7 +441,7 @@ class ArtistJoiningScreen(Screen):
         self.parent.current = 'session'
 
         filename = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
-        self.app.phone.make_call(callnumber, server, filename)
+        self.app.phone.make_call(connection_details['call_no'], connection_details['server'], filename)
         self.app.lq_audio = self.app.phone.recording_start
         print "passing lq_audio to gui: " + self.app.lq_audio
 
