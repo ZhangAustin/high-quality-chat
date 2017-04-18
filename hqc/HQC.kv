@@ -123,14 +123,13 @@ ScreenManager:
                 size: self.size
         TextInput:
             id: chatText
-            size_hint: (.50, .10)
+            size_hint: (.55, .10)
             text_size: root.width, None
             font_size: '18sp'
             hint_text: 'Type to chat'
             multiline: False
             on_text_validate: self.parent.send_message(chatText.text)
-
-            pos: (10, 300)
+            pos: (20, 300)
     SettingsScreen:
         manager: screen_manager
         app: self.manager.app
@@ -235,7 +234,8 @@ ScreenManager:
     ActionBar:
         ActionView:
             ActionPrevious:
-                title: 'HQC: Session Name'
+                title: 'HQC: High Quality Chat'
+                font_size: '44sp'
                 with_previous: False
                 app_icon: '../img/orion_just_stars.png'
             ActionOverflow:
@@ -244,9 +244,6 @@ ScreenManager:
                 source: root.muted_mic_image
                 group: 'volume'
                 on_press: root.toggle_mute()
-
-            ActionButton:
-                background_normal: 'atlas://data/images/defaulttheme/audio-volume-high'
             ActionGroup:
                 ActionImageButton:
                     source: '../img/sign_out_option.png'
@@ -284,27 +281,6 @@ ScreenManager:
                     spacing: 5
                     size_hint: (None, None)
                     width: 310
-        TabbedPanelItem:
-            text: 'Edit Tools'
-            tab_width: 400
-            GridLayout:
-                cols: 1
-                Button:
-                    id: menuCrop
-                    text: 'Crop Out'
-                    font_size: '18sp'
-                Button:
-                    id: menuSave
-                    text: 'Save'
-                    font_size: '18sp'
-                Button:
-                    id: undo
-                    text: 'Undo'
-                    font_size: '18sp'
-                Button:
-                    id: redo
-                    text: 'Redo'
-                    font_size: '18sp'
     BoxLayout:
         ScrollView:
             size_hint: (None, None)
