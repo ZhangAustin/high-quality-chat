@@ -3,14 +3,9 @@ from ws4py.websocket import EchoWebSocket
 from ws4py.server.geventserver import WSGIServer
 from ws4py.server.wsgiutils import WebSocketWSGIApplication
 import sys
-
 import json
 import constants
 import ntpath
-
-
-#from config import Config
-#config = Config()
 
 
 class HQCWebSocket(EchoWebSocket):

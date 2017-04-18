@@ -21,7 +21,7 @@ from chat.ChatClient import HQCWSClient
 from chat import constants
 
 from Config import Config
-config = Config('conn.conf')
+config = Config.get_instance('conn.conf')
 
 if __name__ == '__main__':
     try:

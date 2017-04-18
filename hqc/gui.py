@@ -44,7 +44,7 @@ class HQC(App):
     """
     def __init__(self, **kwargs):
         super(HQC, self).__init__(**kwargs)
-        self.config = Config("conn.conf")
+        self.config = Config.get_instance("conn.conf")
         self.phone = HQCPhone(self.config)
         self.chat_client = None
         # Recorder object from audio module
@@ -66,7 +66,7 @@ class HQC(App):
     # Build should only handle setting up GUI-specific items
     def build(self):
         # Kivy is stubborn and overrides self.config with a built-in ConfigParser
-        self.config = Config("conn.conf")
+        self.config = Config.get_instance("conn.conf")
         # Give the web socket a reference to the app
         gui = Builder.load_file("HQC.kv")
         self.root = gui

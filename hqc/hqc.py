@@ -347,7 +347,7 @@ if __name__ == '__main__':
 
     def make_core_objects():
 
-        config = Config('conn.conf')
+        config = Config.get_instance('conn.conf')
         phone = HQCPhone(config)
         return phone, config
 
