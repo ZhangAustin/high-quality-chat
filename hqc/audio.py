@@ -8,6 +8,8 @@ import pyaudio
 from pydub import AudioSegment
 from pydub.playback import play
 
+from Config import Config
+
 
 class Recorder:
     _recording = False
@@ -18,26 +20,27 @@ class Recorder:
     _audio_writer = ''
     _audio_recorder = ''
     _exit = False
+    _config = None
 
-    def __init__(self, filename, width=2, channels=2, rate=48000):
+    def __init__(self, filename):
         """
         Creates the high quality recorder
         :param filename: Filename to record into
-        :param width: Width of the audio recording
-        :param channels: Number of channels to record
-        :param rate: Bitrate to record at
         """
+        self._config = Config('conn.conf')
+        audio_config = self._config.get_section('LQRecordingSettings')
+
         self._p = pyaudio.PyAudio()
-        self._stream = self._p.open(format=self._p.get_format_from_width(width),
-                                    channels=channels,
-                                    rate=rate,
+        self._stream = self._p.open(format=self._p.get_format_from_width(audio_config['width']),
+                                    channels=audio_config['channels'],
+                                    rate=audio_config['rate'],
                                     input=True,
                                     stream_callback=self._callback)
 
         self._output = wave.open(filename, 'wb')
-        self._output.setnchannels(channels)
-        self._output.setsampwidth(width)
-        self._output.setframerate(rate)
+        self._output.setnchannels(audio_config['channels'])
+        self._output.setsampwidth(audio_config['width'])
+        self._output.setframerate(audio_config['rate'])
 
         self._audio_writer = Thread(target=self._write_queue_to_file)
         self._audio_writer.daemon = True

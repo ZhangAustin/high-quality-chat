@@ -7,6 +7,21 @@ import os
 #  Inherits methods such as get() from SafeConfigParser
 class Config(ConfigParser.SafeConfigParser):
     """Handles creation and updating of configuration settings."""
+
+    #  CONFIG FILE SPECIFICATIONS
+    connection = ['user', 'password', 'server', 'call_no']
+    audio_settings = ['mic', 'speakers', 'recording_location']
+    chat_settings = ['ip_address', 'port', 'username', 'role']
+    hq_recording_settings = ['width', 'channels', 'rate']  # Use these values to replace hardcoded in audio
+    # HQ_recording_settings have no corresponding GUI element, users will have to change manually
+    lq_recording_settings = ['codec']  # Use this when we finally implement dropdown
+
+    sections = {'ConnectionDetails': connection,
+                'AudioSettings': audio_settings,
+                'ChatSettings': chat_settings,
+                'HQRecordingSettings': hq_recording_settings,
+                'LQRecordingSettings': lq_recording_settings}
+
     def __init__(self, file):
         """
         Initializes config file at location given or with file already at location given.
@@ -30,17 +45,10 @@ class Config(ConfigParser.SafeConfigParser):
         Checks the config file and ensure all sections exist
         If not, add the sections and initialize to "None"
         """
-        connection = ['user', 'password', 'server', 'call_no']
-        audio_settings = ['mic', 'speakers', 'recording_location']
-        chat_settings = ['ip_address', 'port', 'username', 'role']
-        sections = {'ConnectionDetails': connection,
-                    'AudioSettings': audio_settings,
-                    'ChatSettings': chat_settings}
-
-        for section in sections:
+        for section in self.sections:
             if not self.has_section(section):
                 self.add_section(section)
-            for option in sections[section]:
+            for option in self.sections[section]:
                 if not self.has_option(section, option):
                     self.set(section, option, "None")
 
@@ -76,6 +84,12 @@ class Config(ConfigParser.SafeConfigParser):
             self.create_recording_location()
 
     def get_file_name(self, session_name, file_name):
+        """
+        Given a session name and file name, provide a fully qualified path to where it should be saved
+        :param session_name: name of the current session 'SESSION_DATETIME"
+        :param file_name: name of the file '[HQ|LQ]_DATETIME'
+        :return: A fully qualified path
+        """
         path = self.get('AudioSettings', 'recording_location')
         if path != "None":
             return os.path.join(path, session_name, file_name)  # If it is set up, record here
@@ -97,7 +111,9 @@ class Config(ConfigParser.SafeConfigParser):
         password = decoded[mark1 + 1:mark2]
         server = decoded[mark2 + 1:mark3]
         call_no = decoded[mark3 + 1:]
-        return [username, password, server, call_no]
+        # Old: return [username, password, server, call_no]
+        # TODO: This has been updated, please fix in other places
+        return {'user': username, 'password': password, 'server': server, 'call_no': call_no}
 
     def make_conn_string(self, username, password, server, call_no):
         """
@@ -110,23 +126,27 @@ class Config(ConfigParser.SafeConfigParser):
         conn_string = username + ';' + password + ";" + server + ';' + call_no
         return base64.b64encode(conn_string)
 
-    # TODO: Update these classes so they return objects instead of tuples, keep things organized
-    def get_connection_details(self):
-        user = self.get('ConnectionDetails', 'user')
-        password = self.get('ConnectionDetails', 'password')
-        server = self.get('ConnectionDetails', 'server')
-        call_no = self.get('ConnectionDetails', 'call_no')
-        return user, password, server, call_no
+    def get_section(self, section):
+        """
+        Returns a connection object, no more unordered tuple nonsense
+        :param section: Name of the section, as defined in self.sections
+        :return: A dict of the names and values in section
+        """
+        if section not in self.sections:
+            print "Bad section defined"
+            return
 
-    def get_audio_settings(self):
-        mic = self.get('AudioSettings', 'mic')
-        speakers = self.get('AudioSettings', 'speakers')
-        recording_location = self.get('AudioSettings', 'recording_location')
-        return mic, speakers, recording_location
+        obj = {}
+        for item in self.sections[section]:
+            obj[item] = self.get(section, item)
+        return obj
 
-    def get_chat_settings(self):
-        ip_address = self.get('ChatSettings', 'ip_address')
-        port = self.get('ChatSettings', 'port')
-        username = self.get('ChatSettings', 'username')
-        role = self.get('ChatSettings', 'role')
-        return ip_address, port, username, role
+
+if __name__ == '__main__':
+    config = Config('conn.conf')
+    a = config.get_section('ConnectionDetails')
+    print config.get_section('AudioSettings')
+    print config.get_section('ChatSettings')
+    b = config.make_conn_string(a['user'], a['password'], a['server'], a['call_no'])
+    print b
+    print config.parse_conn_string(b)

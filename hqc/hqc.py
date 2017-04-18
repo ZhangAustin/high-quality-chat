@@ -55,8 +55,6 @@ class HQCPhone(object):
             'registration_state_changed': registration_state_changed,
         }
         self.core = linphone.Core.new(callbacks, None, None)
-        self.add_proxy_config()
-        self.add_auth_info()
 
         def log_handler(level, msg):
             """
@@ -77,6 +75,9 @@ class HQCPhone(object):
 
     def make_call(self, number, server, lq_file):
         """Pop a thread open that targets _make_call"""
+        self.add_proxy_config()
+        self.add_auth_info()
+
         self.current_call = Thread(target=self._make_call, args=(number, server, lq_file))
         self.current_call.start()
 
