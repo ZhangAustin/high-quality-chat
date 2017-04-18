@@ -1,12 +1,14 @@
-from ws4py.client.threadedclient import WebSocketClient
 import base64
-import constants
 import json
 import ntpath
+import os
 import socket
 import threading
 import time
-import os
+
+from ws4py.client.threadedclient import WebSocketClient
+
+import constants
 
 
 class ClientThread(threading.Thread):
@@ -53,6 +55,18 @@ class HQCWSClient(WebSocketClient):
         self.client_thread.daemon = True
         self.client_thread.start()
 
+    def send(self, payload, binary):
+        """
+        Override the default send to keep it from crashing kivy when there is no connected chat server
+        :return: 
+        """
+        try:
+            super(HQCWSClient, self).send(payload, binary)
+        except socket.error:
+            print "Message not sent due to socket error"
+            print "Message contents: "
+            print payload
+
     def opened(self):
         """
         Called when a connection is established
@@ -61,6 +75,7 @@ class HQCWSClient(WebSocketClient):
         print "Connection opened"
         payload = self.new_payload()
         payload['type'] = constants.ROLE_VERIFICATION
+
         self.send(str(json.dumps(payload)), False)
 
     def finish(self):
@@ -311,11 +326,7 @@ class HQCWSClient(WebSocketClient):
         payload["type"] = constants.CHAT
         # Store the message in the payload
         payload["message"] = message
-        try:
-            # Send the payload as a string
-            self.send(json.dumps(payload), False)
-        except socket.error:
-            print "Message could not be sent"
+        self.send(json.dumps(payload), False)
         # Avoid feedback
         time.sleep(0.2)
 
@@ -333,6 +344,8 @@ class HQCWSClient(WebSocketClient):
         payload['filename'] = os.path.basename(filepath)
         # Send the payload as a binary message by marking binary=True
         self.send(str(json.dumps(payload)), True)
+        # Avoid feedback
+        time.sleep(0.2)
         fh.close()
         # self.close()
 
