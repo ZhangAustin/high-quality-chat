@@ -426,7 +426,7 @@ class ArtistJoiningScreen(Screen):
                 return False
 
             if not is_valid(connection_details['server']) \
-                    or not is_valid(connection_details['username']) \
+                    or not is_valid(connection_details['user']) \
                     or not is_valid(connection_details['password']) \
                     or not is_valid(connection_details['call_no']):
                 # If the stored values aren't valid, nogood
