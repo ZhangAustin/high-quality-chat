@@ -127,7 +127,10 @@ class HQCPhone(object):
             folder_name = os.path.dirname(absolute_path)
             # Add the number of the recording to the start of the file
             file_name = str(len(self.recording_locations)) + '_' + file_name
+            # TODO: Have this go to the correct location in the config file
             return os.path.join(folder_name, file_name)
+            # return config.create_recording_location()
+
 
         self.update = True
 
@@ -324,6 +327,9 @@ class HQCPhone(object):
 
         # Gracefully hang up
         self.core.terminate_all_calls()
+
+        while self.call.media_in_progress():
+            self.hold_open()
 
         self.end_call = True
 

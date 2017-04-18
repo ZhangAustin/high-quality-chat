@@ -257,6 +257,7 @@ class SessionScreen(Screen):
             progress = False
             self.ids.record_button.source = SessionScreen.record_red
             self.app.recorder.stop()
+            self.app.phone.stop_start_recording(datetime.now().strftime(constants.DATETIME_LQ))
             self.add_clip()  # adds to gui sidebar
 
             print "Done recording"

@@ -2,6 +2,8 @@ import Queue
 import os
 import time
 import wave
+from datetime import datetime
+from datetime import timedelta
 from threading import Thread
 
 import pyaudio
@@ -9,6 +11,7 @@ from pydub import AudioSegment
 from pydub.playback import play
 
 from Config import Config
+from chat import constants
 
 
 class Recorder:
@@ -101,6 +104,27 @@ class Recorder:
             data = self._frames.get()
             self._output.writeframes(b''.join(data))
             self._frames.task_done()
+
+
+def get_audio_from_filename(filename, length, lowquals):
+    """
+    Figures out what LQ 
+    :param filename: The name of the file (direct from sync chat)
+    :param length: The length of the file specified in filename (direct from sync chat)
+    :param lowquals: An array of finalized low quality recordings
+    :return: A file name and relative time index
+    """
+    time = datetime.strptime(filename, constants.DATETIME_HQ)  # Auto strips 'HQ_' and '.wav'
+    for lowqual in lowquals:
+        lq_time = datetime.strptime(lowqual, constants.DATETIME_LQ)
+        if lq_time <= time:  # Check if the LQ recording started before the HQ recording
+            # Check if the end of the LQ recording is after the end of the HQ recording
+            time_end = time + timedelta(0, length)
+            lq_length = get_length(lowqual)
+            lq_time_end = lq_time + timedelta(0, lq_length)
+            if lq_time_end > time_end:
+                return lowqual
+    print "Something went wrong, {} not found in LQ array".format(time)
 
 
 def playback(filename, start, end=None, playback_time=None):
