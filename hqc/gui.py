@@ -116,9 +116,7 @@ class SessionScreen(Screen):
     un_muted_mic_image = '../img/microphone.png'
     muted_mic_image = '../img/muted.png'
 
-    stop_black = '../img/stop_black.png'
     stop_theme = '../img/stop_theme.png'
-    record_black = '../img/record_black.png'
     record_red = '../img/record_theme2.png'
 
     # Store a large string of all chat messages
@@ -166,12 +164,9 @@ class SessionScreen(Screen):
         # add request button
         filename = self.audio_files[-1]
         print self.audio_files[-1]
-        btn2 = Button(text="Request", size=(100, 50),
-                      size_hint=(0.32, None))
 
         self.ids.audioSidebar.add_widget(btn)
         self.ids.audioSidebar.add_widget(label)
-        self.ids.audioSidebar.add_widget(btn2)
 
     def add_file(self, file):
         # Called when artist receives a sync request file
@@ -330,6 +325,18 @@ class SessionScreen(Screen):
         if self.app.recording:
             self.record_button()
 
+class ProducerSessionScreen(SessionScreen):
+    pass
+
+class ArtistSessionScreen(SessionScreen):
+    def add_clip(self):
+        super(ArtistSessionScreen, self).add_clip()
+        btn2 = Button(text="Request", size=(100, 50),
+                      size_hint=(0.32, None))
+        self.ids.audioSidebar.add_widget(btn2)
+
+class ListenerSessionScreen(SessionScreen):
+    pass
 
 class ProducerJoiningScreen(Screen):
     app = ObjectProperty(None)
@@ -385,7 +392,7 @@ class ProducerJoiningScreen(Screen):
         self.app.storage_dir = self.app.config.get('AudioSettings', 'recording_location')
         os.makedirs(os.path.join(self.app.storage_dir, self.app.session_name))
 
-        self.parent.current = 'session'
+        self.parent.current = 'producer_session'
 
         file_name = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
         self.app.phone.make_call(connection_details['call_no'], connection_details['server'], file_name)
@@ -447,7 +454,10 @@ class ArtistJoiningScreen(Screen):
         self.app.storage_dir = self.app.config.get('AudioSettings', 'recording_location')
         os.makedirs(os.path.join(self.app.storage_dir, self.app.session_name))
 
-        self.parent.current = 'session'
+        if self.app.config.get('ChatSettings', 'role') == "ARTIST":
+            self.parent.current = 'artist_session'
+        else:
+            self.parent.current = 'listener_session'
 
         filename = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
         self.app.phone.make_call(connection_details['call_no'], connection_details['server'], filename)
