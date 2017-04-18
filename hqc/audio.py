@@ -28,19 +28,19 @@ class Recorder:
         :param filename: Filename to record into
         """
         self._config = Config('conn.conf')
-        audio_config = self._config.get_section('LQRecordingSettings')
+        audio_config = self._config.get_section('HQRecordingSettings')
 
         self._p = pyaudio.PyAudio()
-        self._stream = self._p.open(format=self._p.get_format_from_width(audio_config['width']),
-                                    channels=audio_config['channels'],
-                                    rate=audio_config['rate'],
+        self._stream = self._p.open(format=self._p.get_format_from_width(int(audio_config['width'])),
+                                    channels=int(audio_config['channels']),
+                                    rate=int(audio_config['rate']),
                                     input=True,
                                     stream_callback=self._callback)
 
         self._output = wave.open(filename, 'wb')
-        self._output.setnchannels(audio_config['channels'])
-        self._output.setsampwidth(audio_config['width'])
-        self._output.setframerate(audio_config['rate'])
+        self._output.setnchannels(int(audio_config['channels']))
+        self._output.setsampwidth(int(audio_config['width']))
+        self._output.setframerate(int(audio_config['rate']))
 
         self._audio_writer = Thread(target=self._write_queue_to_file)
         self._audio_writer.daemon = True
@@ -138,7 +138,7 @@ def get_length(filename):
     """
     file_name, file_extension = os.path.splitext(filename)
     audio = AudioSegment.from_file(filename, file_extension[1:])
-    return float(len(audio) / 1000)
+    return float(len(audio)) / 1000
 
 
 if __name__ == '__main__':

@@ -50,6 +50,7 @@ class HQCWebSocket(EchoWebSocket):
         if username not in app.current_clients:
             app.current_clients[username] = {}
             app.current_clients[username]['role'] = role
+            # TODO: Make this message display on all gui clients
             print role + " " + username + " has joined the session."
             print "Current session members: " + str(app.current_clients)
         if message_type == constants.CHAT:
