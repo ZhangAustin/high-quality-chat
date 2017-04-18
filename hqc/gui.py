@@ -174,15 +174,18 @@ class SessionScreen(Screen):
             print "Chat client not connected"
         print self.requested_files
 
-    def update_requested_files(self, username, message):
+    def request_file(self, username, filename):
         """
         Called upon when the user requests a file
-        :param username: name of user requesting file
-        :param message: string of file requested
+        :param username: name of user who has the file
+        :param filename: string of file requested
         :return: None
         """
-        print message
-        self.requested_files += [message]
+        print "Requesting {} from {}".format(filename, username)
+        # Send a sync message to request a file.
+        self.app.chat_client.send_sync(constants.SYNC_REQUESTFILE,
+                                       username=username,
+                                       filename=filename)
 
     def update_send_files(self, username, message):
         """
@@ -253,12 +256,14 @@ class SessionScreen(Screen):
             self.app.recorder.stop()
             self.add_clip()  # adds to gui sidebar
 
+            print "Done recording"
+
+            # TODO: get the correct file length
             # Send a sync message for when a clip is available
             self.app.chat_client.send_sync(constants.SYNC_FILE_AVAILABLE,
                                            username=self.app.config.get('ChatSettings', 'username'),
                                            filename=self.audio_files[-1],
                                            length=audio.get_length(self.audio_files[-1]))
-            print "Done recording"
 
     def record_progress(self):
         global progress

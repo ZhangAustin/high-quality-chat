@@ -42,7 +42,7 @@ class HQCWSClient(WebSocketClient):
         except:
             self.username = constants.USERNAME
             self.role = constants.ARTIST
-            self.save_directory = None
+            self.save_directory = "Saved_Recordings"
         # Set in GUI initialization
         self.app = None
         try:
@@ -100,6 +100,32 @@ class HQCWSClient(WebSocketClient):
         head, tail = ntpath.split(path)
         return tail or ntpath.basename(head)
 
+    def received_message(self, message):
+        """
+        Overrides WebSocket. Called upon receiving any message type
+        :param message: JSON object of entire message
+        :return: None
+        """
+        if self.app is not None:
+            # Retrieve the message dictionary
+            parsed_json = json.loads(str(message))
+            # Get the message type
+            message_type = parsed_json['type']
+            if message_type == constants.FILE:
+                self.handle_recv_file_message(parsed_json)
+
+            elif message_type == constants.CHAT:
+                self.handle_recv_chat_message(parsed_json)
+
+            elif message_type in constants.SYNC:
+                self.handle_recv_sync_message(parsed_json)
+
+        else:
+            # Retrieve the message dictionary
+            parsed_json = json.loads(str(message))
+            if parsed_json['type'] == constants.CHAT:
+                print "[%s]: %s" % (parsed_json['username'], parsed_json['message'])
+
     def handle_recv_file_message(self, parsed_json):
         """
         Writes the decoded contents of a file to disk
@@ -131,7 +157,6 @@ class HQCWSClient(WebSocketClient):
         :param parsed_json: the original json message
         :return:
         """
-        print("Sync message received.")
         status_code = parsed_json['type']
         username = parsed_json['username']
         message = parsed_json['message']
@@ -165,11 +190,21 @@ class HQCWSClient(WebSocketClient):
             print "{} stopped recording at {}".format(username, timestamp)
             # Do something in GUI
         elif status_code == constants.SYNC_REQUESTFILE:
-            filename = parsed_json['message']
-            print "{} added {} as requested file".format(username, filename)
-            # Do something in GUI
-            if self.app:
-                self.app.update_requested_files(username, filename)
+            # If the request was meant for this client
+            if self.username == parsed_json['message']['username']:
+                # Get sender's username
+                username = parsed_json['username']
+                filename = parsed_json['message']['filename']
+                print filename + " requested by " + username
+                # Do something in GUI
+                if self.app:
+                    self.app.file_requested(username, filename)
+                    if os.path.exists(self.save_directory + os.path.sep + filename):
+                        self.send_file(self.save_directory + os.path.sep + filename)
+                    else:
+                        print self.save_directory + os.path.sep + filename + " not found"
+                else:
+                    print "App not connected"
         elif status_code == constants.SYNC_SENDFILE:
             filename = message['filename']
             _, file = os.path.split(filename)
@@ -189,6 +224,62 @@ class HQCWSClient(WebSocketClient):
         else:
             print "Status code {} in constants.SYNC but has no handler (recv from {})".format(status_code, username)
 
+    def send_sync(self, sync_code, **kwargs):
+        """
+        Forms and sends a sync message in order to reflect state changes in all connected users' GUI
+        :param sync_code: Status to send, as defined in constants
+        keywords:
+            -filename
+            -username
+            -length
+        """
+        payload = self.new_payload()
+        payload['type'] = sync_code
+        if sync_code == constants.SYNC_RECORDINGSTART:
+            if kwargs['timestamp']:
+                payload['message'] = kwargs['timestamp']
+                self.send(json.dumps(payload), False)
+            else:
+                print "No timestamp provided for sync message"
+
+        elif sync_code == constants.SYNC_RECORDINGSTOP:
+            print "SYNC_RECORDINGSTOP not implemented"
+
+        elif sync_code == constants.SYNC_SENDFILE:
+            # Name of the file available
+            try:
+                payload['message'] = {}
+                payload['message']['filename'] = kwargs['filename']
+                payload['message']['length'] = kwargs['length']
+            except KeyError:
+                print "SYNC_SENDFILE needs filename and length."
+            self.send(json.dumps(payload), False)
+
+        elif sync_code == constants.SYNC_REQUESTFILE:
+            try:
+                payload['message'] = {}
+                payload['message']['filename'] = kwargs['filename']
+                payload['message']['username'] = kwargs['username']
+            except KeyError:
+                print "SYNC_REQUESTFILE needs username filename."
+            self.send(json.dumps(payload), False)
+
+        elif sync_code == constants.SYNC_FILE_AVAILABLE:
+            try:
+                _, tail = os.path.split(kwargs['filename'])
+                print "Sending {} availability".format(tail)
+                payload['message'] = {}
+                payload['message']['username'] = kwargs['username']
+                payload['message']['filename'] = kwargs['filename']
+                payload['message']['length'] = kwargs['length']
+            except KeyError:
+                print "SYNC_SENDFILE needs filename and length."
+            self.send(json.dumps(payload), False)
+
+        else:
+            print "Uncaught sync code"
+            self.send(json.dumps(payload), False)
+
     def update_app_chat(self, username, message):
         # Check if being used in our application
         if self.app is not None:
@@ -205,33 +296,6 @@ class HQCWSClient(WebSocketClient):
         :return: None
         """
         print "[%s]: %s" % (username, message)
-
-    def received_message(self, message):
-        """
-        Overrides WebSocket. Called upon receiving any message type
-        :param message: JSON object of entire message
-        :return: None
-        """
-        if self.app is not None:
-            # Retrieve the message dictionary
-            parsed_json = json.loads(str(message))
-            # Get the message type
-            message_type = parsed_json['type']
-            print message_type
-            if message_type == constants.FILE:
-                self.handle_recv_file_message(parsed_json)
-
-            elif message_type == constants.CHAT:
-                self.handle_recv_chat_message(parsed_json)
-
-            elif message_type in constants.SYNC:
-                self.handle_recv_sync_message(parsed_json)
-
-        else:
-            # Retrieve the message dictionary
-            parsed_json = json.loads(str(message))
-            if parsed_json['type'] == constants.CHAT:
-                print "[%s]: %s" % (parsed_json['username'], parsed_json['message'])
 
     def chat(self, message=None):
         """
@@ -271,46 +335,6 @@ class HQCWSClient(WebSocketClient):
         self.send(str(json.dumps(payload)), True)
         fh.close()
         # self.close()
-
-    def send_sync(self, sync_code, **kwargs):
-        """
-        Forms and sends a sync message in order to reflect state changes in all connected users' GUI
-        :param sync_code: Status to send, as defined in constants
-        :param timestamp: time of HQ recording stop or start, for use with SYNC_RECORDINGSTART and SYNC_RECORDINGSTOP
-        """
-        payload = self.new_payload()
-        payload['type'] = sync_code
-        if sync_code == constants.SYNC_RECORDINGSTART or sync_code == constants.SYNC_RECORDINGSTOP:
-            if kwargs['timestamp']:
-                payload['message'] = kwargs['timestamp']
-                self.send(json.dumps(payload), False)
-            else:
-                print "No timestamp provided for sync message"
-        elif sync_code == constants.SYNC_SENDFILE:
-            # Name of the file available
-            try:
-                payload['message'] = {}
-                payload['message']['filename'] = kwargs['filename']
-                payload['message']['length'] = kwargs['length']
-            except KeyError:
-                print "SYNC_SENDFILE needs filename and length."
-            self.send(json.dumps(payload), False)
-        elif sync_code == constants.SYNC_REQUESTFILE:
-            print "SYNC_REQUESTFILE not implemented."
-
-        elif sync_code == constants.SYNC_FILE_AVAILABLE:
-            try:
-                _, tail = os.path.split(kwargs['filename'])
-                print "Sending {} availability".format(tail)
-                payload['message'] = {}
-                payload['message']['username'] = kwargs['username']
-                payload['message']['filename'] = kwargs['filename']
-                payload['message']['length'] = kwargs['length']
-            except KeyError:
-                print "SYNC_SENDFILE needs filename and length."
-            self.send(json.dumps(payload), False)
-        else:
-            self.send(json.dumps(payload), False)
 
     def new_payload(self):
         """

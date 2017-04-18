@@ -14,6 +14,7 @@ import ntpath
 
 
 class HQCWebSocket(EchoWebSocket):
+
     def opened(self):
         """
         Called when a connection is established
@@ -44,7 +45,18 @@ class HQCWebSocket(EchoWebSocket):
         message = json.loads(str(received_message))
         message_type = message['type']
         username = message['username']
+        role = message['role']
+
+        # Keep for debugging
         print "Message type: {} from {}".format(message_type, username)
+
+        app = self.environ['ws4py.app']
+
+        if username not in app.current_clients:
+            app.current_clients[username] = {}
+            app.current_clients[username]['role'] = role
+            print role + " " + username + " has joined the session."
+            print "Current session members: " + str(app.current_clients)
         if message_type == constants.CHAT:
             self.handle_chat_message(received_message)
         elif message_type == constants.FILE:
@@ -114,6 +126,9 @@ class HQCWebSocket(EchoWebSocket):
         app = self.environ.pop('ws4py.app')
         if self in app.clients:
             app.clients.remove(self)
+            # TODO: remove client from current_clients
+            # if self in app.current_clients:
+            #     del app.current_clients
         print "%d clients connected" % (len(app.clients))
 
 
@@ -123,6 +138,8 @@ class HQCWebSocketApplication(object):
         self.port = port
         self.ws = WebSocketWSGIApplication(handler_cls=HQCWebSocket)
         self.clients = []
+        # TODO: remove clients when they exit
+        self.current_clients = {}
 
     def __call__(self, environ, start_response):
         environ['ws4py.app'] = self
