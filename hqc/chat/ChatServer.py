@@ -3,17 +3,13 @@ from ws4py.websocket import EchoWebSocket
 from ws4py.server.geventserver import WSGIServer
 from ws4py.server.wsgiutils import WebSocketWSGIApplication
 import sys
-
 import json
 import constants
 import ntpath
 
 
-#from config import Config
-#config = Config()
-
-
 class HQCWebSocket(EchoWebSocket):
+
     def opened(self):
         """
         Called when a connection is established
@@ -41,7 +37,22 @@ class HQCWebSocket(EchoWebSocket):
         :param received_message: JSON object of received message
         :return: None
         """
-        message_type = json.loads(str(received_message))['type']
+        message = json.loads(str(received_message))
+        message_type = message['type']
+        username = message['username']
+        role = message['role']
+
+        # Keep for debugging
+        print "Message type: {} from {}".format(message_type, username)
+
+        app = self.environ['ws4py.app']
+
+        if username not in app.current_clients:
+            app.current_clients[username] = {}
+            app.current_clients[username]['role'] = role
+            # TODO: Make this message display on all gui clients
+            print role + " " + username + " has joined the session."
+            print "Current session members: " + str(app.current_clients)
         if message_type == constants.CHAT:
             self.handle_chat_message(received_message)
         elif message_type == constants.FILE:
@@ -95,6 +106,7 @@ class HQCWebSocket(EchoWebSocket):
         :param message: Sync message to forward
         :return: None
         """
+        # TODO: send to everybody but the sender
         app = self.environ['ws4py.app']
         for client in app.clients:
             client.send(message, False)
@@ -110,6 +122,9 @@ class HQCWebSocket(EchoWebSocket):
         app = self.environ.pop('ws4py.app')
         if self in app.clients:
             app.clients.remove(self)
+            # TODO: remove client from current_clients
+            # if self in app.current_clients:
+            #     del app.current_clients
         print "%d clients connected" % (len(app.clients))
 
 
@@ -119,6 +134,8 @@ class HQCWebSocketApplication(object):
         self.port = port
         self.ws = WebSocketWSGIApplication(handler_cls=HQCWebSocket)
         self.clients = []
+        # TODO: remove clients when they exit
+        self.current_clients = {}
 
     def __call__(self, environ, start_response):
         environ['ws4py.app'] = self

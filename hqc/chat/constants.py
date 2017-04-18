@@ -19,10 +19,27 @@ SYNC_RECORDINGSTOP = 12
 # END --- Contains timestamp payload --- #
 # START --- Contains filename payload --- #
 SYNC_REQUESTFILE = 13
+# Artist sends "SENDFILE" to notify producer of new recording
 SYNC_SENDFILE = 14
-# END --- Contains filname payload --- #
+# END --- Contains file name payload --- #
 
-SYNC = range(4, 15)
+# Contains username, filename, length
+SYNC_FILE_AVAILABLE = 15
+
+# IMPORTANT: Keep to date with sync messages that want to be used
+SYNC = [SYNC_TESTSYNCMSG,
+        SYNC_TESTSYNCMSG,
+        SYNC_MICON,
+        SYNC_MICOFF,
+        SYNC_SPEAKERON,
+        SYNC_SPEAKEROFF,
+SYNC_RECORDINGON,
+SYNC_RECORDINGOFF,
+SYNC_RECORDINGSTART,
+SYNC_RECORDINGSTOP,
+SYNC_REQUESTFILE,
+SYNC_SENDFILE,
+SYNC_FILE_AVAILABLE]
 
 # User roles
 ARTIST = "ARTIST"
@@ -33,3 +50,8 @@ LISTENER = "LISTENER"
 IP = '127.0.0.1'
 PORT = 9000
 USERNAME = 'user'
+
+# String formattings
+DATETIME_SESSION = 'SESSION_%Y%m%d_%H%M%S'
+DATETIME_LQ = 'LQ_%H%M%S.wav'
+DATETIME_HQ = 'HQ_%H%M%S.wav'
