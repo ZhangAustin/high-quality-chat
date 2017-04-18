@@ -3,9 +3,13 @@ import threading
 import time
 from datetime import datetime
 
+from kivy.config import Config
+
+Config.set('graphics', 'resizable', 0)  # This must occur before all other kivy imports
+
 import kivy
 from kivy.app import App
-from kivy.config import Config
+
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty
 from kivy.uix.actionbar import ActionItem
@@ -422,7 +426,7 @@ class ArtistJoiningScreen(Screen):
                 return False
 
             if not is_valid(connection_details['server']) \
-                    or not is_valid(connection_details['username']) \
+                    or not is_valid(connection_details['user']) \
                     or not is_valid(connection_details['password']) \
                     or not is_valid(connection_details['call_no']):
                 # If the stored values aren't valid, nogood
@@ -472,7 +476,8 @@ class FileTransferScreen(Screen):
                 self.ids.filelayout.add_widget(label)
 
     def leave_session(self):
-        self.app.chat_client.finish()
+        # TODO: Uncomment for release
+        # self.app.chat_client.finish()
         self.app.phone.hangup()
         App.get_running_app().stop()
 

@@ -25,6 +25,7 @@ class HQCPhone(object):
     call = ''
     current_call = None  # Thread for the call
     update = False
+    end_call = False
 
     # For testing purposes, these are relative paths
     # For implementation, these are absolute paths as defined in the config
@@ -70,11 +71,11 @@ class HQCPhone(object):
         linphone.set_log_handler(log_handler)
         self.core.video_capture_enabled = False  # remove both of these if we get video implemented
         self.core.video_display_enabled = False
-        self.core.capture_device = self.config.get('AudioSettings', 'mic')
-        self.core.playback_device = self.config.get('AudioSettings', 'speakers')
 
     def make_call(self, number, server, lq_file):
         """Pop a thread open that targets _make_call"""
+        self.core.capture_device = self.config.get('AudioSettings', 'mic')
+        self.core.playback_device = self.config.get('AudioSettings', 'speakers')
         self.add_proxy_config()
         self.add_auth_info()
 
@@ -106,8 +107,7 @@ class HQCPhone(object):
         print "Recording into {}".format(lq_file)
         self.call.start_recording()
 
-        while not self.update:
-            self.hold_open()
+        self._hold_open()
 
     def stop_start_recording(self, lq_file, final=False):
         """
@@ -129,6 +129,8 @@ class HQCPhone(object):
             file_name = str(len(self.recording_locations)) + '_' + file_name
             return os.path.join(folder_name, file_name)
 
+        self.update = True
+
         self.call.stop_recording()
         # Move the file specified by recording_start into recording_current
         new_name = generate_name(self.recording_current)
@@ -141,26 +143,46 @@ class HQCPhone(object):
             self.recording_current = lq_file
             self.call.start_recording()
 
+        self.update = False
+
     def mute_mic(self):
         """
         Handles muting the Linphone. core.mic_enable is built-in
         :return: None
         """
+        self.update = True
         self.core.mic_enabled = False
+        self.update = False
 
     def unmute_mic(self):
         """
         Handles un-muting the Linphone. core.mic_enable is built-in
         :return: None
         """
+        self.update = True
         self.core.mic_enabled = True
+        self.update = False
 
     def toggle_mic(self):
         """
         If the mic is enabled, disable it and vice versa
         :return: 
         """
+        self.update = True
         self.core.mic_enabled = not self.core.mic_enabled
+        self.update = False
+
+    def _hold_open(self):
+        """
+        A special hold open method that handles instructions to running calls.
+        :return: 
+        """
+        while not self.update:  # Call has been established, so keep it running
+            self.hold_open()
+        while self.update:  # Call is being updated, wait for modifying function to return
+            time.sleep(1)
+        if not self.end_call:  # If the call is continuing, recurse.  Else, terminate
+            self._hold_open()
 
     def hold_open(self, total_time=-1, cycle_time=0.03):
         """
@@ -220,7 +242,7 @@ class HQCPhone(object):
     def force_codec_type(self, codec):
         """
         Disables all codecs except for the specified codec.  If the specified codec is not found, enable all codecs
-        :param codec: an array returned from get_codecs
+        :param codec: an array returned from get_codecs 
         :return: 1 on success, 0 on failure (no matching codec)
         """
         # Cannot reliably use core.find_audio_codec due to issue with bitrate selection
@@ -296,11 +318,14 @@ class HQCPhone(object):
         Gracefully disconnects the call
         :return: 
         """
+        self.update = True
         # Gracefully end the LQ recording stream
         self.stop_start_recording(None, final=True)
 
         # Gracefully hang up
         self.core.terminate_all_calls()
+
+        self.end_call = True
 
 
 if __name__ == '__main__':
