@@ -30,7 +30,7 @@ class Recorder:
         Creates the high quality recorder
         :param filename: Filename to record into
         """
-        self._config = Config('conn.conf')
+        self._config = Config.get_instance('conn.conf')
         audio_config = self._config.get_section('HQRecordingSettings')
 
         self._p = pyaudio.PyAudio()

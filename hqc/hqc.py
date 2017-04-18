@@ -80,6 +80,7 @@ class HQCPhone(object):
         self.add_auth_info()
 
         self.current_call = Thread(target=self._make_call, args=(number, server, lq_file))
+        self.current_call.daemon = True
         self.current_call.start()
 
     def _make_call(self, number, server, lq_file):
@@ -378,7 +379,7 @@ if __name__ == '__main__':
 
     def make_core_objects():
 
-        config = Config('conn.conf')
+        config = Config.get_instance('conn.conf')
         phone = HQCPhone(config)
         return phone, config
 

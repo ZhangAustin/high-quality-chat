@@ -8,6 +8,9 @@ import os
 class Config(ConfigParser.SafeConfigParser):
     """Handles creation and updating of configuration settings."""
 
+    # Used for making Config a singleton
+    _instance = None
+
     #  CONFIG FILE SPECIFICATIONS
     connection = ['user', 'password', 'server', 'call_no']
     audio_settings = ['mic', 'speakers', 'recording_location']
@@ -23,6 +26,11 @@ class Config(ConfigParser.SafeConfigParser):
                 'LQRecordingSettings': lq_recording_settings}
 
     def __init__(self, file):
+        if Config._instance is not None:
+            print "test"
+            raise ValueError("Use get_instance when config instance already "
+                             "exists.")
+
         """
         Initializes config file at location given or with file already at location given.
         :param file: File path to either create new config file or of already existing config file to use.
@@ -35,10 +43,20 @@ class Config(ConfigParser.SafeConfigParser):
             f.close()
 
         self.read(self.file)
+        # Populates the config with sections
         self.check()
+        # Sets the default values for different sections
+        self.load_defaults()
 
         with open(self.file, 'w') as config_file:
             self.write(config_file)
+
+    @classmethod
+    # Pass in parameters as keywords
+    def get_instance(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = Config(*args, **kwargs)
+        return cls._instance
 
     def check(self):
         """
@@ -53,6 +71,19 @@ class Config(ConfigParser.SafeConfigParser):
                     self.set(section, option, "None")
 
         self.create_recording_location()
+
+    def load_defaults(self):
+        """
+        Loads default values for fields that are 'None'
+        :return: 
+        """
+        default_list = [('HQRecordingSettings', 'width', '2'),
+                        ('HQRecordingSettings', 'channels', '2'),
+                        ('HQRecordingSettings', 'rate', '48000')]
+
+        for setting in default_list:
+            if self.get(setting[0], setting[1]) == 'None':
+                self.update_setting(setting[0], setting[1], setting[2])
 
     def create_recording_location(self):
         """
@@ -115,6 +146,7 @@ class Config(ConfigParser.SafeConfigParser):
         # TODO: This has been updated, please fix in other places
         return {'user': username, 'password': password, 'server': server, 'call_no': call_no}
 
+    # TODO: get parameters form config instead of user
     def make_conn_string(self, username, password, server, call_no):
         """
         Given a username, password, and server address, base64 encode them together
@@ -143,10 +175,12 @@ class Config(ConfigParser.SafeConfigParser):
 
 
 if __name__ == '__main__':
-    config = Config('conn.conf')
+    config = Config.get_instance(file='conn.conf')
     a = config.get_section('ConnectionDetails')
     print config.get_section('AudioSettings')
     print config.get_section('ChatSettings')
     b = config.make_conn_string(a['user'], a['password'], a['server'], a['call_no'])
     print b
     print config.parse_conn_string(b)
+
+
