@@ -55,9 +55,12 @@ class HQC(App):
         self.recorder = None
         # Boolean of whether or not the user is recording
         self.recording = False
-        # TODO: Description
+
+        # name of current lq_audio file (fetched from audio class)
         self.lq_audio = None
+        # name of session (producer_session, artist_session, or listener_session)
         self.session_name = None
+        # TODO description
         self.storage_dir = None
 
         # color for gui text
@@ -66,6 +69,7 @@ class HQC(App):
         # dict with usernames having list of (filename, length) tuples for download.
         # ex. filename, length = available_files['cptarnie'][0]
         self.available_files = {}
+
 
     # Build should only handle setting up GUI-specific items
     def build(self):
@@ -113,8 +117,9 @@ class SessionScreen(Screen):
     muted_mic_image = '../img/muted.png'
 
     stop_black = '../img/stop_black.png'
+    stop_theme = '../img/stop_theme.png'
     record_black = '../img/record_black.png'
-    record_red = '../img/record_red.png'
+    record_red = '../img/record_theme2.png'
 
     # Store a large string of all chat messages
     chat_messages = StringProperty()
@@ -237,7 +242,7 @@ class SessionScreen(Screen):
         self.app.recording = not self.app.recording
 
         if self.app.recording:
-            self.ids.record_button.source = SessionScreen.stop_black
+            self.ids.record_button.source = SessionScreen.stop_theme
 
             global progress
             progress = True
