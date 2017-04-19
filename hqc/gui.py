@@ -18,6 +18,7 @@ from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
+from kivy.uix.dropdown import DropDown
 from kivy.uix.progressbar import ProgressBar
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.togglebutton import ToggleButton
@@ -463,6 +464,60 @@ class SettingsScreen(Screen):
         self.app.chat_client.username = text_input
         self.app.config.update_setting("ChatSettings", "username", text_input)
         self.parent.ids.username_setting.text = ""
+
+    def save_settings(self, setting1, setting2, setting3):
+        children = self.ids.devices.children[:]
+        index = 0
+        while children:
+            child = children.pop()
+            if (index == 0 and child.text != 'Recording Devices'):
+                self.app.config.update_setting("AudioSettings", "mic", child.text)
+            if (index == 1 and child.text != 'Audio Devices'):
+                self.app.config.update_setting("AudioSettings", "speakers", child.text)
+            if (index == 2 and child.text != "Codec"):
+                codec = child.text
+                newcodec = [codec[0:codec.find(',')]]
+                newcodec += [codec[(codec.find(',')+ 1): codec.find("bps")]]
+                newcodec += [codec[(codec.find("bps") + 3): codec.find("channels")]]
+                self.app.config.update_setting("LQRecordingSettings", "codec", codec)
+            index += 1
+        if setting1 != '':
+            self.app.config.update_setting("ConnectionDetails", "user", setting1)
+        print self.app.config.get_section("AudioSettings")
+        print self.app.config.get_section("LQRecordingSettings")
+
+    def on_enter(self):
+        dropdown = DropDown()
+        recording_devices = self.app.phone.get_recording_devices()
+        for i in range(len(recording_devices)):
+            btn = Button(text=recording_devices[i], size_hint_y=None, height = 44)
+            btn.bind(on_release=lambda btn: dropdown.select(btn.text))
+            dropdown.add_widget(btn)
+        recording_devices_main = Button(text='Recording Devices', size = (250, 75), size_hint = (None, None))
+        recording_devices_main.bind(on_release = dropdown.open)
+        dropdown.bind(on_select = lambda instance, x: setattr(recording_devices_main, 'text', x))
+        self.ids.devices.add_widget(recording_devices_main)
+        audio_devices = self.app.phone.get_playback_devices()
+        dropdown2 = DropDown()
+        for i in range(len(audio_devices)):
+            btn = Button(text=audio_devices[i],  size_hint_y=None, height = 44)
+            btn.bind(on_release=lambda btn: dropdown2.select(btn.text))
+            dropdown2.add_widget(btn)
+        audio_devices_main = Button(text='Audio Devices', size = (250, 75), size_hint = (None, None))
+        audio_devices_main.bind(on_release = dropdown2.open)
+        dropdown2.bind(on_select = lambda instance, x: setattr(audio_devices_main, 'text', x))
+        self.ids.devices.add_widget(audio_devices_main)
+        codec = self.app.phone.get_codecs()
+        dropdown3 = DropDown()
+        for i in range(len(codec)):
+            codec_text = str(codec[i][0]) + ", " + str(codec[i][1]) + "bps, " + str(codec[i][2]) + " channels"
+            btn = Button(text=codec_text, size_hint_y=None, height=44)
+            btn.bind(on_release=lambda btn: dropdown3.select(btn.text))
+            dropdown3.add_widget(btn)
+        codec_main = Button(text='Codec', size = (250, 75), size_hint=(None, None))
+        codec_main.bind(on_release=dropdown3.open)
+        dropdown3.bind(on_select=lambda instance, x: setattr(codec_main, 'text', x))
+        self.ids.devices.add_widget(codec_main)
 
 
 class FileTransferScreen(Screen):

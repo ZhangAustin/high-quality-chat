@@ -242,6 +242,7 @@ class HQCPhone(object):
 
         for printable_codec in printable_codecs:
             print printable_codec
+        return printable_codecs
 
     def force_codec_type(self, codec):
         """
