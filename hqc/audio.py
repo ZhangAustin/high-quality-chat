@@ -10,7 +10,7 @@ import pyaudio
 from pydub import AudioSegment
 from pydub.playback import play
 
-from Config import Config
+from HQCConfig import HQCConfig
 from chat import constants
 
 
@@ -30,7 +30,7 @@ class Recorder:
         Creates the high quality recorder
         :param filename: Filename to record into
         """
-        self._config = Config.get_instance('conn.conf')
+        self._config = HQCConfig.get_instance('conn.conf')
         audio_config = self._config.get_section('HQRecordingSettings')
 
         self._p = pyaudio.PyAudio()

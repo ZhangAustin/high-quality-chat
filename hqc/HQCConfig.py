@@ -5,7 +5,7 @@ import os
 
 # TODO: fix lossy encoding in "ConnectionDetails"
 #  Inherits methods such as get() from SafeConfigParser
-class Config(ConfigParser.SafeConfigParser):
+class HQCConfig(ConfigParser.SafeConfigParser):
     """Handles creation and updating of configuration settings."""
 
     # Used for making Config a singleton
@@ -26,7 +26,7 @@ class Config(ConfigParser.SafeConfigParser):
                 'LQRecordingSettings': lq_recording_settings}
 
     def __init__(self, file):
-        if Config._instance is not None:
+        if HQCConfig._instance is not None:
             print "test"
             raise ValueError("Use get_instance when config instance already "
                              "exists.")
@@ -55,7 +55,7 @@ class Config(ConfigParser.SafeConfigParser):
     # Pass in parameters as keywords
     def get_instance(cls, *args, **kwargs):
         if not cls._instance:
-            cls._instance = Config(*args, **kwargs)
+            cls._instance = HQCConfig(*args, **kwargs)
         return cls._instance
 
     def check(self):

@@ -1,15 +1,10 @@
-import os
-import threading
-import time
+from chat import constants
+from chat.ChatClient import HQCWSClient
+from HQCConfig import HQCConfig as hqc_config
 from datetime import datetime
-
-from kivy.config import Config
-
-Config.set('graphics', 'resizable', 0)  # This must occur before all other kivy imports
-
-import kivy
+from hqc import HQCPhone
 from kivy.app import App
-
+from kivy.config import Config
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty
 from kivy.uix.actionbar import ActionItem
@@ -22,23 +17,13 @@ from kivy.uix.dropdown import DropDown
 from kivy.uix.progressbar import ProgressBar
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.togglebutton import ToggleButton
-
 import audio
-from Config import Config
-from chat import constants
-from chat.ChatClient import HQCWSClient
-from hqc import HQCPhone
+import kivy
+import os
+import threading
+import time
 
-# audioClipLayout = GridLayout(cols=3, padding=10, spacing=5,
-#                     size_hint=(None, None), width=310)
-# layout2 = GridLayout(cols=1, padding=10, spacing=5,
-#                      size_hint=(None, None), width=410)
-
-# TODO: REMOVE GLOBAL VARIABLES. Put them in the config, a class definition, or default parameter.
-start_recording = False
-filenames = []
-recorder = None
-progress = False
+Config.set('graphics', 'resizable', 0)  # This must occur before all other kivy imports
 kivy.require('1.0.7')
 
 
@@ -49,18 +34,19 @@ class HQC(App):
     """
     def __init__(self, **kwargs):
         super(HQC, self).__init__(**kwargs)
-        self.config = Config.get_instance("conn.conf")
+        self.config = hqc_config.get_instance(file="conn.conf")
         self.phone = HQCPhone(self.config)
         self.chat_client = None
         # Recorder object from audio module
         self.recorder = None
-        # Boolean of whether or not the user is recording
-        self.recording = False
+        # Recording directory
+        self.storage_dir = self.config.get('AudioSettings', 'recording_location')
+        self.session_name = datetime.now().strftime(constants.DATETIME_SESSION)
+        if not os.path.exists(os.path.join(self.storage_dir, self.session_name)):
+            os.makedirs(os.path.join(self.storage_dir, self.session_name))
 
         # name of current lq_audio file (fetched from audio class)
         self.lq_audio = None
-        # name of session (producer_session, artist_session, or listener_session)
-        self.session_name = None
         # TODO description
         self.storage_dir = None
 
@@ -70,7 +56,7 @@ class HQC(App):
     # Build should only handle setting up GUI-specific items
     def build(self):
         # Kivy is stubborn and overrides self.config with a built-in ConfigParser
-        self.config = Config.get_instance("conn.conf")
+        self.config = hqc_config.get_instance(file="conn.conf")
         # Give the web socket a reference to the app
         gui = Builder.load_file("HQC.kv")
         self.root = gui
@@ -165,8 +151,8 @@ class SessionScreen(Screen):
         SessionScreen.clip_no += 1
 
         # add play button and filename index # for later playback
-        btn = ToggleButton(background_normal= '../img/play.png',
-                   size_hint=(.18, 1), group = 'play', allow_stretch=False)
+        btn = ToggleButton(background_normal='../img/play.png',
+                           size_hint=(.18, 1), group='play', allow_stretch=False)
         btn.apply_property(clip_no=NumericProperty(SessionScreen.clip_no))
         btn.bind(on_press=self.play_clip)
 
@@ -175,8 +161,6 @@ class SessionScreen(Screen):
         label = Label(text=os.path.basename(audio_files[-1])[0:9], halign='left', size_hint=(.5, 0.2))
 
         # add request button
-        filename = audio_files[-1]
-        print audio_files[-1]
         btn2 = Button(text="Request", size=(100, 50),
                       size_hint=(0.32, None))
 
@@ -223,7 +207,7 @@ class SessionScreen(Screen):
 
     def play_clip(self, obj):
         """
-        
+        Plays the selected file.
         :param obj: ToggleButton object
         :return: 
         """
@@ -249,17 +233,16 @@ class SessionScreen(Screen):
     def record_button(self):
 
         # Toggle recording
-        self.app.recording = not self.app.recording
+        rec_state = self.app.get_own_state()['recording']
+        self.app.get_own_state()['recording'] = not rec_state
 
-        if self.app.recording:
+        if self.app.get_own_state()['recording']:
             # Update state
             self.app.chat_client.send_sync(constants.SYNC_START_RECORDING)
             self.ids.record_button.source = SessionScreen.stop_theme
 
-            global progress
-            progress = True
-            mythread = threading.Thread(target=self.record_progress)
-            mythread.start()
+            progress_thread = threading.Thread(target=self.record_progress)
+            progress_thread.start()
 
             filename = self.app.config.get_file_name(self.app.session_name,
                                                      datetime.now().strftime(constants.DATETIME_HQ))
@@ -274,7 +257,6 @@ class SessionScreen(Screen):
         else:
             # Update state
             self.app.chat_client.send_sync(constants.SYNC_STOP_RECORDING)
-            progress = False
             self.ids.record_button.source = SessionScreen.record_red
             self.app.recorder.stop()
             self.app.phone.stop_start_recording(datetime.now().strftime(constants.DATETIME_LQ))
@@ -289,8 +271,7 @@ class SessionScreen(Screen):
                                            length=audio.get_length(available_filename))
 
     def record_progress(self):
-        global progress
-        while progress:
+        while self.app.get_own_state()['recording']:
             time.sleep(0.05)
             self.ids.progress_bar.value = (self.ids.progress_bar.value + 1) % 31  # datetime.now().second % 6.0
 
@@ -396,10 +377,6 @@ class ProducerJoiningScreen(Screen):
         # # Open the popup
         # popup.open()
 
-        self.app.session_name = datetime.now().strftime(constants.DATETIME_SESSION)
-        self.app.storage_dir = self.app.config.get('AudioSettings', 'recording_location')
-        os.makedirs(os.path.join(self.app.storage_dir, self.app.session_name))
-
         self.parent.current = 'session'
 
         file_name = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
@@ -456,11 +433,6 @@ class ArtistJoiningScreen(Screen):
                               content=Label(text=error_message),
                               size_hint=(None, None), size=(400, 400))
                 popup.open()
-
-        # TODO: Put all recordings into session name.
-        self.app.session_name = datetime.now().strftime(constants.DATETIME_SESSION)
-        self.app.storage_dir = self.app.config.get('AudioSettings', 'recording_location')
-        os.makedirs(os.path.join(self.app.storage_dir, self.app.session_name))
 
         self.parent.current = 'session'
 
