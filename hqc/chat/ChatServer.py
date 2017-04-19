@@ -43,7 +43,10 @@ class HQCWebSocket(EchoWebSocket):
         role = message['role']
 
         # Keep for debugging
-        print "Message type: {} from {}".format(message_type, username)
+        if message_type in constants.SYNC_CODE_WORDS:
+            print "{} from {}".format(constants.SYNC_CODE_WORDS[message_type], username)
+        else:
+            print "Message type: {} from {}".format(message_type, username)
 
         app = self.environ['ws4py.app']
 

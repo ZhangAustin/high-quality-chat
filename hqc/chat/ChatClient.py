@@ -55,6 +55,19 @@ class HQCWSClient(WebSocketClient):
         self.client_thread.daemon = True
         self.client_thread.start()
 
+        # Initial settings of a client when joining
+        # Defines the states of the client
+        self.states = {self.username: {'mic_muted': True,
+                                       'recording': False,
+                                       'downloading': False,
+                                       'uploading': False,
+                                       # List of (filename, length) tuples
+                                       "audio_files": [],
+                                       # List of(filename, length) tuples
+                                       'requested_files': [],
+                                       # List of(filename, length) tuples
+                                       'downloaded files': []}}
+
     def send(self, payload, binary):
         """
         Override the default send to keep it from crashing kivy when there is no connected chat server
@@ -177,34 +190,21 @@ class HQCWSClient(WebSocketClient):
         message = parsed_json['message']
         if status_code == constants.SYNC_TESTSYNCMSG:
             print "Received a test sync message from {}".format(username)
-        elif status_code == constants.SYNC_MICON:
-            print "{} turned mic on".format(username)
-            # Do something in GUI
-        elif status_code == constants.SYNC_MICOFF:
-            print "{} turned mic off".format(username)
-            # Do something in GUI
-        elif status_code == constants.SYNC_SPEAKERON:
-            print "{} turned speakers on".format(username)
-            # Do something in GUI
-        elif status_code == constants.SYNC_SPEAKEROFF:
-            print "{} turned speakers off".format(username)
-            # Do something in GUI
-        elif status_code == constants.SYNC_RECORDINGON:
-            print "{} started recording".format(username)
-            # Do something in GUI
-        elif status_code == constants.SYNC_RECORDINGOFF:
-            print "{} stopped recording".format(username)
-            # Do something in GUI
-        elif status_code == constants.SYNC_RECORDINGSTART:
-            timestamp = parsed_json['message']
-            print "{} started recording at {}".format(username, timestamp)
+        elif status_code == constants.SYNC_START_RECORDING:
+            self.states[username]['recording'] = True
+            print "{} started recording.".format(username)
             # Do something in GUI
             pass
-        elif status_code == constants.SYNC_RECORDINGSTOP:
-            timestamp = parsed_json['message']
-            print "{} stopped recording at {}".format(username, timestamp)
+        elif status_code == constants.SYNC_STOP_RECORDING:
+            self.states[username]['recording'] = False
+            print "{} stopped recording.".format(username)
+        elif status_code == constants.SYNC_SPEAKER_ON:
+            print "{} turned speakers on".format(username)
             # Do something in GUI
-        elif status_code == constants.SYNC_REQUESTFILE:
+        elif status_code == constants.SYNC_SPEAKER_OFF:
+            print "{} turned speakers off".format(username)
+            # Do something in GUI
+        elif status_code == constants.SYNC_REQUEST_FILE:
             # If the request was meant for this client
             if self.username == parsed_json['message']['username']:
                 # Get sender's username
@@ -220,7 +220,7 @@ class HQCWSClient(WebSocketClient):
                         print self.save_directory + os.path.sep + filename + " not found"
                 else:
                     print "App not connected"
-        elif status_code == constants.SYNC_SENDFILE:
+        elif status_code == constants.SYNC_SEND_FILE:
             filename = message['filename']
             _, file = os.path.split(filename)
             length = message['length']
@@ -229,11 +229,13 @@ class HQCWSClient(WebSocketClient):
             if self.app:
                 self.app.update_send_files(username, message)
         elif status_code == constants.SYNC_FILE_AVAILABLE:
-            sending_username = message['username']
             filename = message['filename']
             length = message['length']
+            file_tuple = (filename, length)
+            self.states[username]['audio_files'].append(file_tuple)
+
             if self.app:
-                self.app.update_available_files(sending_username, filename, length)
+                self.app.update_available_files(username, filename, length)
             else:
                 print "App not connected"
         else:
@@ -250,17 +252,19 @@ class HQCWSClient(WebSocketClient):
         """
         payload = self.new_payload()
         payload['type'] = sync_code
-        if sync_code == constants.SYNC_RECORDINGSTART:
-            if kwargs['timestamp']:
-                payload['message'] = kwargs['timestamp']
-                self.send(json.dumps(payload), False)
-            else:
-                print "No timestamp provided for sync message"
+        if sync_code == constants.SYNC_START_RECORDING:
+            self.states[self.username]['recording'] = True
+            # Make an empty message
+            payload['message'] = {}
+            self.send(json.dumps(payload), False)
 
-        elif sync_code == constants.SYNC_RECORDINGSTOP:
-            print "SYNC_RECORDINGSTOP not implemented"
+        elif sync_code == constants.SYNC_STOP_RECORDING:
+            self.states[self.username]['recording'] = False
+            # Make an empty message
+            payload['message'] = {}
+            self.send(json.dumps(payload), False)
 
-        elif sync_code == constants.SYNC_SENDFILE:
+        elif sync_code == constants.SYNC_SEND_FILE:
             # Name of the file available
             try:
                 payload['message'] = {}
@@ -270,7 +274,7 @@ class HQCWSClient(WebSocketClient):
                 print "SYNC_SENDFILE needs filename and length."
             self.send(json.dumps(payload), False)
 
-        elif sync_code == constants.SYNC_REQUESTFILE:
+        elif sync_code == constants.SYNC_REQUEST_FILE:
             try:
                 payload['message'] = {}
                 payload['message']['filename'] = kwargs['filename']
@@ -284,12 +288,13 @@ class HQCWSClient(WebSocketClient):
                 _, tail = os.path.split(kwargs['filename'])
                 print "Sending {} availability".format(tail)
                 payload['message'] = {}
-                payload['message']['username'] = kwargs['username']
                 payload['message']['filename'] = kwargs['filename']
                 payload['message']['length'] = kwargs['length']
+                self.send(json.dumps(payload), False)
             except KeyError:
                 print "SYNC_SENDFILE needs filename and length."
-            self.send(json.dumps(payload), False)
+            except:
+                raise
 
         else:
             print "Uncaught sync code"

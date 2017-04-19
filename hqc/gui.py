@@ -66,11 +66,6 @@ class HQC(App):
         # color for gui text
         self.dark_blue = '2939b0'
 
-        # dict with usernames having list of (filename, length) tuples for download.
-        # ex. filename, length = available_files['cptarnie'][0]
-        self.available_files = {}
-
-
     # Build should only handle setting up GUI-specific items
     def build(self):
         # Kivy is stubborn and overrides self.config with a built-in ConfigParser
@@ -81,6 +76,16 @@ class HQC(App):
         # Link application to Screen Manager
         self.root.app = self
         return gui
+
+    def get_own_state(self):
+        """
+        Retrieves the username's own state from ChatClient
+        :return: dict
+        """
+        return self.chat_client.states[self.chat_client.username]
+
+    def get_latest_audio_file(self):
+        return self.get_own_state()['audio_files'][-1]
 
     def update_chat(self, username, message):
         self.root.screens[3].update_chat(username, message)
@@ -96,6 +101,14 @@ class HQC(App):
 
     def update_available_files(self, username, filename, length):
         self.root.screens[3].update_available_files(username, filename, length)
+
+    def add_audio_file(self, filename):
+        """
+        Adds an audio file path to the client state.
+        :param filename: name of available file
+        :return: None
+        """
+        self.get_own_state()['audio_files'].append(filename)
 
 
 class MainScreen(Screen):
@@ -123,10 +136,6 @@ class SessionScreen(Screen):
 
     # Store a large string of all chat messages
     chat_messages = StringProperty()
-
-    # List of audio file names
-    audio_files = []
-    requested_files = []
 
     def on_enter(self):
 
@@ -161,11 +170,12 @@ class SessionScreen(Screen):
         btn.bind(on_press=self.play_clip)
 
         # add filename label
-        label = Label(text=os.path.basename(self.audio_files[-1])[0:9], halign='left', size_hint=(.5, 0.2))
+        audio_files = self.app.get_own_state()['audio_files']
+        label = Label(text=os.path.basename(audio_files[-1])[0:9], halign='left', size_hint=(.5, 0.2))
 
         # add request button
-        filename = self.audio_files[-1]
-        print self.audio_files[-1]
+        filename = audio_files[-1]
+        print audio_files[-1]
         btn2 = Button(text="Request", size=(100, 50),
                       size_hint=(0.32, None))
 
@@ -207,18 +217,17 @@ class SessionScreen(Screen):
 
     # TODO: GUI update
     def update_available_files(self, username, filename, length):
-        if username not in self.app.available_files:
-            self.app.available_files[username] = []
         _, tail = os.path.split(filename)
-        available_file_tuple = (tail, length)
-        self.app.available_files[username].append(available_file_tuple)
         print "{} has {}: {} bytes".format(username, tail, length)
 
     def play_clip(self, obj):
-
+        """
+        
+        :param obj: ToggleButton object
+        :return: 
+        """
         # Get filename of the high quality clip associated with this play button
-        # TODO: explain what obj.np is/does
-        filename = self.audio_files[obj.clip_no]
+        filename = self.app.get_own_state()['audio_files'][obj.clip_no]
 
         # Get filename of the session low quality audio stream
         lq_audio = self.app.lq_audio
@@ -242,6 +251,8 @@ class SessionScreen(Screen):
         self.app.recording = not self.app.recording
 
         if self.app.recording:
+            # Update state
+            self.app.chat_client.send_sync(constants.SYNC_START_RECORDING)
             self.ids.record_button.source = SessionScreen.stop_theme
 
             global progress
@@ -255,10 +266,13 @@ class SessionScreen(Screen):
             if not os.path.exists(head):
                 os.makedirs(head)
             self.app.recorder = audio.Recorder(filename)  # creates audio file
-            self.audio_files.append(filename)  # adds filename to global list
+            # Add available audio file to state list
+            self.app.add_audio_file(filename)
             self.app.recorder.start()  # Starts recording
             print "Recording..."
         else:
+            # Update state
+            self.app.chat_client.send_sync(constants.SYNC_STOP_RECORDING)
             progress = False
             self.ids.record_button.source = SessionScreen.record_red
             self.app.recorder.stop()
@@ -267,12 +281,11 @@ class SessionScreen(Screen):
 
             print "Done recording"
 
-            # TODO: get the correct file length
             # Send a sync message for when a clip is available
+            available_filename = self.app.get_latest_audio_file()
             self.app.chat_client.send_sync(constants.SYNC_FILE_AVAILABLE,
-                                           username=self.app.config.get('ChatSettings', 'username'),
-                                           filename=self.audio_files[-1],
-                                           length=audio.get_length(self.audio_files[-1]))
+                                           filename=available_filename,
+                                           length=audio.get_length(available_filename))
 
     def record_progress(self):
         global progress

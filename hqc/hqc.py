@@ -138,7 +138,10 @@ class HQCPhone(object):
         self.call.stop_recording()
         # Move the file specified by recording_start into recording_current
         new_name = generate_name(self.recording_current)
-        os.rename(self.recording_start, new_name)
+        try:
+            os.rename(self.recording_start, new_name)
+        except WindowsError:
+            print str(self.recording_start) + "File not found."
         self.recording_locations.append(new_name)
 
         if not final:
