@@ -113,7 +113,6 @@ class HQCWebSocket(EchoWebSocket):
         app = self.environ['ws4py.app']
         for client in app.clients:
             client.send(message, False)
-        print "Sent sync message to %d clients" % (len(app.clients))
 
     def closed(self, code, reason="A client left the room without a proper explanation."):
         """

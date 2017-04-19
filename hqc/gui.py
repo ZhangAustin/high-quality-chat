@@ -37,18 +37,15 @@ class HQC(App):
         self.config = hqc_config.get_instance(file="conn.conf")
         self.phone = HQCPhone(self.config)
         self.chat_client = None
+
         # Recorder object from audio module
         self.recorder = None
         # Recording directory
         self.storage_dir = self.config.get('AudioSettings', 'recording_location')
         self.session_name = datetime.now().strftime(constants.DATETIME_SESSION)
-        if not os.path.exists(os.path.join(self.storage_dir, self.session_name)):
-            os.makedirs(os.path.join(self.storage_dir, self.session_name))
-
-        # name of current lq_audio file (fetched from audio class)
-        self.lq_audio = None
-        # TODO description
-        self.storage_dir = None
+        self.audio_file_location = os.path.join(self.storage_dir, self.session_name)
+        if not os.path.exists(self.audio_file_location):
+            os.makedirs(self.audio_file_location)
 
         # color for gui text
         self.dark_blue = '2939b0'
@@ -212,7 +209,7 @@ class SessionScreen(Screen):
         :return: 
         """
         # Get filename of the high quality clip associated with this play button
-        filename = self.app.get_own_state()['audio_files'][obj.clip_no]
+        hq_file = self.app.get_own_state()['audio_files'][obj.clip_no]
 
         # Get filename of the session low quality audio stream
         lq_audio = self.app.lq_audio
@@ -246,6 +243,7 @@ class SessionScreen(Screen):
 
             filename = self.app.config.get_file_name(self.app.session_name,
                                                      datetime.now().strftime(constants.DATETIME_HQ))
+            print "Creating: " + filename
             head, tail = os.path.split(filename)
             if not os.path.exists(head):
                 os.makedirs(head)
@@ -261,8 +259,6 @@ class SessionScreen(Screen):
             self.app.recorder.stop()
             self.app.phone.stop_start_recording(datetime.now().strftime(constants.DATETIME_LQ))
             self.add_clip()  # adds to gui sidebar
-
-            print "Done recording"
 
             # Send a sync message for when a clip is available
             available_filename = self.app.get_latest_audio_file()
@@ -438,8 +434,6 @@ class ArtistJoiningScreen(Screen):
 
         filename = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
         self.app.phone.make_call(connection_details['call_no'], connection_details['server'], filename)
-        self.app.lq_audio = self.app.phone.recording_start
-        print "passing lq_audio to gui: " + self.app.lq_audio
 
 
 class SettingsScreen(Screen):

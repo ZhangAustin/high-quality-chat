@@ -132,7 +132,6 @@ class HQCPhone(object):
             return os.path.join(folder_name, file_name)
             # return config.create_recording_location()
 
-
         self.update = True
 
         self.call.stop_recording()
@@ -141,7 +140,7 @@ class HQCPhone(object):
         try:
             os.rename(self.recording_start, new_name)
         except WindowsError:
-            print str(self.recording_start) + "File not found."
+            print str(self.recording_start) + " file not found."
         self.recording_locations.append(new_name)
 
         if not final:
