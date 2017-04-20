@@ -34,7 +34,8 @@ class HQCWSClient(WebSocketClient):
 
         self.ip = chat_settings['ip_address']
         self.port = chat_settings['port']
-        super(HQCWSClient, self).__init__(HQCWSClient.get_ws_url(self.ip, self.port), protocols=['http-only', 'chat'], *args, **kwargs)
+        super(HQCWSClient, self). \
+            __init__(HQCWSClient.get_ws_url(self.ip, self.port), protocols=['http-only', 'chat'], *args, **kwargs)
 
         self.username = chat_settings['username']
         self.role = chat_settings['role']

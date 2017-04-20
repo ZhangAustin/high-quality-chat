@@ -152,7 +152,7 @@ if __name__ == '__main__':
         except IndexError:
             PORT = 9000
             print "Port not specified"
-        server = WSGIServer(('localhost', PORT), HQCWebSocketApplication('localhost', PORT))
+        server = WSGIServer(('0.0.0.0', PORT), HQCWebSocketApplication('localhost', PORT))
         print "Running server on port " + str(PORT)
         server.serve_forever()
     except KeyboardInterrupt:
