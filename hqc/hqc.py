@@ -38,6 +38,9 @@ class HQCPhone(object):
     # An array of filenames containing the actual filenames of finalized LQ recordings
     recording_locations = []
 
+    # Pathname just in case
+    recording_folder = ''
+
     def __init__(self, config):
         """
         SIP client using liblinphone for underlying technologies
@@ -74,6 +77,8 @@ class HQCPhone(object):
 
     def make_call(self, number, server, lq_file):
         """Pop a thread open that targets _make_call"""
+
+        self.recording_folder = os.path.dirname(lq_file)
         self.core.capture_device = self.config.get('AudioSettings', 'mic')
         self.core.playback_device = self.config.get('AudioSettings', 'speakers')
         self.add_proxy_config()
@@ -123,14 +128,11 @@ class HQCPhone(object):
             :param path: Path to update
             :return: Updated path name
             """
-            absolute_path = os.path.abspath(path)
-            file_name = os.path.basename(absolute_path)
-            folder_name = os.path.dirname(absolute_path)
+            file_name = os.path.basename(path)
+
             # Add the number of the recording to the start of the file
             file_name = str(len(self.recording_locations)) + '_' + file_name
-            # TODO: Have this go to the correct location in the config file
-            return os.path.join(folder_name, file_name)
-            # return config.create_recording_location()
+            return os.path.join(self.recording_folder, file_name)
 
         self.update = True
 
