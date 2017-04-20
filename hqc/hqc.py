@@ -78,15 +78,16 @@ class HQCPhone(object):
     def make_call(self, number, server, lq_file):
         """Pop a thread open that targets _make_call"""
 
-        codec = self.config.get('LQAudioSettings', 'codec')
+        codec = self.config.get('LQRecordingSettings', 'codec')
         if codec != 'Default':
             # Extract details out of string
             mark1 = codec.find(',')
-            mark3 = codec.rfind(',')
-            mark2 = codec.find(',', mark1 + 1, mark3 - 1)
+            mark2 = codec.rfind(',')
+
             name = codec[:mark1]
-            bitrate = codec[mark2:mark3]
-            channels = codec[mark3 + 2:mark3 + 3]
+            bitrate = codec[mark1 + 2:mark2 - 3]
+            channels = codec[mark2 + 2:mark2 + 3]
+
             codec = [name, bitrate, channels]
             self.force_codec_type(codec)
 
