@@ -24,44 +24,62 @@ ScreenManager:
                 size: self.size
         TextInput:
             id: servername
-            size_hint: (.5, .1)
+            size_hint: (.35, .1)
             font_size: '24sp'
             multiline: False
             hint_text: 'Default Value'
-            pos: (330, 410)
+            pos: (330, 460)
         TextInput:
             id: callnumber
-            size_hint: (.5, .1)
+            size_hint: (.35, .1)
             font_size: '24sp'
             multiline: False
             password: True
             hint_text: 'Default Value'
-            pos: (330, 340)
+            pos: (330, 390)
         TextInput:
             id: username
-            size_hint: (.5, .1)
+            size_hint: (.35, .1)
             font_size: '24sp'
             multiline: False
             hint_text: 'Default Value'
-            pos: (330, 270)
+            pos: (330, 320)
         TextInput:
             id: password
-            size_hint: (.5, .1)
+            size_hint: (.35, .1)
             font_size: '24sp'
             multiline: False
             password: True
             hint_text: 'Default Value'
-            pos: (330, 200)
+            pos: (330, 250)
+        TextInput:
+            id: producer_connection
+            size_hint: (.35, .2)
+            font_size: '24sp'
+            multiline: True
+            password: True
+            hint_text: 'OR\nEnter your connection string'
+            pos: (330, 110)
         ImageButton:
             id: producerjoinsess
             source: '../img/arrow_right.png'
             halign: 'center'
             valign: 'middle'
-            size_hint: (.5, None)
+            size_hint: (.15, .15)
             text_size: root.width, None
             font_size: '25sp'
-            pos: (200, 40)
+            pos: (620, 250)
             on_release: self.parent.get_text(servername.text, username.text, password.text, callnumber.text)
+        ImageButton:
+            id: producerjoinsess
+            source: '../img/arrow_right.png'
+            halign: 'center'
+            valign: 'middle'
+            size_hint: (.15, .15)
+            text_size: root.width, None
+            font_size: '25sp'
+            pos: (620, 110)
+            on_release: self.parent.get_conn(producer_connection.text)
         ImageButton:
             id: main_menu
             source: '../img/arrow_left.png'
@@ -298,7 +316,7 @@ ScreenManager:
     Image:
         source: '../img/connection_string.png'
         size_hint: (0.31, 0.31)
-        pos: (45, 110)
+        pos: (45, 70)
 <ArtistJoiningScreen>
     name: "artistsessionjoining"
     Image:
@@ -384,6 +402,11 @@ ScreenManager:
         font_size: '25sp'
         pos: (-25, 510)
         on_release: app.root.current = 'main'
+    ImageButton:
+        source: '../img/generate_strings.png'
+        size_hint: (.2, .2)
+        pos: (650, 470)
+        on_release: app.root.current = 'connection_string_generation_screen'
     Image:
         source: '../img/username.png'
         size_hint: (0.20, 0.20)

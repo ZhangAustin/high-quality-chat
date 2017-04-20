@@ -350,6 +350,23 @@ class ProducerJoiningScreen(Screen):
 
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
+    def get_conn(self, producer_connection):
+        def is_valid(value):
+            if value != '' and len(value) != 0:
+                return True
+            else:
+                return False
+
+        self.parent.current = 'session'
+
+        connection_details = self.app.config.get_section('ConnectionDetails')
+
+        file_name = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
+        self.app.phone.make_call(connection_details['call_no'], connection_details['server'], file_name)
+        self.app.lq_audio = self.app.phone.recording_start
+        print "passing lq_audio to gui: " + self.app.lq_audio
+
+
     def get_text(self, servername, username, password, callnumber):
         def is_valid(value):
             if value != '' and len(value) != 0:
