@@ -116,14 +116,15 @@ def get_audio_from_filename(filename, length, lowquals):
     """
     time = datetime.strptime(filename, constants.DATETIME_HQ)  # Auto strips 'HQ_' and '.wav'
     for lowqual in lowquals:
-        lq_time = datetime.strptime(lowqual, constants.DATETIME_LQ)
+        lq_time = datetime.strptime(lowqual[2:], constants.DATETIME_LQ)  # 2: to cut off the index and underscore
         if lq_time <= time:  # Check if the LQ recording started before the HQ recording
             # Check if the end of the LQ recording is after the end of the HQ recording
             time_end = time + timedelta(0, length)
             lq_length = get_length(lowqual)
             lq_time_end = lq_time + timedelta(0, lq_length)
             if lq_time_end > time_end:
-                return lowqual
+                time_index = time - lq_time
+                return {'filename': lowqual, 'time': time_index.seconds}
     print "Something went wrong, {} not found in LQ array".format(time)
 
 
