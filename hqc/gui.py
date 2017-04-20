@@ -203,6 +203,7 @@ class SessionScreen(Screen):
         :param obj: ToggleButton object
         :return: 
         """
+        # TODO: This plays LQ files, not HQ files.  Call get_audio_from_filename and also give it a length
         # Get filename of the high quality clip associated with this play button
         filename = self.app.get_own_state()['audio_files'][obj.clip_no]
         _, tail = os.path.split(filename)
@@ -211,18 +212,6 @@ class SessionScreen(Screen):
 
         # Get filename of the session high quality audio stream
         hq_audio = self.app.config.get_file_name(self.app.session_name, tail)
-
-        # get the # seconds after playback that HQ clip starts in the LQ stream:
-        # HQ start time in s - LQ start time in s (= int)
-        # start_time_seconds = int(lq_audio[3:5]) * 3600 + int(lq_audio[6:8]) * 60 + int (lq_audio[9:11])
-        # filename_seconds = int(filename[3:5]) * 3600 + int(filename[6:8]) * 60 + int (filename[9:11])
-
-        # gets the offset in seconds of the HQ file start time from the LQ stream
-        # hq_start_time = filename_seconds - start_time_seconds
-        # print filename + " session offset: " + str(hq_start_time) + " seconds"
-        # gets the file associated with this button's label friend
-
-        # audio.get_length(filename)
 
         # Play audio for 5 seconds
         print "playing " + str(hq_audio)
@@ -479,11 +468,11 @@ class SettingsScreen(Screen):
         index = 0
         while children:
             child = children.pop()
-            if (index == 0 and child.text != 'Recording Devices'):
+            if index == 0 and child.text != 'Recording Devices':
                 self.app.config.update_setting("AudioSettings", "mic", child.text)
-            if (index == 1 and child.text != 'Audio Devices'):
+            if index == 1 and child.text != 'Audio Devices':
                 self.app.config.update_setting("AudioSettings", "speakers", child.text)
-            if (index == 2 and child.text != "Codec"):
+            if index == 2 and child.text != "Codec":
                 codec = child.text
                 newcodec = [codec[0:codec.find(',')]]
                 newcodec += [codec[(codec.find(',')+ 1): codec.find("bps")]]
@@ -547,8 +536,7 @@ class FileTransferScreen(Screen):
                 self.ids.filelayout.add_widget(label)
 
     def leave_session(self):
-        # TODO: Uncomment for release
-        # self.app.chat_client.finish()
+        self.app.chat_client.finish()
         self.app.phone.hangup()
         App.get_running_app().stop()
 
