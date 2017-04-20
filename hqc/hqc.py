@@ -154,7 +154,7 @@ class HQCPhone(object):
         new_name = generate_name(self.recording_current)
         try:
             os.rename(self.recording_start, new_name)
-        except WindowsError:
+        except OSError:
             print str(self.recording_start) + " file not found."
         self.recording_locations.append(new_name)
 
