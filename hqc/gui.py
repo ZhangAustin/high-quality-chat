@@ -483,8 +483,10 @@ class SettingsScreen(Screen):
                 self.app.config.update_setting("AudioSettings", "mic", child.text)
             if index == 1 and child.text != 'Audio Devices':
                 self.app.config.update_setting("AudioSettings", "speakers", child.text)
-            if index == 2 and child.text == "Default":
-                self.app.config.update_setting("ConnectionDetails", "user", "Default")
+                ##### TODO WHAT IS THIS
+                # if index == 2 and child.text == "Default":
+                # self.app.config.update_setting("ConnectionDetails", "user", child.text)
+            ##### TODO WHAT IS THIS
             if index == 2 and child.text != "Codec":
                 codec = child.text
                 newcodec = [codec[0:codec.find(',')]]
