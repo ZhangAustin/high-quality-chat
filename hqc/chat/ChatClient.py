@@ -30,21 +30,17 @@ class HQCWSClient(WebSocketClient):
         """
         self.config = config
         # Get connection details from config
-        try:
-            self.ip = config.get('ChatSettings', 'ip')
-            self.port = config.get('ChatSettings', 'port')
-        except:
-            self.ip = constants.IP
-            self.port = constants.PORT
+        chat_settings = self.config.get_section("ChatSettings")
+
+        self.ip = chat_settings['ip_address']
+        self.port = chat_settings['port']
         super(HQCWSClient, self).__init__(HQCWSClient.get_ws_url(self.ip, self.port), protocols=['http-only', 'chat'], *args, **kwargs)
-        try:
-            self.username = config.get('ChatSettings', 'username')
-            self.role = config.get('ChatSettings', 'role')
-            self.save_directory = config.get('AudioSettings', 'recording_location')
-        except:
-            self.username = constants.USERNAME
-            self.role = constants.ARTIST
-            self.save_directory = "Saved_Recordings"
+
+        self.username = chat_settings['username']
+        self.role = chat_settings['role']
+
+        self.save_directory = config.get('AudioSettings', 'recording_location')
+
         # Set in GUI initialization
         self.app = None
         try:
@@ -355,9 +351,3 @@ class HQCWSClient(WebSocketClient):
         :return: dictionary with username and role
         """
         return {"username": self.username, "role": self.role}
-
-if __name__ == '__main__':
-    try:
-        print "Run this from outside the folder and use Config"
-    except KeyboardInterrupt:
-        ws.close()
