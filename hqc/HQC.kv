@@ -27,29 +27,45 @@ ScreenManager:
             size_hint: (.5, .1)
             font_size: '24sp'
             multiline: False
+<<<<<<< HEAD
             hint_text: 'servername'
             pos: (330, 460)
+=======
+            hint_text: 'Default Value'
+            pos: (330, 410)
+>>>>>>> master
         TextInput:
             id: callnumber
             size_hint: (.5, .1)
             font_size: '24sp'
             multiline: False
             password: True
+<<<<<<< HEAD
             hint_text: 'e.g. 1004'
             pos: (330, 390)
+=======
+            hint_text: 'Default Value'
+            pos: (330, 340)
+>>>>>>> master
         TextInput:
             id: username
             size_hint: (.5, .1)
             font_size: '24sp'
             multiline: False
+<<<<<<< HEAD
             hint_text: 'your_username'
             pos: (330, 320)
+=======
+            hint_text: 'Default Value'
+            pos: (330, 270)
+>>>>>>> master
         TextInput:
             id: password
             size_hint: (.5, .1)
             font_size: '24sp'
             multiline: False
             password: True
+<<<<<<< HEAD
             hint_text: '********'
             pos: (330, 250)
         TextInput:
@@ -60,6 +76,10 @@ ScreenManager:
             password: True
             hint_text: 'OR Enter your connection string'
             pos: (330, 170)
+=======
+            hint_text: 'Default Value'
+            pos: (330, 200)
+>>>>>>> master
         ImageButton:
             id: producerjoinsess
             source: '../img/arrow_right.png'
@@ -96,7 +116,7 @@ ScreenManager:
             text_size: root.width, None
             font_size: '25sp'
             multiline: True
-            hint_text: 'e.g. MTAwNDszYjIwODAyYzk1YmM0NjE3MTVlM2NmZ\nGQ4YzY2NGYyOzQ1LjE3LjE2MC43NA=='
+            hint_text: 'Use Saved Values'
             pos: (80, 280)
         ImageButton:
             id: artjoinsess
@@ -153,7 +173,7 @@ ScreenManager:
             text_size: root.width, None
             font_size: '25sp'
             multiline: False
-            hint_text: 'YES'
+            hint_text: 'Default Values'
             pos: (250, 430)
         TextInput:
             id: setting2
@@ -161,7 +181,7 @@ ScreenManager:
             text_size: root.width, None
             font_size: '25sp'
             multiline: False
-            hint_text: 'YES'
+            hint_text: 'Default Values'
             pos: (250, 365)
         TextInput:
             id: setting3
@@ -169,15 +189,25 @@ ScreenManager:
             text_size: root.width, None
             font_size: '25sp'
             multiline: False
-            hint_text: 'ON'
+            hint_text: 'Default Values'
             password: True
             pos: (250, 300)
         ImageButton:
+<<<<<<< HEAD
             id: generate_strings
             source: '../img/generate_strings.png'
             pos: (50, 50)
             size_hint: (0.3, 0.3)
             on_release: app.root.current = 'connection_string_generation_screen'
+=======
+            id: save_settings
+            source: '../img/save_settings.png'
+            halign: 'center'
+            valign: 'middle'
+            size_hint: (.3, .3)
+            pos: (500, 25)
+            on_release: self.parent.save_settings(setting1.text, setting2.text, setting3.text)
+>>>>>>> master
     FileTransferScreen:
         app: self.manager.app
         manager: screen_manager

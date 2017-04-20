@@ -1,5 +1,5 @@
 from chat.ChatClient import HQCWSClient
-from Config import Config
+from HQCConfig import Config
 import time
 
 

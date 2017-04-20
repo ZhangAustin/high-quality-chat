@@ -5,7 +5,7 @@ from threading import Thread
 
 import linphone
 
-from Config import Config
+from HQCConfig import HQCConfig
 
 
 class Singleton(type):
@@ -37,6 +37,9 @@ class HQCPhone(object):
 
     # An array of filenames containing the actual filenames of finalized LQ recordings
     recording_locations = []
+
+    # Pathname just in case
+    recording_folder = ''
 
     def __init__(self, config):
         """
@@ -74,6 +77,8 @@ class HQCPhone(object):
 
     def make_call(self, number, server, lq_file):
         """Pop a thread open that targets _make_call"""
+
+        self.recording_folder = os.path.dirname(lq_file)
         self.core.capture_device = self.config.get('AudioSettings', 'mic')
         self.core.playback_device = self.config.get('AudioSettings', 'speakers')
         self.add_proxy_config()
@@ -115,7 +120,7 @@ class HQCPhone(object):
         Stops, then starts the LQ recording process. Recordings need to be finalized before they can be accessed.
         :param lq_file: New file name to record into
         :param final: If true, do not start the recording after stopping it.
-        :return: the new recording location
+        :return: None
         """
         def generate_name(path):
             """
@@ -123,19 +128,21 @@ class HQCPhone(object):
             :param path: Path to update
             :return: Updated path name
             """
-            absolute_path = os.path.abspath(path)
-            file_name = os.path.basename(absolute_path)
-            folder_name = os.path.dirname(absolute_path)
+            file_name = os.path.basename(path)
+
             # Add the number of the recording to the start of the file
             file_name = str(len(self.recording_locations)) + '_' + file_name
-            return os.path.join(folder_name, file_name)
+            return os.path.join(self.recording_folder, file_name)
 
         self.update = True
 
         self.call.stop_recording()
         # Move the file specified by recording_start into recording_current
         new_name = generate_name(self.recording_current)
-        os.rename(self.recording_start, new_name)
+        try:
+            os.rename(self.recording_start, new_name)
+        except WindowsError:
+            print str(self.recording_start) + " file not found."
         self.recording_locations.append(new_name)
 
         if not final:
@@ -239,6 +246,7 @@ class HQCPhone(object):
 
         for printable_codec in printable_codecs:
             print printable_codec
+        return printable_codecs
 
     def force_codec_type(self, codec):
         """
@@ -326,6 +334,9 @@ class HQCPhone(object):
         # Gracefully hang up
         self.core.terminate_all_calls()
 
+        while self.call.media_in_progress():
+            self.hold_open()
+
         self.end_call = True
 
 
@@ -373,7 +384,7 @@ if __name__ == '__main__':
 
     def make_core_objects():
 
-        config = Config.get_instance('conn.conf')
+        config = HQCConfig.get_instance('conn.conf')
         phone = HQCPhone(config)
         return phone, config
 

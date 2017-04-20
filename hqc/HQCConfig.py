@@ -5,7 +5,7 @@ import os
 
 # TODO: fix lossy encoding in "ConnectionDetails"
 #  Inherits methods such as get() from SafeConfigParser
-class Config(ConfigParser.SafeConfigParser):
+class HQCConfig(ConfigParser.SafeConfigParser):
     """Handles creation and updating of configuration settings."""
 
     # Used for making Config a singleton
@@ -19,15 +19,20 @@ class Config(ConfigParser.SafeConfigParser):
     # HQ_recording_settings have no corresponding GUI element, users will have to change manually
     lq_recording_settings = ['codec']  # Use this when we finally implement dropdown
 
-    sections = {'ConnectionDetails': connection,
+    custom_section_names = ['ConnectionDetails',
+                            'AudioSettings',
+                            'ChatSettings',
+                            'HQRecordingSettings',
+                            'LQRecordingSettings']
+
+    custom_sections = {'ConnectionDetails': connection,
                 'AudioSettings': audio_settings,
                 'ChatSettings': chat_settings,
                 'HQRecordingSettings': hq_recording_settings,
                 'LQRecordingSettings': lq_recording_settings}
 
     def __init__(self, file):
-        if Config._instance is not None:
-            print "test"
+        if HQCConfig._instance is not None:
             raise ValueError("Use get_instance when config instance already "
                              "exists.")
 
@@ -48,6 +53,8 @@ class Config(ConfigParser.SafeConfigParser):
         # Sets the default values for different sections
         self.load_defaults()
 
+        self.clean()
+
         with open(self.file, 'w') as config_file:
             self.write(config_file)
 
@@ -55,7 +62,7 @@ class Config(ConfigParser.SafeConfigParser):
     # Pass in parameters as keywords
     def get_instance(cls, *args, **kwargs):
         if not cls._instance:
-            cls._instance = Config(*args, **kwargs)
+            cls._instance = HQCConfig(*args, **kwargs)
         return cls._instance
 
     def check(self):
@@ -63,10 +70,10 @@ class Config(ConfigParser.SafeConfigParser):
         Checks the config file and ensure all sections exist
         If not, add the sections and initialize to "None"
         """
-        for section in self.sections:
+        for section in self.custom_sections:
             if not self.has_section(section):
                 self.add_section(section)
-            for option in self.sections[section]:
+            for option in self.custom_sections[section]:
                 if not self.has_option(section, option):
                     self.set(section, option, "None")
 
@@ -79,11 +86,50 @@ class Config(ConfigParser.SafeConfigParser):
         """
         default_list = [('HQRecordingSettings', 'width', '2'),
                         ('HQRecordingSettings', 'channels', '2'),
-                        ('HQRecordingSettings', 'rate', '2248000')]
+                        ('HQRecordingSettings', 'rate', '48000')]
 
         for setting in default_list:
             if self.get(setting[0], setting[1]) == 'None':
                 self.update_setting(setting[0], setting[1], setting[2])
+
+    def clean(self):
+        """
+        Removes lingering entries that haven't been specified in self.sections
+        :return: 
+        """
+
+        # Check for extra sections
+        for section in self.sections():
+            if section not in self.custom_sections:
+                print "Found bad section {}, removing".format(section)
+                self.remove_section(section)
+
+        # Check for extra options in good sections
+        for option in self.options('ConnectionDetails'):
+            if option not in self.connection:
+                print "Found bad option {} in section {}".format(option, 'ConnectionDetails')
+                self.remove_option('ConnectionDetails', option)
+
+        for option in self.options('AudioSettings'):
+            if option not in self.audio_settings:
+                print "Found bad option {} in section {}".format(option, 'AudioSettings')
+                self.remove_option('AudioSettings', option)
+
+        for option in self.options('ChatSettings'):
+            if option not in self.chat_settings:
+                print "Found bad option {} in section {}".format(option, 'ChatSettings')
+                self.remove_option('ChatSettings', option)
+
+        for option in self.options('HQRecordingSettings'):
+            if option not in self.hq_recording_settings:
+                print "Found bad option {} in section {}".format(option, 'HQRecordingSettings')
+                self.remove_option('HQRecordingSettings', option)
+
+        for option in self.options('LQRecordingSettings'):
+            if option not in self.lq_recording_settings:
+                print "Found bad option {} in section {}".format(option, 'LQRecordingSettings')
+                self.remove_option('LQRecordingSettings', option)
+
 
     def create_recording_location(self):
         """
@@ -164,18 +210,18 @@ class Config(ConfigParser.SafeConfigParser):
         :param section: Name of the section, as defined in self.sections
         :return: A dict of the names and values in section
         """
-        if section not in self.sections:
+        if section not in self.custom_sections:
             print "Bad section defined"
             return
 
         obj = {}
-        for item in self.sections[section]:
+        for item in self.custom_sections[section]:
             obj[item] = self.get(section, item)
         return obj
 
 
 if __name__ == '__main__':
-    config = Config.get_instance(file='conn.conf')
+    config = HQCConfig.get_instance(file='conn.conf')
     a = config.get_section('ConnectionDetails')
     print config.get_section('AudioSettings')
     print config.get_section('ChatSettings')
