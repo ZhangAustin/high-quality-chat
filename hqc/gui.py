@@ -160,6 +160,9 @@ class SessionScreen(Screen):
         # add request button
         btn2 = Button(text="Request", size=(100, 50),
                       size_hint=(0.32, None))
+        # Same clip number as play button
+        btn2.apply_property(clip_no=NumericProperty(SessionScreen.clip_no))
+        btn2.bind(on_press=self.request_file)
 
         self.ids.audioSidebar.add_widget(btn)
         self.ids.audioSidebar.add_widget(label)
@@ -173,19 +176,6 @@ class SessionScreen(Screen):
         else:
             print "Chat client not connected"
         print self.requested_files
-
-    def request_file(self, username, filename):
-        """
-        Called upon when the user requests a file
-        :param username: name of user who has the file
-        :param filename: string of file requested
-        :return: None
-        """
-        print "Requesting {} from {}".format(filename, username)
-        # Send a sync message to request a file.
-        self.app.chat_client.send_sync(constants.SYNC_REQUESTFILE,
-                                       username=username,
-                                       filename=filename)
 
     def update_send_files(self, username, message):
         """
@@ -209,26 +199,54 @@ class SessionScreen(Screen):
         :return: 
         """
         # Get filename of the high quality clip associated with this play button
-        hq_file = self.app.get_own_state()['audio_files'][obj.clip_no]
+        filename = self.app.get_own_state()['audio_files'][obj.clip_no]
+        _, tail = os.path.split(filename)
+        # Get base name
+        # root, _ = os.path.splitext(tail)
 
-        # Get filename of the session low quality audio stream
-        lq_audio = self.app.lq_audio
+        # Get filename of the session high quality audio stream
+        hq_audio = self.app.config.get_file_name(self.app.session_name, tail)
 
         # get the # seconds after playback that HQ clip starts in the LQ stream:
         # HQ start time in s - LQ start time in s (= int)
-        start_time_seconds = int(lq_audio[3:5]) * 3600 + int(lq_audio[6:8]) * 60 + int (lq_audio[9:11])
-        filename_seconds = int(filename[3:5]) * 3600 + int(filename[6:8]) * 60 + int (filename[9:11])
+        # start_time_seconds = int(lq_audio[3:5]) * 3600 + int(lq_audio[6:8]) * 60 + int (lq_audio[9:11])
+        # filename_seconds = int(filename[3:5]) * 3600 + int(filename[6:8]) * 60 + int (filename[9:11])
 
         # gets the offset in seconds of the HQ file start time from the LQ stream
-        hq_start_time = filename_seconds - start_time_seconds
-        print filename + " session offset: " + str(hq_start_time) + " seconds"
+        # hq_start_time = filename_seconds - start_time_seconds
+        # print filename + " session offset: " + str(hq_start_time) + " seconds"
         # gets the file associated with this button's label friend
 
         # audio.get_length(filename)
-        # audio.playback(lq_audio, hq_start_time, None, 2)
+
+        # Play audio for 5 seconds
+        print "playing " + str(hq_audio)
+        audio.playback(hq_audio, 0, None, 5)
+
+    def request_file(self, obj):
+        """
+        Called upon when the user requests a file by clicking "Request" on a recording.
+        :param obj: ToggleButton object
+        :return: None
+        """
+        # Get filename of the high quality clip associated with this play button
+        filename = self.app.get_own_state()['audio_files'][obj.clip_no]
+        _, tail = os.path.split(filename)
+        # Get base name
+        # root, _ = os.path.splitext(tail)
+
+        # Get filename of the session high quality audio stream
+        hq_audio = self.app.config.get_file_name(self.app.session_name, tail)
+        print "Requesting {}".format(tail)
+        # Send a sync message to request a file.
+        self.app.chat_client.send_sync(constants.SYNC_REQUEST_FILE,
+                                       filename=tail)
 
     def record_button(self):
-
+        """
+        Records high quality audio files on the artist side. 
+        :return: 
+        """
         # Toggle recording
         rec_state = self.app.get_own_state()['recording']
         self.app.get_own_state()['recording'] = not rec_state
@@ -236,27 +254,34 @@ class SessionScreen(Screen):
         if self.app.get_own_state()['recording']:
             # Update state
             self.app.chat_client.send_sync(constants.SYNC_START_RECORDING)
+            # GUI update
             self.ids.record_button.source = SessionScreen.stop_theme
-
+            # Start the progress effect
             progress_thread = threading.Thread(target=self.record_progress)
             progress_thread.start()
 
             filename = self.app.config.get_file_name(self.app.session_name,
                                                      datetime.now().strftime(constants.DATETIME_HQ))
-            print "Creating: " + filename
             head, tail = os.path.split(filename)
+            print "Creating: " + tail
+            # Make sure folders exist
             if not os.path.exists(head):
                 os.makedirs(head)
-            self.app.recorder = audio.Recorder(filename)  # creates audio file
+            # Makes a Recorder with the desired filename
+            self.app.recorder = audio.Recorder(filename)
             # Add available audio file to state list
             self.app.add_audio_file(filename)
+            # Starts writing to an audio file, including to disk
             self.app.recorder.start()  # Starts recording
             print "Recording..."
         else:
             # Update state
             self.app.chat_client.send_sync(constants.SYNC_STOP_RECORDING)
+            # GUI update
             self.ids.record_button.source = SessionScreen.record_red
+            # Closes recording threads
             self.app.recorder.stop()
+
             self.app.phone.stop_start_recording(datetime.now().strftime(constants.DATETIME_LQ))
             self.add_clip()  # adds to gui sidebar
 
@@ -319,7 +344,7 @@ class SessionScreen(Screen):
         :return: 
         """
         # If leaving the SessionScreen, make sure to stop recording
-        if self.app.recording:
+        if self.app.get_own_state()['recording']:
             self.record_button()
 
 
@@ -504,14 +529,15 @@ class FileTransferScreen(Screen):
 
     def on_enter(self):
         if self.app.config.get('ChatSettings', 'role') == "PRODUCER":
-            files = self.app.root.screens[3].requested_files
+            files = self.app.get_own_state()['requested_files']
             for file in files:
                 label = Label(text=file, size_hint=(1 / len(files), None))
                 self.ids.filelayout.add_widget(label)
         elif self.app.config.get('ChatSettings', 'role') == "ARTIST":
-            files = self.app.root.screens[3].requested_files
+            files = self.app.get_own_state()['requested_files']
             for file in files:
-                self.app.chat_client.send_file(file)
+                full_path = self.app.config.get_file_name(self.app.session_name, file)
+                self.app.chat_client.send_file(full_path)
                 label = Label(text=file, size_hint=(1 / len(files), None))
                 self.ids.filelayout.add_widget(label)
 

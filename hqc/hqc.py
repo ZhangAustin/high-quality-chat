@@ -120,7 +120,7 @@ class HQCPhone(object):
         Stops, then starts the LQ recording process. Recordings need to be finalized before they can be accessed.
         :param lq_file: New file name to record into
         :param final: If true, do not start the recording after stopping it.
-        :return: the new recording location
+        :return: None
         """
         def generate_name(path):
             """

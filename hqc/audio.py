@@ -144,7 +144,7 @@ def playback(filename, start, end=None, playback_time=None):
 
     if end is None and playback_time is not None:
         # Play the track starting from start for playback_time seconds
-        segment = audio[int(start):int(start + end)]
+        segment = audio[int(start):int(start + playback_time)]
         play(segment)
     elif end is not None and playback_time is None:
         # Play the track starting from start and ending at end

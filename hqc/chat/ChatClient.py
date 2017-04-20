@@ -63,9 +63,9 @@ class HQCWSClient(WebSocketClient):
                                        'uploading': False,
                                        # List of (filename, length) tuples
                                        "audio_files": [],
-                                       # List of(filename, length) tuples
+                                       # List of file names that are requested by the producers
                                        'requested_files': [],
-                                       # List of(filename, length) tuples
+                                       # List of(filename, length) tuples that have been downloaded.
                                        'downloaded files': []}}
 
     def send(self, payload, binary):
@@ -162,7 +162,6 @@ class HQCWSClient(WebSocketClient):
         """
         # Get the filename
         filename = parsed_json['filename']
-
         # Write the message contents to disk
         with open(self.save_directory + HQCWSClient.path_leaf(filename), 'wb') as out_file:
             out_file.write(base64.b64decode(parsed_json['content']))
@@ -205,21 +204,16 @@ class HQCWSClient(WebSocketClient):
             print "{} turned speakers off".format(username)
             # Do something in GUI
         elif status_code == constants.SYNC_REQUEST_FILE:
-            # If the request was meant for this client
-            if self.username == parsed_json['message']['username']:
-                # Get sender's username
-                username = parsed_json['username']
-                filename = parsed_json['message']['filename']
-                print filename + " requested by " + username
-                # Do something in GUI
-                if self.app:
-                    self.app.file_requested(username, filename)
-                    if os.path.exists(self.save_directory + os.path.sep + filename):
-                        self.send_file(self.save_directory + os.path.sep + filename)
-                    else:
-                        print self.save_directory + os.path.sep + filename + " not found"
-                else:
-                    print "App not connected"
+            filename = message['filename']
+            # Update state
+            if filename not in self.states[self.username]['requested_files']:
+                self.states[self.username]['requested_files'].append(filename)
+            # Do something in GUI
+            print message['filename'] + " requested"
+            if self.app:
+                pass
+            else:
+                print "App not connected"
         elif status_code == constants.SYNC_SEND_FILE:
             filename = message['filename']
             _, file = os.path.split(filename)
@@ -278,9 +272,8 @@ class HQCWSClient(WebSocketClient):
             try:
                 payload['message'] = {}
                 payload['message']['filename'] = kwargs['filename']
-                payload['message']['username'] = kwargs['username']
             except KeyError:
-                print "SYNC_REQUESTFILE needs username filename."
+                print "SYNC_REQUEST_FILE needs username filename."
             self.send(json.dumps(payload), False)
 
         elif sync_code == constants.SYNC_FILE_AVAILABLE:
@@ -341,6 +334,8 @@ class HQCWSClient(WebSocketClient):
         :param filepath: string path to file
         :return: None
         """
+        _, tail = os.path.split(filepath)
+        print str(self.username) + " sending out " + str(tail)
         fh = open(filepath, 'rb')
         content = base64.b64encode(fh.read())
         payload = self.new_payload()

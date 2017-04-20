@@ -2,6 +2,7 @@ from gevent import monkey; monkey.patch_all()
 from ws4py.websocket import EchoWebSocket
 from ws4py.server.geventserver import WSGIServer
 from ws4py.server.wsgiutils import WebSocketWSGIApplication
+import socket
 import sys
 import json
 import constants
@@ -156,3 +157,7 @@ if __name__ == '__main__':
         server.serve_forever()
     except KeyboardInterrupt:
         server.close()
+    except socket.error:
+        print "Server could not start properly. The socket may already be bound by another instance."
+
+
