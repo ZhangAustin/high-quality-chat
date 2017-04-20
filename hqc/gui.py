@@ -486,6 +486,11 @@ class FileTransferScreen(Screen):
         self.app.phone.hangup()
         App.get_running_app().stop()
 
+class ConnectionStringGenerationScreen(Screen):
+    popup = Popup(title='Test popup',
+                  content=Label(text='Hello world'),
+                  size_hint=(None, None), size=(400, 400))
+    popup.open()
 
 class ImageButton(ButtonBehavior, Image):
     pass

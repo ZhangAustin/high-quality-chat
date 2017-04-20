@@ -28,7 +28,7 @@ ScreenManager:
             font_size: '24sp'
             multiline: False
             hint_text: 'servername'
-            pos: (330, 410)
+            pos: (330, 460)
         TextInput:
             id: callnumber
             size_hint: (.5, .1)
@@ -36,14 +36,14 @@ ScreenManager:
             multiline: False
             password: True
             hint_text: 'e.g. 1004'
-            pos: (330, 340)
+            pos: (330, 390)
         TextInput:
             id: username
             size_hint: (.5, .1)
             font_size: '24sp'
             multiline: False
             hint_text: 'your_username'
-            pos: (330, 270)
+            pos: (330, 320)
         TextInput:
             id: password
             size_hint: (.5, .1)
@@ -51,7 +51,15 @@ ScreenManager:
             multiline: False
             password: True
             hint_text: '********'
-            pos: (330, 200)
+            pos: (330, 250)
+        TextInput:
+            id: connection_string
+            size_hint: (.5, .1)
+            font_size: '24sp'
+            multiline: False
+            password: True
+            hint_text: 'OR Enter your connection string'
+            pos: (330, 170)
         ImageButton:
             id: producerjoinsess
             source: '../img/arrow_right.png'
@@ -60,7 +68,7 @@ ScreenManager:
             size_hint: (.5, None)
             text_size: root.width, None
             font_size: '25sp'
-            pos: (200, 60)
+            pos: (200, 40)
             on_release: self.parent.get_text(servername.text, username.text, password.text, callnumber.text)
         ImageButton:
             id: main_menu
@@ -164,6 +172,12 @@ ScreenManager:
             hint_text: 'ON'
             password: True
             pos: (250, 300)
+        ImageButton:
+            id: generate_strings
+            source: '../img/generate_strings.png'
+            pos: (50, 50)
+            size_hint: (0.3, 0.3)
+            on_release: app.root.current = 'connection_string_generation_screen'
     FileTransferScreen:
         app: self.manager.app
         manager: screen_manager
@@ -173,7 +187,66 @@ ScreenManager:
             Rectangle:
                 pos: self.pos
                 size: self.size
-
+    ConnectionStringGenerationScreen:
+        manager: screen_manager
+        app: self.manager.app
+        canvas.before:
+            Color:
+                rgba: 0.95, 0.95, 0.95, 0.95
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        TextInput:
+            id: servername
+            size_hint: (.5, .1)
+            font_size: '24sp'
+            multiline: False
+            hint_text: 'servername'
+            pos: (330, 430)
+        TextInput:
+            id: callnumber
+            size_hint: (.5, .1)
+            font_size: '24sp'
+            multiline: False
+            password: True
+            hint_text: 'e.g. 1004'
+            pos: (330, 360)
+        TextInput:
+            id: username
+            size_hint: (.5, .1)
+            font_size: '24sp'
+            multiline: False
+            hint_text: 'your_username'
+            pos: (330, 290)
+        TextInput:
+            id: password
+            size_hint: (.5, .1)
+            font_size: '24sp'
+            multiline: False
+            password: True
+            hint_text: '********'
+            pos: (330, 220)
+        ImageButton:
+            id: producerjoinsess
+            source: '../img/enter_string.png'
+            halign: 'center'
+            valign: 'middle'
+            size_hint: (.25, .25)
+            text_size: root.width, None
+            font_size: '25sp'
+            pos: (275, 30)
+            on_release: self.parent.get_text(servername.text, username.text, password.text, callnumber.text)
+        ImageButton:
+            id: main_menu
+            source: '../img/arrow_left.png'
+            text: 'Main Menu'
+            halign: 'center'
+            valign: 'middle'
+            size_hint: (.20, .10)
+            text_size: root.width, None
+            font_size: '25sp'
+            pos: (-25, 510)
+            on_release: app.root.current = 'settings'
 <MainScreen>:
     name: "main"
     Image:
@@ -210,19 +283,27 @@ ScreenManager:
     Image:
         source: '../img/server_address.png'
         size_hint: (0.28, 0.28)
-        pos: (70, 360)
+        pos: (70, 410)
     Image:
         source: '../img/username.png'
         size_hint: (0.195, 0.195)
-        pos: (145, 310)
+        pos: (145, 360)
     Image:
         source: '../img/password.png'
         size_hint: (0.16, 0.16)
-        pos: (160, 255)
+        pos: (160, 305)
     Image:
         source: '../img/call_number.png'
         size_hint: (0.2, 0.2)
-        pos: (130, 170)
+        pos: (130, 220)
+    Image:
+        source: '../img/line_break.png'
+        size_hint: (0.9, 0.9)
+        pos: (30, -28)
+    Image:
+        source: '../img/connection_string.png'
+        size_hint: (0.31, 0.31)
+        pos: (45, 110)
 <ArtistJoiningScreen>
     name: "artistsessionjoining"
     Image:
@@ -306,7 +387,7 @@ ScreenManager:
         size_hint: (.20, .10)
         text_size: root.width, None
         font_size: '25sp'
-        pos: (670, 520)
+        pos: (-25, 510)
         on_release: app.root.current = 'main'
     Image:
         source: '../img/username.png'
@@ -317,9 +398,9 @@ ScreenManager:
         size_hint: (0.20, 0.20)
         pos: (60, 335)
     Image:
-        source: '../img/speakers.png'
-        size_hint: (0.16, 0.16)
-        pos: (90, 280)
+        source: '../img/codec.png'
+        size_hint: (0.11, 0.11)
+        pos: (140, 280)
     ImageButton:
         id: save_settings
         source: '../img/save_settings.png'
@@ -344,3 +425,25 @@ ScreenManager:
         font_size: '25sp'
         pos: (250, 50)
         on_release: root.leave_session()
+<ConnectionStringGenerationScreen>
+    name: "connection_string_generation_screen"
+    Image:
+        source: '../img/please_enter.png'
+        size_hint: (0.35, 0.35)
+        pos: (270, 440)
+    Image:
+        source: '../img/server_address.png'
+        size_hint: (0.28, 0.28)
+        pos: (70, 380)
+    Image:
+        source: '../img/username.png'
+        size_hint: (0.195, 0.195)
+        pos: (145, 330)
+    Image:
+        source: '../img/password.png'
+        size_hint: (0.16, 0.16)
+        pos: (160, 275)
+    Image:
+        source: '../img/call_number.png'
+        size_hint: (0.2, 0.2)
+        pos: (130, 190)
