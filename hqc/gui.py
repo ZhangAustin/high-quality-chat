@@ -1,8 +1,9 @@
-from chat import constants
-from chat.ChatClient import HQCWSClient
-from HQCConfig import HQCConfig as hqc_config
+import os
+import threading
+import time
 from datetime import datetime
-from hqc import HQCPhone
+
+import kivy
 from kivy.app import App
 from kivy.config import Config
 from kivy.lang import Builder
@@ -10,18 +11,19 @@ from kivy.properties import ObjectProperty, StringProperty, NumericProperty
 from kivy.uix.actionbar import ActionItem
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.button import Button
+from kivy.uix.dropdown import DropDown
 from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
-from kivy.uix.dropdown import DropDown
 from kivy.uix.progressbar import ProgressBar
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.togglebutton import ToggleButton
+
 import audio
-import kivy
-import os
-import threading
-import time
+from HQCConfig import HQCConfig as hqc_config
+from chat import constants
+from chat.ChatClient import HQCWSClient
+from hqc import HQCPhone
 
 Config.set('graphics', 'resizable', 0)  # This must occur before all other kivy imports
 kivy.require('1.0.7')
@@ -172,7 +174,7 @@ class SessionScreen(Screen):
         # Called when artist receives a sync request file
         if file not in self.requested_files and self.app.chat_client:
             print "Adding file" + file
-            self.app.chat_client.send_sync(constants.SYNC_REQUESTFILE, file)
+            self.app.chat_client.send_sync(constants.SYNC_REQUEST_FILE, file)
         else:
             print "Chat client not connected"
         print self.requested_files
@@ -187,7 +189,7 @@ class SessionScreen(Screen):
         if message in self.audio_files:
             self.app.chat_client.send_file(message)
 
-    # TODO: GUI update
+    # TODO: GUI update - here is where the sidebar needs to be appended to
     def update_available_files(self, username, filename, length):
         _, tail = os.path.split(filename)
         print "{} has {}: {} bytes".format(username, tail, length)

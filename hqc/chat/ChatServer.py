@@ -145,7 +145,6 @@ class HQCWebSocketApplication(object):
         return self.ws(environ, start_response)
 
 if __name__ == '__main__':
-    #IP_ADDRESS = config.get("chat_settings", "IP_ADDRESS")
     try:
         try:
             PORT = int(sys.argv[1])
