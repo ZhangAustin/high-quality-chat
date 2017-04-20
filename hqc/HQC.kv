@@ -27,59 +27,31 @@ ScreenManager:
             size_hint: (.5, .1)
             font_size: '24sp'
             multiline: False
-<<<<<<< HEAD
-            hint_text: 'servername'
-            pos: (330, 460)
-=======
             hint_text: 'Default Value'
             pos: (330, 410)
->>>>>>> master
         TextInput:
             id: callnumber
             size_hint: (.5, .1)
             font_size: '24sp'
             multiline: False
             password: True
-<<<<<<< HEAD
-            hint_text: 'e.g. 1004'
-            pos: (330, 390)
-=======
             hint_text: 'Default Value'
             pos: (330, 340)
->>>>>>> master
         TextInput:
             id: username
             size_hint: (.5, .1)
             font_size: '24sp'
             multiline: False
-<<<<<<< HEAD
-            hint_text: 'your_username'
-            pos: (330, 320)
-=======
             hint_text: 'Default Value'
             pos: (330, 270)
->>>>>>> master
         TextInput:
             id: password
             size_hint: (.5, .1)
             font_size: '24sp'
             multiline: False
             password: True
-<<<<<<< HEAD
-            hint_text: '********'
-            pos: (330, 250)
-        TextInput:
-            id: connection_string
-            size_hint: (.5, .1)
-            font_size: '24sp'
-            multiline: False
-            password: True
-            hint_text: 'OR Enter your connection string'
-            pos: (330, 170)
-=======
             hint_text: 'Default Value'
             pos: (330, 200)
->>>>>>> master
         ImageButton:
             id: producerjoinsess
             source: '../img/arrow_right.png'
@@ -193,13 +165,6 @@ ScreenManager:
             password: True
             pos: (250, 300)
         ImageButton:
-<<<<<<< HEAD
-            id: generate_strings
-            source: '../img/generate_strings.png'
-            pos: (50, 50)
-            size_hint: (0.3, 0.3)
-            on_release: app.root.current = 'connection_string_generation_screen'
-=======
             id: save_settings
             source: '../img/save_settings.png'
             halign: 'center'
@@ -207,7 +172,6 @@ ScreenManager:
             size_hint: (.3, .3)
             pos: (500, 25)
             on_release: self.parent.save_settings(setting1.text, setting2.text, setting3.text)
->>>>>>> master
     FileTransferScreen:
         app: self.manager.app
         manager: screen_manager
