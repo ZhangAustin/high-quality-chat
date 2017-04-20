@@ -3,9 +3,13 @@ import threading
 import time
 from datetime import datetime
 
+from kivy.config import Config
+
+# DO NOT MOVE THIS LINE, IT HAS TO BE AT THE TOP
+Config.set('graphics', 'resizable', 0)  # This must occur before all other kivy imports
+
 import kivy
 from kivy.app import App
-from kivy.config import Config
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty
 from kivy.uix.actionbar import ActionItem
@@ -25,7 +29,6 @@ from chat import constants
 from chat.ChatClient import HQCWSClient
 from hqc import HQCPhone
 
-Config.set('graphics', 'resizable', 0)  # This must occur before all other kivy imports
 kivy.require('1.0.7')
 
 
