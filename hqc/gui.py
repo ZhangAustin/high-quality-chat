@@ -5,16 +5,17 @@ from datetime import datetime
 
 from kivy.config import Config
 
+# DO NOT MOVE THIS LINE, IT HAS TO BE AT THE TOP
 Config.set('graphics', 'resizable', 0)  # This must occur before all other kivy imports
 
 import kivy
 from kivy.app import App
-
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty
 from kivy.uix.actionbar import ActionItem
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.button import Button
+from kivy.uix.dropdown import DropDown
 from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
@@ -23,21 +24,11 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.togglebutton import ToggleButton
 
 import audio
-from Config import Config
+from HQCConfig import HQCConfig as hqc_config
 from chat import constants
 from chat.ChatClient import HQCWSClient
 from hqc import HQCPhone
 
-# audioClipLayout = GridLayout(cols=3, padding=10, spacing=5,
-#                     size_hint=(None, None), width=310)
-# layout2 = GridLayout(cols=1, padding=10, spacing=5,
-#                      size_hint=(None, None), width=410)
-
-# TODO: REMOVE GLOBAL VARIABLES. Put them in the config, a class definition, or default parameter.
-start_recording = False
-filenames = []
-recorder = None
-progress = False
 kivy.require('1.0.7')
 
 
@@ -48,39 +39,42 @@ class HQC(App):
     """
     def __init__(self, **kwargs):
         super(HQC, self).__init__(**kwargs)
-        self.config = Config.get_instance("conn.conf")
+        self.config = hqc_config.get_instance(file="conn.conf")
         self.phone = HQCPhone(self.config)
         self.chat_client = None
+
         # Recorder object from audio module
         self.recorder = None
-        # Boolean of whether or not the user is recording
-        self.recording = False
-
-        # name of current lq_audio file (fetched from audio class)
-        self.lq_audio = None
-        # name of session (producer_session, artist_session, or listener_session)
-        self.session_name = None
-        # TODO description
-        self.storage_dir = None
+        # Recording directory
+        self.storage_dir = self.config.get('AudioSettings', 'recording_location')
+        self.session_name = datetime.now().strftime(constants.DATETIME_SESSION)
+        self.audio_file_location = os.path.join(self.storage_dir, self.session_name)
+        if not os.path.exists(self.audio_file_location):
+            os.makedirs(self.audio_file_location)
 
         # color for gui text
         self.dark_blue = '2939b0'
 
-        # dict with usernames having list of (filename, length) tuples for download.
-        # ex. filename, length = available_files['cptarnie'][0]
-        self.available_files = {}
-
-
     # Build should only handle setting up GUI-specific items
     def build(self):
         # Kivy is stubborn and overrides self.config with a built-in ConfigParser
-        self.config = Config.get_instance("conn.conf")
+        self.config = hqc_config.get_instance(file="conn.conf")
         # Give the web socket a reference to the app
         gui = Builder.load_file("HQC.kv")
         self.root = gui
         # Link application to Screen Manager
         self.root.app = self
         return gui
+
+    def get_own_state(self):
+        """
+        Retrieves the username's own state from ChatClient
+        :return: dict
+        """
+        return self.chat_client.states[self.chat_client.username]
+
+    def get_latest_audio_file(self):
+        return self.get_own_state()['audio_files'][-1]
 
     def update_chat(self, username, message):
         self.root.screens[3].update_chat(username, message)
@@ -96,6 +90,14 @@ class HQC(App):
 
     def update_available_files(self, username, filename, length):
         self.root.screens[3].update_available_files(username, filename, length)
+
+    def add_audio_file(self, filename):
+        """
+        Adds an audio file path to the client state.
+        :param filename: name of available file
+        :return: None
+        """
+        self.get_own_state()['audio_files'].append(filename)
 
 
 class MainScreen(Screen):
@@ -121,10 +123,6 @@ class SessionScreen(Screen):
 
     # Store a large string of all chat messages
     chat_messages = StringProperty()
-
-    # List of audio file names
-    audio_files = []
-    requested_files = []
 
     def on_enter(self):
 
@@ -153,17 +151,22 @@ class SessionScreen(Screen):
         SessionScreen.clip_no += 1
 
         # add play button and filename index # for later playback
-        btn = ToggleButton(background_normal= '../img/play.png',
-                   size_hint=(.18, 1), group = 'play', allow_stretch=False)
+        btn = ToggleButton(background_normal='../img/play.png',
+                           size_hint=(.18, 1), group='play', allow_stretch=False)
         btn.apply_property(clip_no=NumericProperty(SessionScreen.clip_no))
         btn.bind(on_press=self.play_clip)
 
         # add filename label
-        label = Label(text=os.path.basename(self.audio_files[-1])[0:9], halign='left', size_hint=(.5, 0.2))
+        audio_files = self.app.get_own_state()['audio_files']
+        label = Label(text=os.path.basename(audio_files[-1])[0:9], halign='left', size_hint=(.5, 0.2))
 
         # add request button
-        filename = self.audio_files[-1]
-        print self.audio_files[-1]
+
+        btn2 = Button(text="Request", size=(100, 50),
+                      size_hint=(0.32, None))
+        # Same clip number as play button
+        btn2.apply_property(clip_no=NumericProperty(SessionScreen.clip_no))
+        btn2.bind(on_press=self.request_file)
 
         self.ids.audioSidebar.add_widget(btn)
         self.ids.audioSidebar.add_widget(label)
@@ -172,23 +175,10 @@ class SessionScreen(Screen):
         # Called when artist receives a sync request file
         if file not in self.requested_files and self.app.chat_client:
             print "Adding file" + file
-            self.app.chat_client.send_sync(constants.SYNC_REQUESTFILE, file)
+            self.app.chat_client.send_sync(constants.SYNC_REQUEST_FILE, file)
         else:
             print "Chat client not connected"
         print self.requested_files
-
-    def request_file(self, username, filename):
-        """
-        Called upon when the user requests a file
-        :param username: name of user who has the file
-        :param filename: string of file requested
-        :return: None
-        """
-        print "Requesting {} from {}".format(filename, username)
-        # Send a sync message to request a file.
-        self.app.chat_client.send_sync(constants.SYNC_REQUESTFILE,
-                                       username=username,
-                                       filename=filename)
 
     def update_send_files(self, username, message):
         """
@@ -200,77 +190,101 @@ class SessionScreen(Screen):
         if message in self.audio_files:
             self.app.chat_client.send_file(message)
 
-    # TODO: GUI update
+    # TODO: GUI update - here is where the sidebar needs to be appended to
     def update_available_files(self, username, filename, length):
-        if username not in self.app.available_files:
-            self.app.available_files[username] = []
         _, tail = os.path.split(filename)
-        available_file_tuple = (tail, length)
-        self.app.available_files[username].append(available_file_tuple)
         print "{} has {}: {} bytes".format(username, tail, length)
 
     def play_clip(self, obj):
-
+        """
+        Plays the selected file.
+        :param obj: ToggleButton object
+        :return: 
+        """
+        # TODO: This plays LQ files, not HQ files.  Call get_audio_from_filename and also give it a length
         # Get filename of the high quality clip associated with this play button
-        # TODO: explain what obj.np is/does
-        filename = self.audio_files[obj.clip_no]
+        filename = self.app.get_own_state()['audio_files'][obj.clip_no]
+        _, tail = os.path.split(filename)
+        # Get base name
+        # root, _ = os.path.splitext(tail)
 
-        # Get filename of the session low quality audio stream
-        lq_audio = self.app.lq_audio
+        # Get filename of the session high quality audio stream
+        hq_audio = self.app.config.get_file_name(self.app.session_name, tail)
 
-        # get the # seconds after playback that HQ clip starts in the LQ stream:
-        # HQ start time in s - LQ start time in s (= int)
-        start_time_seconds = int(lq_audio[3:5]) * 3600 + int(lq_audio[6:8]) * 60 + int (lq_audio[9:11])
-        filename_seconds = int(filename[3:5]) * 3600 + int(filename[6:8]) * 60 + int (filename[9:11])
+        # Play audio for 5 seconds
+        print "playing " + str(hq_audio)
+        audio.playback(hq_audio, 0, None, 5)
 
-        # gets the offset in seconds of the HQ file start time from the LQ stream
-        hq_start_time = filename_seconds - start_time_seconds
-        print filename + " session offset: " + str(hq_start_time) + " seconds"
-        # gets the file associated with this button's label friend
+    def request_file(self, obj):
+        """
+        Called upon when the user requests a file by clicking "Request" on a recording.
+        :param obj: ToggleButton object
+        :return: None
+        """
+        # Get filename of the high quality clip associated with this play button
+        filename = self.app.get_own_state()['audio_files'][obj.clip_no]
+        _, tail = os.path.split(filename)
+        # Get base name
+        # root, _ = os.path.splitext(tail)
 
-        # audio.get_length(filename)
-        # audio.playback(lq_audio, hq_start_time, None, 2)
+        # Get filename of the session high quality audio stream
+        hq_audio = self.app.config.get_file_name(self.app.session_name, tail)
+        print "Requesting {}".format(tail)
+        # Send a sync message to request a file.
+        self.app.chat_client.send_sync(constants.SYNC_REQUEST_FILE,
+                                       filename=tail)
 
     def record_button(self):
-
+        """
+        Records high quality audio files on the artist side. 
+        :return: 
+        """
         # Toggle recording
-        self.app.recording = not self.app.recording
+        rec_state = self.app.get_own_state()['recording']
+        self.app.get_own_state()['recording'] = not rec_state
 
-        if self.app.recording:
+        if self.app.get_own_state()['recording']:
+            # Update state
+            self.app.chat_client.send_sync(constants.SYNC_START_RECORDING)
+            # GUI update
             self.ids.record_button.source = SessionScreen.stop_theme
-
-            global progress
-            progress = True
-            mythread = threading.Thread(target=self.record_progress)
-            mythread.start()
+            # Start the progress effect
+            progress_thread = threading.Thread(target=self.record_progress)
+            progress_thread.start()
 
             filename = self.app.config.get_file_name(self.app.session_name,
                                                      datetime.now().strftime(constants.DATETIME_HQ))
             head, tail = os.path.split(filename)
+            print "Creating: " + tail
+            # Make sure folders exist
             if not os.path.exists(head):
                 os.makedirs(head)
-            self.app.recorder = audio.Recorder(filename)  # creates audio file
-            self.audio_files.append(filename)  # adds filename to global list
+            # Makes a Recorder with the desired filename
+            self.app.recorder = audio.Recorder(filename)
+            # Add available audio file to state list
+            self.app.add_audio_file(filename)
+            # Starts writing to an audio file, including to disk
             self.app.recorder.start()  # Starts recording
             print "Recording..."
         else:
-            progress = False
+            # Update state
+            self.app.chat_client.send_sync(constants.SYNC_STOP_RECORDING)
+            # GUI update
             self.ids.record_button.source = SessionScreen.record_red
+            # Closes recording threads
             self.app.recorder.stop()
+
+            self.app.phone.stop_start_recording(datetime.now().strftime(constants.DATETIME_LQ))
             self.add_clip()  # adds to gui sidebar
 
-            print "Done recording"
-
-            # TODO: get the correct file length
             # Send a sync message for when a clip is available
+            available_filename = self.app.get_latest_audio_file()
             self.app.chat_client.send_sync(constants.SYNC_FILE_AVAILABLE,
-                                           username=self.app.config.get('ChatSettings', 'username'),
-                                           filename=self.audio_files[-1],
-                                           length=audio.get_length(self.audio_files[-1]))
+                                           filename=available_filename,
+                                           length=audio.get_length(available_filename))
 
     def record_progress(self):
-        global progress
-        while progress:
+        while self.app.get_own_state()['recording']:
             time.sleep(0.05)
             self.ids.progress_bar.value = (self.ids.progress_bar.value + 1) % 31  # datetime.now().second % 6.0
 
@@ -322,7 +336,7 @@ class SessionScreen(Screen):
         :return: 
         """
         # If leaving the SessionScreen, make sure to stop recording
-        if self.app.recording:
+        if self.app.get_own_state()['recording']:
             self.record_button()
 
 class ProducerSessionScreen(SessionScreen):
@@ -346,6 +360,23 @@ class ProducerJoiningScreen(Screen):
 
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
+    def get_conn(self, producer_connection):
+        def is_valid(value):
+            if value != '' and len(value) != 0:
+                return True
+            else:
+                return False
+
+        self.parent.current = 'producer_session'
+
+        connection_details = self.app.config.get_section('ConnectionDetails')
+
+        file_name = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
+        self.app.phone.make_call(connection_details['call_no'], connection_details['server'], file_name)
+        self.app.lq_audio = self.app.phone.recording_start
+        print "passing lq_audio to gui: " + self.app.lq_audio
+
+
     def get_text(self, servername, username, password, callnumber):
         def is_valid(value):
             if value != '' and len(value) != 0:
@@ -388,11 +419,13 @@ class ProducerJoiningScreen(Screen):
         # # Open the popup
         # popup.open()
 
+
         self.app.session_name = datetime.now().strftime(constants.DATETIME_SESSION)
         self.app.storage_dir = self.app.config.get('AudioSettings', 'recording_location')
         os.makedirs(os.path.join(self.app.storage_dir, self.app.session_name))
 
         self.parent.current = 'producer_session'
+
 
         file_name = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
         self.app.phone.make_call(connection_details['call_no'], connection_details['server'], file_name)
@@ -461,41 +494,140 @@ class ArtistJoiningScreen(Screen):
 
         filename = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
         self.app.phone.make_call(connection_details['call_no'], connection_details['server'], filename)
-        self.app.lq_audio = self.app.phone.recording_start
-        print "passing lq_audio to gui: " + self.app.lq_audio
 
 
 class SettingsScreen(Screen):
     app = ObjectProperty(None)
+    initialize = True
+    recording_devices_main = Button(text='Recording Devices', size = (250, 75), size_hint = (None, None),
+                                    halign="center", valign="middle")
+    audio_devices_main = Button(text='Audio Devices', size = (250, 75), size_hint = (None, None),
+                                halign="center", valign="middle")
+    codec_main = Button(id='codec', text='Codec', size = (250, 75), size_hint=(None, None),
+                        halign="center", valign="middle")
+    dropdown1 = DropDown(id='dropdown1')
+    dropdown2 = DropDown(id='dropdown2')
+    dropdown3 = DropDown(id='dropdown3')
+
 
     def update_username(self, text_input):
         self.app.chat_client.username = text_input
         self.app.config.update_setting("ChatSettings", "username", text_input)
         self.parent.ids.username_setting.text = ""
 
+    def save_settings(self, setting1, setting2, setting3):
+        children = self.ids.devices.children[:]
+        index = 0
+        while children:
+            child = children.pop()
+            if index == 0 and child.text != 'Recording Devices':
+                self.app.config.update_setting("AudioSettings", "mic", child.text)
+            if index == 1 and child.text != 'Audio Devices':
+                self.app.config.update_setting("AudioSettings", "speakers", child.text)
+            if index == 2 and child.text == "Default":
+                self.app.config.update_setting("ConnectionDetails", "user", "Default")
+            if index == 2 and child.text != "Codec":
+                codec = child.text
+                newcodec = [codec[0:codec.find(',')]]
+                newcodec += [codec[(codec.find(',')+ 1): codec.find("bps")]]
+                newcodec += [codec[(codec.find("bps") + 3): codec.find("channels")]]
+                self.app.config.update_setting("LQRecordingSettings", "codec", codec)
+            index += 1
+        if setting1 != '':
+            self.app.config.update_setting("ConnectionDetails", "user", setting1)
+        print self.app.config.get_section("AudioSettings")
+        print self.app.config.get_section("LQRecordingSettings")
 
+    def on_enter(self):
+        if self.initialize:
+            recording_devices = self.app.phone.get_recording_devices()
+            recording_btns = []
+            for i in range(len(recording_devices)):
+                btn1 = Button(text=recording_devices[i], size_hint_y=None, height = 60, halign="center", valign="middle")
+                recording_btns = recording_btns + [btn1]
+            for button in recording_btns:
+                button.bind(size=button.setter('text_size'))
+                button.bind(on_release=lambda btn: self.dropdown1.select(btn.text))
+                self.dropdown1.add_widget(button)
+            self.recording_devices_main.bind(on_release = self.dropdown1.open)
+            self.dropdown1.bind(on_select = lambda instance, x: self.change_text(1, x))
+            self.recording_devices_main.bind(size=self.recording_devices_main.setter('text_size'))
+            self.ids.devices.add_widget(self.recording_devices_main)
+            audio_devices = self.app.phone.get_playback_devices()
+            audio_btns = []
+            for i in range(len(audio_devices)):
+                btn2 = Button(text=audio_devices[i],  size_hint_y=None, height = 60, halign="center", valign="middle")
+                audio_btns = audio_btns + [btn2]
+            for button in audio_btns:
+                button.bind(size=button.setter('text_size'))
+                button.bind(on_release=lambda btn: self.dropdown2.select(btn.text))
+                self.dropdown2.add_widget(button)
+            self.audio_devices_main.bind(on_release = self.dropdown2.open)
+            self.dropdown2.bind(on_select = lambda instance, x: self.change_text(2, x))
+            self.audio_devices_main.bind(size=self.audio_devices_main.setter('text_size'))
+            self.ids.devices.add_widget(self.audio_devices_main)
+            codec = self.app.phone.get_codecs()
+            codecbtns = []
+            default = Button(text='Default', size_hint_y=None, height=60, halign="center", valign="middle")
+            codecbtns = codecbtns + [default]
+            for i in range(len(codec)):
+                codec_text = str(codec[i][0]) + ", " + str(codec[i][1]) + "bps, " + str(codec[i][2]) + " channels"
+                btn3 = Button(text=codec_text, size_hint_y=None, height = 60, halign="center", valign="middle")
+                codecbtns = codecbtns + [btn3]
+            for button in codecbtns:
+                button.bind(size=button.setter('text_size'))
+                button.bind(on_release=lambda btn: self.dropdown3.select(btn.text))
+                self.dropdown3.add_widget(button)
+            self.codec_main.bind(on_release=self.dropdown3.open)
+            self.dropdown3.bind(on_select=lambda instance, x: self.change_text(3, x))
+            self.codec_main.bind(size=self.codec_main.setter('text_size'))
+            self.ids.devices.add_widget(self.codec_main)
+            self.initialize = False
+
+    def change_text(self, instance, x):
+        if instance == 1:
+            self.recording_devices_main.text = x
+            self.recording_devices_main.text_size=self.recording_devices_main.size
+        if instance == 2:
+            setattr(self.audio_devices_main, 'text', x)
+            self.audio_devices_main.text_size = self.audio_devices_main.size
+        if instance == 3:
+            setattr(self.codec_main, 'text', x)
+            self.codec_main.text_size = self.codec_main.size
+    def on_leave(self, *args):
+        if self.recording_devices_main != 'Recording Devices':
+            self.recording_devices_main.text = 'Recording Devices'
+        if self.audio_devices_main != 'Audio Devices':
+            self.audio_devices_main.text = 'Audio Devices'
+        if self.codec_main != 'Codec':
+            self.codec_main.text = 'Codec'
 class FileTransferScreen(Screen):
     app = ObjectProperty(None)
 
     def on_enter(self):
         if self.app.config.get('ChatSettings', 'role') == "PRODUCER":
-            files = self.app.root.screens[3].requested_files
+            files = self.app.get_own_state()['requested_files']
             for file in files:
                 label = Label(text=file, size_hint=(1 / len(files), None))
                 self.ids.filelayout.add_widget(label)
         elif self.app.config.get('ChatSettings', 'role') == "ARTIST":
-            files = self.app.root.screens[3].requested_files
+            files = self.app.get_own_state()['requested_files']
             for file in files:
-                self.app.chat_client.send_file(file)
+                full_path = self.app.config.get_file_name(self.app.session_name, file)
+                self.app.chat_client.send_file(full_path)
                 label = Label(text=file, size_hint=(1 / len(files), None))
                 self.ids.filelayout.add_widget(label)
 
     def leave_session(self):
-        # TODO: Uncomment for release
-        # self.app.chat_client.finish()
+        self.app.chat_client.finish()
         self.app.phone.hangup()
         App.get_running_app().stop()
 
+class ConnectionStringGenerationScreen(Screen):
+    popup = Popup(title='Test popup',
+                  content=Label(text='Hello world'),
+                  size_hint=(None, None), size=(400, 400))
+    popup.open()
 
 class ImageButton(ButtonBehavior, Image):
     pass

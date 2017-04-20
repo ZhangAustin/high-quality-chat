@@ -30,21 +30,18 @@ class HQCWSClient(WebSocketClient):
         """
         self.config = config
         # Get connection details from config
-        try:
-            self.ip = config.get('ChatSettings', 'ip')
-            self.port = config.get('ChatSettings', 'port')
-        except:
-            self.ip = constants.IP
-            self.port = constants.PORT
-        super(HQCWSClient, self).__init__(HQCWSClient.get_ws_url(self.ip, self.port), protocols=['http-only', 'chat'], *args, **kwargs)
-        try:
-            self.username = config.get('ChatSettings', 'username')
-            self.role = config.get('ChatSettings', 'role')
-            self.save_directory = config.get('AudioSettings', 'recording_location')
-        except:
-            self.username = constants.USERNAME
-            self.role = constants.ARTIST
-            self.save_directory = "Saved_Recordings"
+        chat_settings = self.config.get_section("ChatSettings")
+
+        self.ip = chat_settings['ip_address']
+        self.port = chat_settings['port']
+        super(HQCWSClient, self). \
+            __init__(HQCWSClient.get_ws_url(self.ip, self.port), protocols=['http-only', 'chat'], *args, **kwargs)
+
+        self.username = chat_settings['username']
+        self.role = chat_settings['role']
+
+        self.save_directory = config.get('AudioSettings', 'recording_location')
+
         # Set in GUI initialization
         self.app = None
         try:
@@ -54,6 +51,19 @@ class HQCWSClient(WebSocketClient):
         self.client_thread = ClientThread(self)
         self.client_thread.daemon = True
         self.client_thread.start()
+
+        # Initial settings of a client when joining
+        # Defines the states of the client
+        self.states = {self.username: {'mic_muted': True,
+                                       'recording': False,
+                                       'downloading': False,
+                                       'uploading': False,
+                                       # List of (filename, length) tuples
+                                       "audio_files": [],
+                                       # List of file names that are requested by the producers
+                                       'requested_files': [],
+                                       # List of(filename, length) tuples that have been downloaded.
+                                       'downloaded files': []}}
 
     def send(self, payload, binary):
         """
@@ -149,7 +159,6 @@ class HQCWSClient(WebSocketClient):
         """
         # Get the filename
         filename = parsed_json['filename']
-
         # Write the message contents to disk
         with open(self.save_directory + HQCWSClient.path_leaf(filename), 'wb') as out_file:
             out_file.write(base64.b64decode(parsed_json['content']))
@@ -177,50 +186,32 @@ class HQCWSClient(WebSocketClient):
         message = parsed_json['message']
         if status_code == constants.SYNC_TESTSYNCMSG:
             print "Received a test sync message from {}".format(username)
-        elif status_code == constants.SYNC_MICON:
-            print "{} turned mic on".format(username)
-            # Do something in GUI
-        elif status_code == constants.SYNC_MICOFF:
-            print "{} turned mic off".format(username)
-            # Do something in GUI
-        elif status_code == constants.SYNC_SPEAKERON:
-            print "{} turned speakers on".format(username)
-            # Do something in GUI
-        elif status_code == constants.SYNC_SPEAKEROFF:
-            print "{} turned speakers off".format(username)
-            # Do something in GUI
-        elif status_code == constants.SYNC_RECORDINGON:
-            print "{} started recording".format(username)
-            # Do something in GUI
-        elif status_code == constants.SYNC_RECORDINGOFF:
-            print "{} stopped recording".format(username)
-            # Do something in GUI
-        elif status_code == constants.SYNC_RECORDINGSTART:
-            timestamp = parsed_json['message']
-            print "{} started recording at {}".format(username, timestamp)
+        elif status_code == constants.SYNC_START_RECORDING:
+            self.states[username]['recording'] = True
+            print "{} started recording.".format(username)
             # Do something in GUI
             pass
-        elif status_code == constants.SYNC_RECORDINGSTOP:
-            timestamp = parsed_json['message']
-            print "{} stopped recording at {}".format(username, timestamp)
+        elif status_code == constants.SYNC_STOP_RECORDING:
+            self.states[username]['recording'] = False
+            print "{} stopped recording.".format(username)
+        elif status_code == constants.SYNC_SPEAKER_ON:
+            print "{} turned speakers on".format(username)
             # Do something in GUI
-        elif status_code == constants.SYNC_REQUESTFILE:
-            # If the request was meant for this client
-            if self.username == parsed_json['message']['username']:
-                # Get sender's username
-                username = parsed_json['username']
-                filename = parsed_json['message']['filename']
-                print filename + " requested by " + username
-                # Do something in GUI
-                if self.app:
-                    self.app.file_requested(username, filename)
-                    if os.path.exists(self.save_directory + os.path.sep + filename):
-                        self.send_file(self.save_directory + os.path.sep + filename)
-                    else:
-                        print self.save_directory + os.path.sep + filename + " not found"
-                else:
-                    print "App not connected"
-        elif status_code == constants.SYNC_SENDFILE:
+        elif status_code == constants.SYNC_SPEAKER_OFF:
+            print "{} turned speakers off".format(username)
+            # Do something in GUI
+        elif status_code == constants.SYNC_REQUEST_FILE:
+            filename = message['filename']
+            # Update state
+            if filename not in self.states[self.username]['requested_files']:
+                self.states[self.username]['requested_files'].append(filename)
+            # Do something in GUI
+            print message['filename'] + " requested"
+            if self.app:
+                pass
+            else:
+                print "App not connected"
+        elif status_code == constants.SYNC_SEND_FILE:
             filename = message['filename']
             _, file = os.path.split(filename)
             length = message['length']
@@ -229,11 +220,13 @@ class HQCWSClient(WebSocketClient):
             if self.app:
                 self.app.update_send_files(username, message)
         elif status_code == constants.SYNC_FILE_AVAILABLE:
-            sending_username = message['username']
             filename = message['filename']
             length = message['length']
+            file_tuple = (filename, length)
+            self.states[username]['audio_files'].append(file_tuple)
+
             if self.app:
-                self.app.update_available_files(sending_username, filename, length)
+                self.app.update_available_files(username, filename, length)
             else:
                 print "App not connected"
         else:
@@ -250,17 +243,19 @@ class HQCWSClient(WebSocketClient):
         """
         payload = self.new_payload()
         payload['type'] = sync_code
-        if sync_code == constants.SYNC_RECORDINGSTART:
-            if kwargs['timestamp']:
-                payload['message'] = kwargs['timestamp']
-                self.send(json.dumps(payload), False)
-            else:
-                print "No timestamp provided for sync message"
+        if sync_code == constants.SYNC_START_RECORDING:
+            self.states[self.username]['recording'] = True
+            # Make an empty message
+            payload['message'] = {}
+            self.send(json.dumps(payload), False)
 
-        elif sync_code == constants.SYNC_RECORDINGSTOP:
-            print "SYNC_RECORDINGSTOP not implemented"
+        elif sync_code == constants.SYNC_STOP_RECORDING:
+            self.states[self.username]['recording'] = False
+            # Make an empty message
+            payload['message'] = {}
+            self.send(json.dumps(payload), False)
 
-        elif sync_code == constants.SYNC_SENDFILE:
+        elif sync_code == constants.SYNC_SEND_FILE:
             # Name of the file available
             try:
                 payload['message'] = {}
@@ -270,13 +265,12 @@ class HQCWSClient(WebSocketClient):
                 print "SYNC_SENDFILE needs filename and length."
             self.send(json.dumps(payload), False)
 
-        elif sync_code == constants.SYNC_REQUESTFILE:
+        elif sync_code == constants.SYNC_REQUEST_FILE:
             try:
                 payload['message'] = {}
                 payload['message']['filename'] = kwargs['filename']
-                payload['message']['username'] = kwargs['username']
             except KeyError:
-                print "SYNC_REQUESTFILE needs username filename."
+                print "SYNC_REQUEST_FILE needs username filename."
             self.send(json.dumps(payload), False)
 
         elif sync_code == constants.SYNC_FILE_AVAILABLE:
@@ -284,12 +278,13 @@ class HQCWSClient(WebSocketClient):
                 _, tail = os.path.split(kwargs['filename'])
                 print "Sending {} availability".format(tail)
                 payload['message'] = {}
-                payload['message']['username'] = kwargs['username']
                 payload['message']['filename'] = kwargs['filename']
                 payload['message']['length'] = kwargs['length']
+                self.send(json.dumps(payload), False)
             except KeyError:
                 print "SYNC_SENDFILE needs filename and length."
-            self.send(json.dumps(payload), False)
+            except:
+                raise
 
         else:
             print "Uncaught sync code"
@@ -336,6 +331,8 @@ class HQCWSClient(WebSocketClient):
         :param filepath: string path to file
         :return: None
         """
+        _, tail = os.path.split(filepath)
+        print str(self.username) + " sending out " + str(tail)
         fh = open(filepath, 'rb')
         content = base64.b64encode(fh.read())
         payload = self.new_payload()
@@ -355,9 +352,3 @@ class HQCWSClient(WebSocketClient):
         :return: dictionary with username and role
         """
         return {"username": self.username, "role": self.role}
-
-if __name__ == '__main__':
-    try:
-        print "Run this from outside the folder and use Config"
-    except KeyboardInterrupt:
-        ws.close()

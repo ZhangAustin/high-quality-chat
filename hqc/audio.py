@@ -2,13 +2,16 @@ import Queue
 import os
 import time
 import wave
+from datetime import datetime
+from datetime import timedelta
 from threading import Thread
 
 import pyaudio
 from pydub import AudioSegment
 from pydub.playback import play
 
-from Config import Config
+from HQCConfig import HQCConfig
+from chat import constants
 
 
 class Recorder:
@@ -27,7 +30,7 @@ class Recorder:
         Creates the high quality recorder
         :param filename: Filename to record into
         """
-        self._config = Config.get_instance('conn.conf')
+        self._config = HQCConfig.get_instance('conn.conf')
         audio_config = self._config.get_section('HQRecordingSettings')
 
         self._p = pyaudio.PyAudio()
@@ -103,6 +106,37 @@ class Recorder:
             self._frames.task_done()
 
 
+def get_audio_from_filename(filename, length, lowquals):
+    """
+    Figures out what LQ 
+    :param filename: The name of the file (direct from sync chat)
+    :param length: The length of the file specified in filename (direct from sync chat)
+    :param lowquals: An array of finalized low quality recordings
+    :return: A file name and relative time index
+    """
+    # All of these must be absolute paths on the local machine
+    # Lowquals will be fully qualified due to stop_start_recording
+    # However, filename wont be fully qualified because the file doesn't exist locally yet
+
+    time = datetime.strptime(filename, constants.DATETIME_HQ)  # Auto strips 'HQ_' and '.wav'
+    for lowqual in lowquals:
+        original = lowqual
+        lowqual = os.path.basename(lowqual)
+        lq_time = datetime.strptime(lowqual[2:], constants.DATETIME_LQ)  # 2: to cut off the index and underscore
+        if lq_time <= time:  # Check if the LQ recording started before the HQ recording
+            # Check if the end of the LQ recording is after the end of the HQ recording
+            time_end = time + timedelta(0, length, 0)
+            lq_length = get_length(original)
+            lq_time_end = lq_time + timedelta(0, lq_length, 0)
+            if lq_time_end > time_end:
+                time_index = time - lq_time
+                return {'filename': original,
+                        'start_time': time_index.total_seconds(),
+                        'end_time': time_index.total_seconds() + length}
+    print "Bad file: {} with length {}".format(filename, length)
+    # Any calling functions should check if value is not None before processing
+
+
 def playback(filename, start, end=None, playback_time=None):
     """
     Plays back a wav file from the start point (in seconds) to the end point (in seconds)
@@ -119,7 +153,7 @@ def playback(filename, start, end=None, playback_time=None):
 
     if end is None and playback_time is not None:
         # Play the track starting from start for playback_time seconds
-        segment = audio[int(start):int(start + end)]
+        segment = audio[int(start):int(start + playback_time)]
         play(segment)
     elif end is not None and playback_time is None:
         # Play the track starting from start and ending at end
@@ -142,21 +176,27 @@ def get_length(filename):
 
 
 if __name__ == '__main__':
-    recorder = Recorder('async.wav')
-    print "Starting recording async.wav"
-    recorder.start()
-    print "Recording 3 seconds"
-    time.sleep(3)
-    print "Stopping recording async.wav"
-    recorder.stop()
+    # Test get_audio_from_filename
+    testing_dir = 'C:\Users\user\HQC\SESSION_20170420_161406'
+    lowquals = ['0_LQ_161409.wav', '1_LQ_161414.wav', '2_LQ_161418.wav', '3_LQ_161421.wav']
+    for i in range(0, len(lowquals)):
+        lowquals[i] = os.path.join(testing_dir, lowquals[i])
 
-    print "Waiting 3 seconds"
-    time.sleep(3)
+    file1 = 'HQ_161411.wav'
+    file2 = 'HQ_161416.wav'
+    file3 = 'HQ_161420.wav'
 
-    recorder2 = Recorder('async2.wav')
-    print "Starting recording async2.wav"
-    recorder2.start()
-    print "Recording 5 seconds"
-    time.sleep(5)
-    print "Stopping recording async2.wav"
-    recorder2.stop()
+    length = 2.154
+
+    files = [file1, file2, file3]
+
+    for file in files:
+        print "Checking for file {} with length {}".format(file, length)
+        results = get_audio_from_filename(file, length, lowquals)
+        if results is not None:
+            print "Play file {} at index {} until {} (total length {})".format(results['filename'],
+                                                                               results['start_time'],
+                                                                               results['end_time'],
+                                                                               get_length(results['filename']))
+        else:
+            print "No match found for {} with length {}".format(file, length)

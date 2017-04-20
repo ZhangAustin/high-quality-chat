@@ -2,6 +2,7 @@ from gevent import monkey; monkey.patch_all()
 from ws4py.websocket import EchoWebSocket
 from ws4py.server.geventserver import WSGIServer
 from ws4py.server.wsgiutils import WebSocketWSGIApplication
+import socket
 import sys
 import json
 import constants
@@ -43,7 +44,10 @@ class HQCWebSocket(EchoWebSocket):
         role = message['role']
 
         # Keep for debugging
-        print "Message type: {} from {}".format(message_type, username)
+        if message_type in constants.SYNC_CODE_WORDS:
+            print "{} from {}".format(constants.SYNC_CODE_WORDS[message_type], username)
+        else:
+            print "Message type: {} from {}".format(message_type, username)
 
         app = self.environ['ws4py.app']
 
@@ -110,7 +114,6 @@ class HQCWebSocket(EchoWebSocket):
         app = self.environ['ws4py.app']
         for client in app.clients:
             client.send(message, False)
-        print "Sent sync message to %d clients" % (len(app.clients))
 
     def closed(self, code, reason="A client left the room without a proper explanation."):
         """
@@ -142,15 +145,18 @@ class HQCWebSocketApplication(object):
         return self.ws(environ, start_response)
 
 if __name__ == '__main__':
-    #IP_ADDRESS = config.get("chat_settings", "IP_ADDRESS")
     try:
         try:
             PORT = int(sys.argv[1])
         except IndexError:
             PORT = 9000
             print "Port not specified"
-        server = WSGIServer(('localhost', PORT), HQCWebSocketApplication('localhost', PORT))
+        server = WSGIServer(('0.0.0.0', PORT), HQCWebSocketApplication('localhost', PORT))
         print "Running server on port " + str(PORT)
         server.serve_forever()
     except KeyboardInterrupt:
         server.close()
+    except socket.error:
+        print "Server could not start properly. The socket may already be bound by another instance."
+
+
