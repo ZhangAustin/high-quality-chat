@@ -170,7 +170,8 @@ ScreenManager:
             halign: 'center'
             valign: 'middle'
             size_hint: (.3, .3)
-            pos: (500, 25)
+            pos: (270, 25)
+            on_press: app.root.current = 'main'
             on_release: self.parent.save_settings(setting1.text, setting2.text, setting3.text)
     FileTransferScreen:
         app: self.manager.app
@@ -395,14 +396,10 @@ ScreenManager:
         source: '../img/codec.png'
         size_hint: (0.11, 0.11)
         pos: (140, 280)
-    ImageButton:
-        id: save_settings
-        source: '../img/save_settings.png'
-        halign: 'center'
-        valign: 'middle'
-        size_hint: (.3, .3)
-        pos: (270, 50)
-        on_release: app.root.current = 'main'
+    BoxLayout:
+        id: devices
+        orientation: 'horizontal'
+        padding: [25, 0, 0, 225]
 <FileTransferScreen>
     name: "filetransfer"
     BoxLayout:
