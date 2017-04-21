@@ -196,6 +196,7 @@ class SessionScreen(Screen):
     def update_available_files(self, username, filename, length):
         _, tail = os.path.split(filename)
         print "{} has {}: {} bytes".format(username, tail, length)
+        # TODO: add clip to sidebar
 
     def play_clip(self, obj):
         """
@@ -562,6 +563,7 @@ class SettingsScreen(Screen):
             self.audio_devices_main.text = 'Audio Devices'
         if self.codec_main != 'Codec':
             self.codec_main.text = 'Codec'
+
 class FileTransferScreen(Screen):
     app = ObjectProperty(None)
 

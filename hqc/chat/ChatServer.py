@@ -110,10 +110,28 @@ class HQCWebSocket(EchoWebSocket):
         :param message: Sync message to forward
         :return: None
         """
-        # TODO: send to everybody but the sender
         app = self.environ['ws4py.app']
-        for client in app.clients:
-            client.send(message, False)
+
+        # Retrieve the message dictionary
+        parsed_json = json.loads(str(message))
+        # Get the message type
+        message_type = parsed_json['type']
+
+        producer_messages = [constants.SYNC_FILE_AVAILABLE]
+        artist_messages = []
+        if message_type in producer_messages:
+            for client in app.clients:
+                if client.role == constants.PRODUCER:
+                    client.send(message, False)
+        elif message_type in artist_messages:
+            for client in app.clients:
+                if client.role == constants.ARTIST:
+                    client.send(message, False)
+        # Send to everyone
+        else:
+            for client in app.clients:
+                if client.role == constants.ARTIST:
+                    client.send(message, False)
 
     def closed(self, code, reason="A client left the room without a proper explanation."):
         """

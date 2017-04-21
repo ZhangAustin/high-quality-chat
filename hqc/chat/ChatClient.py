@@ -225,7 +225,7 @@ class HQCWSClient(WebSocketClient):
             file_tuple = (filename, length)
             self.states[username]['audio_files'].append(file_tuple)
 
-            if self.app:
+            if self.app and self.role == constants.PRODUCER:
                 self.app.update_available_files(username, filename, length)
             else:
                 print "App not connected"
