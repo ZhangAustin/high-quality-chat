@@ -279,7 +279,10 @@ class SessionScreen(Screen):
             time = obj.length
             lq_audio = audio.get_audio_from_filename(filename,time,self.app.phone.recording_locations)
             print "Playing back {}".format(lq_audio)
-            audio.playback(lq_audio['filename'], lq_audio['start_time'], lq_audio['end_time'])
+            if lq_audio is not None:
+                audio.playback(lq_audio['filename'], lq_audio['start_time'], lq_audio['end_time'])
+            else:
+                print "Error getting playback"
 
     def request_file(self, obj):
         """
