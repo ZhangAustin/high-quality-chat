@@ -129,7 +129,43 @@ ScreenManager:
             font_size: '25sp'
             pos: (0, 510)
             on_release: app.root.current = 'main'
-    SessionScreen:
+    ProducerSessionScreen:
+        manager: screen_manager
+        app: self.manager.app
+        canvas.before:
+            Color:
+                rgba: 0.95, 0.95, 0.95, 0.95
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        TextInput:
+            id: chatText
+            size_hint: (.55, .10)
+            text_size: root.width, None
+            font_size: '18sp'
+            hint_text: 'Type to chat'
+            multiline: False
+            on_text_validate: self.parent.send_message(chatText.text)
+            pos: (20, 300)
+    ArtistSessionScreen:
+        manager: screen_manager
+        app: self.manager.app
+        canvas.before:
+            Color:
+                rgba: 0.95, 0.95, 0.95, 0.95
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        TextInput:
+            id: chatText
+            size_hint: (.55, .10)
+            text_size: root.width, None
+            font_size: '18sp'
+            hint_text: 'Type to chat'
+            multiline: False
+            on_text_validate: self.parent.send_message(chatText.text)
+            pos: (20, 300)
+    ListenerSessionScreen:
         manager: screen_manager
         app: self.manager.app
         canvas.before:
@@ -322,8 +358,66 @@ ScreenManager:
         source: '../img/connection_string.png'
         size_hint: (0.40, 0.40)
         pos: (60, 295)
-<SessionScreen>:
-    name: "session"
+<ProducerSessionScreen>:
+    name: "producer_session"
+    ActionBar:
+        ActionView:
+            ActionPrevious:
+                title: 'HQC: Session Name'
+                with_previous: False
+                app_icon: '../img/orion_just_stars.png'
+            ActionOverflow:
+            ActionImageButton:
+                id: mute_button
+                source: root.muted_mic_image
+                group: 'volume'
+                on_press: root.toggle_mute()
+            ActionGroup:
+                ActionImageButton:
+                    source: '../img/sign_out_option.png'
+                    text: 'Leave Session'
+                    on_release: app.root.current = 'filetransfer'
+    ProgressBar:
+        id: progress_bar
+        size_hint: (0.6, 0.25)
+        pos: (0, 5)
+        value: 0
+        max: 30
+    TabbedPanel:
+        size_hint: (.4, .9)
+        pos_hint: {'center_x': .8, 'center_y': .55}
+        do_default_tab: False
+        TabbedPanelItem:
+            tab_width: 300
+            text: 'Select Clips'
+            ScrollView:
+                size_hint: (None, None)
+                size: (310, 460)
+                pos_hint: {'center_x': .5, 'center_y': .5}
+                do_scroll_x: False
+                GridLayout:
+                    id: audioSidebar
+                    cols: 3
+                    padding: 10
+                    spacing: 5
+                    size_hint: (None, None)
+                    width: 310
+    BoxLayout:
+        ScrollView:
+            size_hint: (None, None)
+            size: (400, 200)
+            pos_hint: {'center_x':.3, 'center_y':.78}
+            scroll_y: 0
+            Label:
+                text: root.chat_messages
+                markup: True
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1]
+                halign: 'left'
+                valign: 'top'
+<ArtistSessionScreen>:
+    name: "artist_session"
     ActionBar:
         ActionView:
             ActionPrevious:
@@ -388,7 +482,64 @@ ScreenManager:
                 height: self.texture_size[1]
                 halign: 'left'
                 valign: 'top'
-                color: 0,0,0,1
+<ListenerSessionScreen>:
+    name: "listener_session"
+    ActionBar:
+        ActionView:
+            ActionPrevious:
+                title: 'HQC: Session Name'
+                with_previous: False
+                app_icon: '../img/orion_just_stars.png'
+            ActionOverflow:
+            ActionImageButton:
+                id: mute_button
+                source: root.muted_mic_image
+                group: 'volume'
+                on_press: root.toggle_mute()
+            ActionGroup:
+                ActionImageButton:
+                    source: '../img/sign_out_option.png'
+                    text: 'Leave Session'
+                    on_release: app.root.current = 'filetransfer'
+    ProgressBar:
+        id: progress_bar
+        size_hint: (0.6, 0.25)
+        pos: (0, 5)
+        value: 0
+        max: 30
+    TabbedPanel:
+        size_hint: (.4, .9)
+        pos_hint: {'center_x': .8, 'center_y': .55}
+        do_default_tab: False
+        TabbedPanelItem:
+            tab_width: 300
+            text: 'Select Clips'
+            ScrollView:
+                size_hint: (None, None)
+                size: (310, 460)
+                pos_hint: {'center_x': .5, 'center_y': .5}
+                do_scroll_x: False
+                GridLayout:
+                    id: audioSidebar
+                    cols: 3
+                    padding: 10
+                    spacing: 5
+                    size_hint: (None, None)
+                    width: 310
+    BoxLayout:
+        ScrollView:
+            size_hint: (None, None)
+            size: (400, 200)
+            pos_hint: {'center_x':.3, 'center_y':.78}
+            scroll_y: 0
+            Label:
+                text: root.chat_messages
+                markup: True
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1]
+                halign: 'left'
+                valign: 'top'
 <SettingsScreen>
     name: "settings"
     ImageButton:

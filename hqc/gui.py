@@ -344,6 +344,18 @@ class SessionScreen(Screen):
         if self.app.get_own_state()['recording']:
             self.record_button()
 
+class ProducerSessionScreen(SessionScreen):
+    pass
+
+class ArtistSessionScreen(SessionScreen):
+    def add_clip(self):
+        super(ArtistSessionScreen, self).add_clip()
+        btn2 = Button(text="Request", size=(100, 50),
+                      size_hint=(0.32, None))
+        self.ids.audioSidebar.add_widget(btn2)
+
+class ListenerSessionScreen(SessionScreen):
+    pass
 
 class ProducerJoiningScreen(Screen):
     app = ObjectProperty(None)
@@ -362,7 +374,7 @@ class ProducerJoiningScreen(Screen):
 
         connection_details = self.app.config.get_section('ConnectionDetails')
 
-        self.parent.current = 'session'
+        self.parent.current = 'producer_session'
 
         file_name = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
         self.app.phone.make_call(connection_details['call_no'], connection_details['server'], file_name)
@@ -469,7 +481,10 @@ class ArtistJoiningScreen(Screen):
                               size_hint=(None, None), size=(400, 400))
                 popup.open()
 
-        self.parent.current = 'session'
+        if self.app.config.get('ChatSettings', 'role') == "ARTIST":
+            self.parent.current = 'artist_session'
+        else:
+            self.parent.current = 'listener_session'
 
         filename = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
         self.app.phone.make_call(connection_details['call_no'], connection_details['server'], filename)
