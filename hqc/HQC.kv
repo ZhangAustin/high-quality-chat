@@ -195,12 +195,12 @@ ScreenManager:
                 size: self.size
         TextInput:
             id: setting1
-            size_hint: (.5, .10)
+            size_hint: (.5, .12)
             text_size: root.width, None
             font_size: '25sp'
             multiline: False
-            hint_text: 'Default Values'
-            pos: (250, 430)
+            hint_text: 'Default'
+            pos: (300, 425)
         ImageButton:
             id: save_settings
             source: '../img/save_settings.png'
@@ -596,4 +596,4 @@ ScreenManager:
         text_size: root.width, None
         font_size: '25sp'
         pos: (200, 75)
-        on_release: app.root.current = 'main'
+        on_release: app.root.current = 'settings'

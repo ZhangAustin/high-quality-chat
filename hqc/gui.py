@@ -633,104 +633,11 @@ class FileTransferScreen(Screen):
         App.get_running_app().stop()
 
 class ConnectionStringGenerationScreen(Screen):
-    pass
-
-# popup = Popup(title='Test popup',
-#              content=Label(text='Hello world'),
-#              size_hint=(None, None), size=(400, 400))
-# popup.open()
-
-# <ConnectionStringGenerationScreen>
-#     name: "connection_string_generation_screen"
-#     Image:
-#         source: '../img/please_enter.png'
-#         size_hint: (0.35, 0.35)
-#         pos: (270, 440)
-#     Image:
-#         source: '../img/server_address.png'
-#         size_hint: (0.28, 0.28)
-#         pos: (70, 380)
-#     Image:
-#         source: '../img/username.png'
-#         size_hint: (0.195, 0.195)
-#         pos: (145, 330)
-#     Image:
-#         source: '../img/password.png'
-#         size_hint: (0.16, 0.16)
-#         pos: (160, 275)
-#     Image:
-#         source: '../img/call_number.png'
-#         size_hint: (0.2, 0.2)
-#         pos: (130, 190)
-
-# ---
-
-# ConnectionStringGenerationScreen:
-#         manager: screen_manager
-#         app: self.manager.app
-#         canvas.before:
-#             Color:
-#                 rgba: 0.95, 0.95, 0.95, 0.95
-#             Rectangle:
-#                 pos: self.pos
-#                 size: self.size
-#         TextInput:
-#             id: servername
-#             size_hint: (.5, .1)
-#             font_size: '24sp'
-#             multiline: False
-#             hint_text: 'servername'
-#             pos: (330, 430)
-#         TextInput:
-#             id: callnumber
-#             size_hint: (.5, .1)
-#             font_size: '24sp'
-#             multiline: False
-#             password: False
-#             hint_text: 'e.g. 1004'
-#             pos: (330, 360)
-#         TextInput:
-#             id: username
-#             size_hint: (.5, .1)
-#             font_size: '24sp'
-#             multiline: False
-#             hint_text: 'your_username'
-#             pos: (330, 290)
-#         TextInput:
-#             id: password
-#             size_hint: (.5, .1)
-#             font_size: '24sp'
-#             multiline: False
-#             password: True
-#             hint_text: '********'
-#             pos: (330, 220)
-#         ImageButton:
-#             id: producerjoinsess
-#             source: '../img/enter_string.png'
-#             halign: 'center'
-#             valign: 'middle'
-#             size_hint: (.25, .25)
-#             text_size: root.width, None
-#             font_size: '25sp'
-#             pos: (275, 30)
-#             on_release: self.parent.get_text(servername.text, username.text, password.text, callnumber.text)
-#         ImageButton:
-#             id: main_menu
-#             source: '../img/arrow_left.png'
-#             text: 'Main Menu'
-#             halign: 'center'
-#             valign: 'middle'
-#             size_hint: (.20, .10)
-#             text_size: root.width, None
-#             font_size: '25sp'
-#             pos: (-25, 510)
-#             on_release: app.root.current = 'settings'
-class ConnectionStringGenerationScreen(Screen):
     def generate_string(self, servername, username, password, callno):
         connection_string = self.app.config.make_conn_string(username, password, servername, callno)
         box = BoxLayout(orientation='vertical')
-        connection_text = TextInput(text=connection_string)
-        dismissbtn = Button(text="Dismiss Pop-up", size_hint=(.5,.25))
+        connection_text = TextInput(text=connection_string, size_hint=(1,.75))
+        dismissbtn = Button(text="Dismiss Pop-up", size_hint=(1,.25))
         box.add_widget(connection_text)
         box.add_widget(dismissbtn)
         popup = Popup(title = 'Connection String', content=box, auto_dismiss=False,
