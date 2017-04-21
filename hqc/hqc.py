@@ -69,7 +69,7 @@ class HQCPhone(object):
             """
             #  Choose the appropriate logging handle
             debug_method = getattr(logging, level)
-            debug_method(msg)
+            # debug_method(msg)
 
         linphone.set_log_handler(log_handler)
         self.core.video_capture_enabled = False  # remove both of these if we get video implemented
