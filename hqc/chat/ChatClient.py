@@ -360,8 +360,7 @@ class HQCWSClient(WebSocketClient):
         :return: None
         """
         if not message:
-            # raw_input() returns a string
-            message = raw_input("Message: ")
+            print "Nonetype message! Something is very wrong"
         payload = self.new_payload()
         # Label the payload as a chat message
         payload["type"] = constants.CHAT
