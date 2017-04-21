@@ -152,7 +152,7 @@ class SessionScreen(Screen):
         # root.add_widget(audioClipLayout)
         # self.ids.audioSidebar.add_widget(root)
 
-    def add_clip(self, filename=None):
+    def add_clip(self, filename=None, length=None):
         role = self.app.config.get('ChatSettings', 'role')
         if role == 'ARTIST':
 
@@ -179,10 +179,12 @@ class SessionScreen(Screen):
             self.ids.audioSidebar.add_widget(btn2)
 
         elif role == 'PRODUCER':
+            self.app.phone.stop_start_recording(datetime.now().strftime(constants.DATETIME_LQ))
             btn = ToggleButton(background_normal='../img/play.png',
                                size_hint=(.18, 1), group='play', allow_stretch=False)
-            # btn.apply_property(clip_no=None)
-            # btn.bind(on_press=self.play_clip)
+            btn.apply_property(filename=StringProperty(filename))
+            btn.apply_property(length=StringProperty(length))
+            btn.bind(on_press=self.play_clip)
 
             # add filename label
             label = Label(text=filename, halign='left', size_hint=(.5, 0.2))
@@ -221,7 +223,7 @@ class SessionScreen(Screen):
     def update_available_files(self, username, filename, length):
         _, tail = os.path.split(filename)
         print "{} has {}: {} seconds".format(username, tail, length)
-        self.add_clip(filename)
+        self.add_clip(filename, length)
         # This takes some args? How does it getthe values
 
     def play_clip(self, obj):
@@ -250,7 +252,8 @@ class SessionScreen(Screen):
             filename = obj.filename
             time = obj.length
             lq_audio = audio.get_audio_from_filename(filename,time,self.app.phone.recording_locations)
-            audio.playback(lq_audio['filename'],lq_audio['start_time'],lq_audio['end_time'])
+            print "Playing back {}".format(lq_audio)
+            audio.playback(lq_audio['filename'], lq_audio['start_time'], lq_audio['end_time'])
 
     def request_file(self, obj):
         """
