@@ -119,7 +119,7 @@ class HQCWebSocket(EchoWebSocket):
         artist_messages = []
         if message_type in producer_messages:
             for client in app.clients:
-                if client.role == constants.PRODUCER:
+                if client.role == constants.PRODUCER or client.role == constants.LISTENER:
                     client.send(message, False)
         elif message_type in artist_messages:
             for client in app.clients:
