@@ -184,7 +184,9 @@ class HQCWSClient(WebSocketClient):
         # Get the filename
         filename = parsed_json['filename']
         # Write the message contents to disk
-        with open(self.save_directory + HQCWSClient.path_leaf(filename), 'wb') as out_file:
+        path = os.path.join(self.save_directory, self.app.session_name, filename)
+        print "RECEIVED file {}".format(filename)
+        with open(path, 'wb') as out_file:
             out_file.write(base64.b64decode(parsed_json['content']))
 
         print "{} has been saved".format(filename)
@@ -240,7 +242,8 @@ class HQCWSClient(WebSocketClient):
             if filename not in self.states[self.username]['requested_files']:
                 self.states[self.username]['requested_files'].append(filename)
             # Do something in GUI
-            print message['filename'] + " requested"
+            file_message = message['filename'] + " requested"
+            self.app.update_chat(self.server_name, file_message)
             if self.app:
                 pass
             else:
