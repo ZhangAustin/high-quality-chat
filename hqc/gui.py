@@ -18,7 +18,9 @@ from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
 from kivy.uix.image import Image
 from kivy.uix.label import Label
+from kivy.uix.textinput import TextInput
 from kivy.uix.popup import Popup
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.progressbar import ProgressBar
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.togglebutton import ToggleButton
@@ -461,15 +463,18 @@ class ArtistJoiningScreen(Screen):
 class SettingsScreen(Screen):
     app = ObjectProperty(None)
     initialize = True
-    recording_devices_main = Button(text='Default', size = (250, 75), size_hint = (None, None),
-                                    halign="center", valign="middle")
-    audio_devices_main = Button(text='Default', size = (250, 75), size_hint = (None, None),
-                                halign="center", valign="middle")
-    codec_main = Button(id='codec', text='Default', size = (250, 75), size_hint=(None, None),
-                        halign="center", valign="middle")
+    recording_devices_main = Button(text='Default', size = (400, 75), size_hint = (None, None), text_size = (385, 60),
+                                    halign="left", valign="top", background_normal = "atlas://data/images/defaulttheme/textinput",
+                                    border = (4, 4, 4, 4), font_size = '25sp', color = (.5,.5,.5,1))
+    audio_devices_main = Button(text='Default', color = (0.5, 0.5, 0.5, 1.0), size = (400, 75), size_hint = (None, None), text_size = (385, 60),
+                                halign="left", valign="top", background_normal = "atlas://data/images/defaulttheme/textinput",
+                                    border = (4, 4, 4, 4), font_size = '25sp')
+    codec_main = Button(id='codec', text='Default', size = (400, 75), size_hint=(None, None), text_size = (385, 60),
+                        halign="left", valign="top", background_normal = "atlas://data/images/defaulttheme/textinput",
+                                    border = (4, 4, 4, 4), font_size = '25sp', color = (0,0,0,1))
     dropdown1 = DropDown(id='dropdown1')
     dropdown2 = DropDown(id='dropdown2')
-    dropdown3 = DropDown(id='dropdown3')
+    dropdown3 = DropDown(id='dropdown3', max_height=200)
 
     def save_settings(self, setting1):
         children = self.ids.devices.children[:]
@@ -491,19 +496,22 @@ class SettingsScreen(Screen):
             index += 1
         if setting1 != '':
             self.app.config.update_setting("ChatSettings", "username", setting1)
+        self.parent.current = 'main'
         print self.app.config.get_section("AudioSettings")
         print self.app.config.get_section("LQRecordingSettings")
 
     def on_enter(self):
         if self.initialize:
-            default1 = Button(text='Default', size_hint_y=None, height=60, halign="center", valign="middle")
-            default2 = Button(text='Default', size_hint_y=None, height=60, halign="center", valign="middle")
-            default3 = Button(text='Default', size_hint_y=None, height=60, halign="center", valign="middle")
+            default3 = Button(text='Default', size_hint_y=None, height=60, halign="center", valign="middle",
+                              background_normal="atlas://data/images/defaulttheme/textinput", border=(4, 4, 4, 4),
+                              font_size='15sp', color=(0, 0, 0, 1))
             recording_devices = self.app.phone.get_recording_devices()
-            recording_btns = [default1]
+            recording_btns = []
 
             for i in range(len(recording_devices)):
-                btn1 = Button(text=recording_devices[i], size_hint_y=None, height = 60, halign="center", valign="middle")
+                btn1 = Button(text=recording_devices[i], size_hint_y=None, height = 60, halign="center", valign="middle",
+                              background_normal="atlas://data/images/defaulttheme/textinput", border=(4, 4, 4, 4),
+                              font_size='15sp', color=(0, 0, 0, 1))
                 recording_btns = recording_btns + [btn1]
             for button in recording_btns:
                 button.bind(size=button.setter('text_size'))
@@ -514,9 +522,11 @@ class SettingsScreen(Screen):
             self.recording_devices_main.bind(size=self.recording_devices_main.setter('text_size'))
             self.ids.devices.add_widget(self.recording_devices_main)
             audio_devices = self.app.phone.get_playback_devices()
-            audio_btns = [default2]
+            audio_btns = []
             for i in range(len(audio_devices)):
-                btn2 = Button(text=audio_devices[i],  size_hint_y=None, height = 60, halign="center", valign="middle")
+                btn2 = Button(text=audio_devices[i],  size_hint_y=None, height = 60, halign="center", valign="middle",
+                              background_normal="atlas://data/images/defaulttheme/textinput", border=(4, 4, 4, 4),
+                              font_size='15sp', color=(0, 0, 0, 1))
                 audio_btns = audio_btns + [btn2]
             for button in audio_btns:
                 button.bind(size=button.setter('text_size'))
@@ -530,7 +540,9 @@ class SettingsScreen(Screen):
             codecbtns = [default3]
             for i in range(len(codec)):
                 codec_text = str(codec[i][0]) + ", " + str(codec[i][1]) + "bps, " + str(codec[i][2]) + " channels"
-                btn3 = Button(text=codec_text, size_hint_y=None, height = 60, halign="center", valign="middle")
+                btn3 = Button(text=codec_text, size_hint_y=None, height = 60, halign="center", valign="middle",
+                              background_normal="atlas://data/images/defaulttheme/textinput", border=(4, 4, 4, 4),
+                              font_size='15sp', color=(0, 0, 0, 1))
                 codecbtns = codecbtns + [btn3]
             for button in codecbtns:
                 button.bind(size=button.setter('text_size'))
@@ -545,20 +557,25 @@ class SettingsScreen(Screen):
     def change_text(self, instance, x):
         if instance == 1:
             self.recording_devices_main.text = x
+            setattr(self.recording_devices_main, 'color', (0, 0, 0, 1))
             self.recording_devices_main.text_size=self.recording_devices_main.size
         if instance == 2:
             setattr(self.audio_devices_main, 'text', x)
+            setattr(self.audio_devices_main, 'color', (0,0,0,1))
             self.audio_devices_main.text_size = self.audio_devices_main.size
         if instance == 3:
             setattr(self.codec_main, 'text', x)
             self.codec_main.text_size = self.codec_main.size
     def on_leave(self, *args):
-        if self.recording_devices_main != 'Recording Devices':
-            self.recording_devices_main.text = 'Recording Devices'
-        if self.audio_devices_main != 'Audio Devices':
-            self.audio_devices_main.text = 'Audio Devices'
-        if self.codec_main != 'Codec':
-            self.codec_main.text = 'Codec'
+        if self.recording_devices_main != 'Default':
+            self.recording_devices_main.text = 'Default'
+            self.recording_devices_main.color = (.5,.5,.5,1)
+        if self.audio_devices_main != 'Default':
+            self.audio_devices_main.text = 'Default'
+            self.audio_devices_main.color = (.5,.5,.5,1)
+        if self.codec_main != 'Default':
+            self.codec_main.text = 'Default'
+            self.codec_main.color = (.5,.5,.5,1)
 
 
 class FileTransferScreen(Screen):
@@ -677,6 +694,18 @@ class FileTransferScreen(Screen):
 #             font_size: '25sp'
 #             pos: (-25, 510)
 #             on_release: app.root.current = 'settings'
+class ConnectionStringGenerationScreen(Screen):
+    def generate_string(self, servername, username, password, callno):
+        connection_string = self.app.config.make_conn_string(username, password, servername, callno)
+        box = BoxLayout(orientation='vertical')
+        connection_text = TextInput(text=connection_string)
+        dismissbtn = Button(text="Dismiss Pop-up", size_hint=(.5,.25))
+        box.add_widget(connection_text)
+        box.add_widget(dismissbtn)
+        popup = Popup(title = 'Connection String', content=box, auto_dismiss=False,
+                      size=(400,400), size_hint=(None,None))
+        dismissbtn.bind(on_press=popup.dismiss)
+        popup.open()
 
 class ImageButton(ButtonBehavior, Image):
     pass
