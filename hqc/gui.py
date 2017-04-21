@@ -196,7 +196,7 @@ class SessionScreen(Screen):
     def update_available_files(self, username, filename, length):
         _, tail = os.path.split(filename)
         print "{} has {}: {} bytes".format(username, tail, length)
-        # TODO: add clip to sidebar
+        self.add_clip()
 
     def play_clip(self, obj):
         """

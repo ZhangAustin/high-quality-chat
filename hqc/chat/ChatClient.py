@@ -65,6 +65,9 @@ class HQCWSClient(WebSocketClient):
                                        # List of(filename, length) tuples that have been downloaded.
                                        'downloaded files': []}}
 
+        # Used for server update messages
+        self.server_name = "Server"
+
     def send(self, payload, binary):
         """
         Override the default send to keep it from crashing kivy when there is no connected chat server
@@ -188,12 +191,14 @@ class HQCWSClient(WebSocketClient):
             print "Received a test sync message from {}".format(username)
         elif status_code == constants.SYNC_START_RECORDING:
             self.states[username]['recording'] = True
-            print "{} started recording.".format(username)
-            # Do something in GUI
-            pass
+            recording_message = "{} started recording.".format(username)
+            # Update GUI with message
+            self.app.update_chat(self.server_name, recording_message)
         elif status_code == constants.SYNC_STOP_RECORDING:
             self.states[username]['recording'] = False
-            print "{} stopped recording.".format(username)
+            recording_message = "{} stopped recording.".format(username)
+            # Update GUI with message
+            self.app.update_chat(self.server_name, recording_message)
         elif status_code == constants.SYNC_SPEAKER_ON:
             print "{} turned speakers on".format(username)
             # Do something in GUI
