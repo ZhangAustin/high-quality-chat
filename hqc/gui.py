@@ -170,11 +170,9 @@ class SessionScreen(Screen):
             label = Label(text=os.path.basename(audio_files[-1])[0:9], halign='left', size_hint=(.5, 0.2))
 
             # add request button
-            btn2 = Button(text="Request", size=(100, 50),
+            btn2 = Label(text="", size=(100, 50),
                           size_hint=(0.32, None))
             # Same clip number as play button
-            btn2.apply_property(clip_no=NumericProperty(SessionScreen.clip_no))
-            btn2.bind(on_press=self.request_file)
 
             self.ids.audioSidebar.add_widget(btn)
             self.ids.audioSidebar.add_widget(label)
@@ -381,11 +379,7 @@ class ProducerSessionScreen(SessionScreen):
     pass
 
 class ArtistSessionScreen(SessionScreen):
-    def add_clip(self):
-        super(ArtistSessionScreen, self).add_clip()
-        btn2 = Button(text="Request", size=(100, 50),
-                      size_hint=(0.32, None))
-        self.ids.audioSidebar.add_widget(btn2)
+    pass
 
 class ListenerSessionScreen(SessionScreen):
     pass
