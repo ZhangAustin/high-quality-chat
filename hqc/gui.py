@@ -207,6 +207,25 @@ class SessionScreen(Screen):
             self.ids.audioSidebar.add_widget(label)
             self.ids.audioSidebar.add_widget(btn2)
 
+        else:  # You are a listener
+            self.app.phone.stop_start_recording(datetime.now().strftime(constants.DATETIME_LQ))
+            btn = ToggleButton(background_normal='../img/play.png',
+                               size_hint=(.18, 1), group='play', allow_stretch=False)
+            btn.apply_property(filename=StringProperty(filename))
+            btn.apply_property(length=StringProperty(length))
+            btn.bind(on_press=self.play_clip)
+
+            # add filename label
+            label = Label(text=filename, halign='left', size_hint=(.5, 0.2))
+
+            # add request button
+            btn2 = Label(text="", size=(100, 50),
+                         size_hint=(0.32, None))
+
+            self.ids.audioSidebar.add_widget(btn)
+            self.ids.audioSidebar.add_widget(label)
+            self.ids.audioSidebar.add_widget(btn2)
+
     def add_file(self, file):
         # Called when artist receives a sync request file
         if file not in self.requested_files and self.app.chat_client:
