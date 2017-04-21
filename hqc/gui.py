@@ -459,35 +459,27 @@ class ArtistJoiningScreen(Screen):
 class SettingsScreen(Screen):
     app = ObjectProperty(None)
     initialize = True
-    recording_devices_main = Button(text='Recording Devices', size = (250, 75), size_hint = (None, None),
+    recording_devices_main = Button(text='Default', size = (250, 75), size_hint = (None, None),
                                     halign="center", valign="middle")
-    audio_devices_main = Button(text='Audio Devices', size = (250, 75), size_hint = (None, None),
+    audio_devices_main = Button(text='Default', size = (250, 75), size_hint = (None, None),
                                 halign="center", valign="middle")
-    codec_main = Button(id='codec', text='Codec', size = (250, 75), size_hint=(None, None),
+    codec_main = Button(id='codec', text='Default', size = (250, 75), size_hint=(None, None),
                         halign="center", valign="middle")
     dropdown1 = DropDown(id='dropdown1')
     dropdown2 = DropDown(id='dropdown2')
     dropdown3 = DropDown(id='dropdown3')
 
-
-    def update_username(self, text_input):
-        self.app.chat_client.username = text_input
-        self.app.config.update_setting("ChatSettings", "username", text_input)
-        self.parent.ids.username_setting.text = ""
-
-    def save_settings(self, setting1, setting2, setting3):
+    def save_settings(self, setting1):
         children = self.ids.devices.children[:]
         index = 0
         while children:
             child = children.pop()
-            if index == 0 and child.text != 'Recording Devices':
+            if index == 0:
                 self.app.config.update_setting("AudioSettings", "mic", child.text)
-            if index == 1 and child.text != 'Audio Devices':
+            if index == 1:
                 self.app.config.update_setting("AudioSettings", "speakers", child.text)
-                ##### TODO WHAT IS THIS
-                # if index == 2 and child.text == "Default":
-                # self.app.config.update_setting("ConnectionDetails", "user", child.text)
-            ##### TODO WHAT IS THIS
+            if index == 2 and child.text == "Default":
+                self.app.config.update_setting("LQRecordingSettings", "codec", "Default")
             if index == 2 and child.text != "Codec":
                 codec = child.text
                 newcodec = [codec[0:codec.find(',')]]
@@ -496,14 +488,18 @@ class SettingsScreen(Screen):
                 self.app.config.update_setting("LQRecordingSettings", "codec", codec)
             index += 1
         if setting1 != '':
-            self.app.config.update_setting("ConnectionDetails", "user", setting1)
+            self.app.config.update_setting("ChatSettings", "username", setting1)
         print self.app.config.get_section("AudioSettings")
         print self.app.config.get_section("LQRecordingSettings")
 
     def on_enter(self):
         if self.initialize:
+            default1 = Button(text='Default', size_hint_y=None, height=60, halign="center", valign="middle")
+            default2 = Button(text='Default', size_hint_y=None, height=60, halign="center", valign="middle")
+            default3 = Button(text='Default', size_hint_y=None, height=60, halign="center", valign="middle")
             recording_devices = self.app.phone.get_recording_devices()
-            recording_btns = []
+            recording_btns = [default1]
+
             for i in range(len(recording_devices)):
                 btn1 = Button(text=recording_devices[i], size_hint_y=None, height = 60, halign="center", valign="middle")
                 recording_btns = recording_btns + [btn1]
@@ -516,7 +512,7 @@ class SettingsScreen(Screen):
             self.recording_devices_main.bind(size=self.recording_devices_main.setter('text_size'))
             self.ids.devices.add_widget(self.recording_devices_main)
             audio_devices = self.app.phone.get_playback_devices()
-            audio_btns = []
+            audio_btns = [default2]
             for i in range(len(audio_devices)):
                 btn2 = Button(text=audio_devices[i],  size_hint_y=None, height = 60, halign="center", valign="middle")
                 audio_btns = audio_btns + [btn2]
@@ -529,9 +525,7 @@ class SettingsScreen(Screen):
             self.audio_devices_main.bind(size=self.audio_devices_main.setter('text_size'))
             self.ids.devices.add_widget(self.audio_devices_main)
             codec = self.app.phone.get_codecs()
-            codecbtns = []
-            default = Button(text='Default', size_hint_y=None, height=60, halign="center", valign="middle")
-            codecbtns = codecbtns + [default]
+            codecbtns = [default3]
             for i in range(len(codec)):
                 codec_text = str(codec[i][0]) + ", " + str(codec[i][1]) + "bps, " + str(codec[i][2]) + " channels"
                 btn3 = Button(text=codec_text, size_hint_y=None, height = 60, halign="center", valign="middle")
