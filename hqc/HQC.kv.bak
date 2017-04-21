@@ -52,14 +52,6 @@ ScreenManager:
             password: True
             hint_text: 'Default Value'
             pos: (330, 320)
-        TextInput:
-            id: producer_connection
-            size_hint: (.35, .2)
-            font_size: '24sp'
-            multiline: True
-            password: True
-            hint_text: 'OR\nEnter your connection string'
-            pos: (330, 110)
         ImageButton:
             id: producerjoinsess
             source: '../img/arrow_right.png'
@@ -70,16 +62,6 @@ ScreenManager:
             font_size: '25sp'
             pos: (200, 40)
             on_release: self.parent.get_text(servername.text, username.text, password.text, callnumber.text)
-        ImageButton:
-            id: producerjoinsess
-            source: '../img/arrow_right.png'
-            halign: 'center'
-            valign: 'middle'
-            size_hint: (.15, .15)
-            text_size: root.width, None
-            font_size: '25sp'
-            pos: (620, 110)
-            on_release: self.parent.get_conn(producer_connection.text)
         ImageButton:
             id: main_menu
             source: '../img/arrow_left.png'
@@ -130,43 +112,7 @@ ScreenManager:
             font_size: '25sp'
             pos: (0, 510)
             on_release: app.root.current = 'main'
-    ProducerSessionScreen:
-        manager: screen_manager
-        app: self.manager.app
-        canvas.before:
-            Color:
-                rgba: 0.95, 0.95, 0.95, 0.95
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        TextInput:
-            id: chatText
-            size_hint: (.55, .10)
-            text_size: root.width, None
-            font_size: '18sp'
-            hint_text: 'Type to chat'
-            multiline: False
-            on_text_validate: self.parent.send_message(chatText.text)
-            pos: (20, 300)
-    ArtistSessionScreen:
-        manager: screen_manager
-        app: self.manager.app
-        canvas.before:
-            Color:
-                rgba: 0.95, 0.95, 0.95, 0.95
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        TextInput:
-            id: chatText
-            size_hint: (.55, .10)
-            text_size: root.width, None
-            font_size: '18sp'
-            hint_text: 'Type to chat'
-            multiline: False
-            on_text_validate: self.parent.send_message(chatText.text)
-            pos: (20, 300)
-    ListenerSessionScreen:
+    SessionScreen:
         manager: screen_manager
         app: self.manager.app
         canvas.before:
@@ -218,51 +164,6 @@ ScreenManager:
             Rectangle:
                 pos: self.pos
                 size: self.size
-    ConnectionStringGenerationScreen:
-        app: self.manager.app
-        manager: screen_manager
-        canvas.before:
-            Color:
-                rgba: 0.95, 0.95, 0.95, 0.95
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        TextInput:
-            id: servername
-            size_hint: (.35, .1)
-            font_size: '24sp'
-            multiline: False
-            hint_text: 'Default Value'
-            pos: (330, 430)
-        TextInput:
-            id: callnumber
-            size_hint: (.35, .1)
-            font_size: '24sp'
-            multiline: False
-            password: False
-            hint_text: 'Default Value'
-            pos: (330, 220)
-        TextInput:
-            id: username
-            size_hint: (.35, .1)
-            font_size: '24sp'
-            multiline: False
-            hint_text: 'Default Value'
-            pos: (330, 360)
-        TextInput:
-            id: password
-            size_hint: (.35, .1)
-            font_size: '24sp'
-            multiline: False
-            password: True
-            hint_text: 'Default Value'
-            pos: (330, 290)
-        ImageButton:
-            source: '../img/generate_strings.png'
-            size_hint: (.2, .2)
-            pos: (450, 50)
-            on_release: self.parent.generate_string(servername.text, username.text, password.text, callnumber.text)
-
 <MainScreen>:
     name: "main"
     Image:
@@ -326,66 +227,8 @@ ScreenManager:
         source: '../img/connection_string.png'
         size_hint: (0.40, 0.40)
         pos: (60, 295)
-<ProducerSessionScreen>:
-    name: "producer_session"
-    ActionBar:
-        ActionView:
-            ActionPrevious:
-                title: 'HQC: Session Name'
-                with_previous: False
-                app_icon: '../img/orion_just_stars.png'
-            ActionOverflow:
-            ActionImageButton:
-                id: mute_button
-                source: root.muted_mic_image
-                group: 'volume'
-                on_press: root.toggle_mute()
-            ActionGroup:
-                ActionImageButton:
-                    source: '../img/sign_out_option.png'
-                    text: 'Leave Session'
-                    on_release: app.root.current = 'filetransfer'
-    ProgressBar:
-        id: progress_bar
-        size_hint: (0.6, 0.25)
-        pos: (0, 5)
-        value: 0
-        max: 30
-    TabbedPanel:
-        size_hint: (.4, .9)
-        pos_hint: {'center_x': .8, 'center_y': .55}
-        do_default_tab: False
-        TabbedPanelItem:
-            tab_width: 300
-            text: 'Select Clips'
-            ScrollView:
-                size_hint: (None, None)
-                size: (310, 460)
-                pos_hint: {'center_x': .5, 'center_y': .5}
-                do_scroll_x: False
-                GridLayout:
-                    id: audioSidebar
-                    cols: 3
-                    padding: 10
-                    spacing: 5
-                    size_hint: (None, None)
-                    width: 310
-    BoxLayout:
-        ScrollView:
-            size_hint: (None, None)
-            size: (400, 200)
-            pos_hint: {'center_x':.3, 'center_y':.78}
-            scroll_y: 0
-            Label:
-                text: root.chat_messages
-                markup: True
-                text_size: self.width, None
-                size_hint_y: None
-                height: self.texture_size[1]
-                halign: 'left'
-                valign: 'top'
-<ArtistSessionScreen>:
-    name: "artist_session"
+<SessionScreen>:
+    name: "session"
     ActionBar:
         ActionView:
             ActionPrevious:
@@ -451,64 +294,6 @@ ScreenManager:
                 halign: 'left'
                 valign: 'top'
                 color: 0,0,0,1
-<ListenerSessionScreen>:
-    name: "listener_session"
-    ActionBar:
-        ActionView:
-            ActionPrevious:
-                title: 'HQC: Session Name'
-                with_previous: False
-                app_icon: '../img/orion_just_stars.png'
-            ActionOverflow:
-            ActionImageButton:
-                id: mute_button
-                source: root.muted_mic_image
-                group: 'volume'
-                on_press: root.toggle_mute()
-            ActionGroup:
-                ActionImageButton:
-                    source: '../img/sign_out_option.png'
-                    text: 'Leave Session'
-                    on_release: app.root.current = 'filetransfer'
-    ProgressBar:
-        id: progress_bar
-        size_hint: (0.6, 0.25)
-        pos: (0, 5)
-        value: 0
-        max: 30
-    TabbedPanel:
-        size_hint: (.4, .9)
-        pos_hint: {'center_x': .8, 'center_y': .55}
-        do_default_tab: False
-        TabbedPanelItem:
-            tab_width: 300
-            text: 'Select Clips'
-            ScrollView:
-                size_hint: (None, None)
-                size: (310, 460)
-                pos_hint: {'center_x': .5, 'center_y': .5}
-                do_scroll_x: False
-                GridLayout:
-                    id: audioSidebar
-                    cols: 3
-                    padding: 10
-                    spacing: 5
-                    size_hint: (None, None)
-                    width: 310
-    BoxLayout:
-        ScrollView:
-            size_hint: (None, None)
-            size: (400, 200)
-            pos_hint: {'center_x':.3, 'center_y':.78}
-            scroll_y: 0
-            Label:
-                text: root.chat_messages
-                markup: True
-                text_size: self.width, None
-                size_hint_y: None
-                height: self.texture_size[1]
-                halign: 'left'
-                valign: 'top'
 <SettingsScreen>
     name: "settings"
     ImageButton:
@@ -522,32 +307,22 @@ ScreenManager:
         font_size: '25sp'
         pos: (-25, 510)
         on_release: app.root.current = 'main'
-    ImageButton:
-        source: '../img/generate_strings.png'
-        size_hint: (.2, .2)
-        pos: (150, 50)
-        on_release: app.root.current = 'connection_string_generation_screen'
     Image:
         source: '../img/username.png'
         size_hint: (0.20, 0.20)
-        pos: (121, 400)
+        pos: (68, 400)
     Image:
         source: '../img/microphone_text.png'
-        size_hint: (0.201, 0.236)
-        pos: (115, 319)
+        size_hint: (0.20, 0.20)
+        pos: (60, 335)
     Image:
         source: '../img/codec.png'
-        size_hint: (0.12, 0.069)
-        pos: (179, 217)
-    Image:
-        source: '../img/speakers.png'
-        size_hint: (0.17, 0.12)
-        pos: (139, 273)
+        size_hint: (0.11, 0.11)
+        pos: (140, 280)
     BoxLayout:
         id: devices
-        orientation: 'vertical'
-        padding: [300, 0, 0, 200]
-        spacing: (200, 200)
+        orientation: 'horizontal'
+        padding: [25, 0, 0, 225]
 <FileTransferScreen>
     name: "filetransfer"
     BoxLayout:
@@ -564,36 +339,3 @@ ScreenManager:
         font_size: '25sp'
         pos: (250, 50)
         on_release: root.leave_session()
-<ConnectionStringGenerationScreen>
-    name: 'connection_string_generation_screen'
-    Image:
-        source: '../img/please_enter.png'
-        size_hint: (0.35, 0.35)
-        pos: (270, 440)
-    Image:
-        source: '../img/server_address.png'
-        size_hint: (0.28, 0.28)
-        pos: (70, 380)
-    Image:
-        source: '../img/username.png'
-        size_hint: (0.195, 0.195)
-        pos: (145, 330)
-    Image:
-        source: '../img/password.png'
-        size_hint: (0.16, 0.16)
-        pos: (160, 275)
-    Image:
-        source: '../img/call_number.png'
-        size_hint: (0.2, 0.2)
-        pos: (130, 190)
-    ImageButton:
-        id: main_menu
-        source: '../img/arrow_left.png'
-        text: 'Main Menu'
-        halign: 'center'
-        valign: 'middle'
-        size_hint: (.20, .10)
-        text_size: root.width, None
-        font_size: '25sp'
-        pos: (200, 75)
-        on_release: app.root.current = 'main'

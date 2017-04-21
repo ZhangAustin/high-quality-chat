@@ -1,599 +1,1229 @@
-#:kivy 1.0
+
+
 #:import FadeTransition kivy.uix.screenmanager.FadeTransition
+
 ScreenManager:
+
     app: None
+
     id: screen_manager
+
     transition: FadeTransition()
+
     MainScreen:
+
         manager: screen_manager
+
         app: self.manager.app
+
         canvas.before:
+
             Color:
+
                 rgba: 0.95, 0.95, 0.95, 0.95
+
             Rectangle:
+
                 pos: self.pos
+
                 size: self.size
+
     ProducerJoiningScreen:
+
         manager: screen_manager
+
         app: self.manager.app
+
         canvas.before:
+
             Color:
+
                 rgba: 0.95, 0.95, 0.95, 0.95
+
             Rectangle:
+
                 pos: self.pos
+
                 size: self.size
+
         TextInput:
+
             id: servername
-            size_hint: (.5, .1)
+
+            size_hint: (.35, .1)
+
             font_size: '24sp'
+
             multiline: False
+
             hint_text: 'Default Value'
+
             pos: (330, 460)
+
         TextInput:
+
             id: callnumber
-            size_hint: (.5, .1)
+
+            size_hint: (.35, .1)
+
             font_size: '24sp'
+
             multiline: False
-            password: False
+
+            password: True
+
             hint_text: 'Default Value'
-            pos: (330, 250)
-        TextInput:
-            id: username
-            size_hint: (.5, .1)
-            font_size: '24sp'
-            multiline: False
-            hint_text: 'Default Value'
+
             pos: (330, 390)
+
         TextInput:
-            id: password
-            size_hint: (.5, .1)
-            font_size: '24sp'
-            multiline: False
-            password: True
-            hint_text: 'Default Value'
-            pos: (330, 320)
-        TextInput:
-            id: producer_connection
-            size_hint: (.35, .2)
-            font_size: '24sp'
-            multiline: True
-            password: True
-            hint_text: 'OR\nEnter your connection string'
-            pos: (330, 110)
-        ImageButton:
-            id: producerjoinsess
-            source: '../img/arrow_right.png'
-            halign: 'center'
-            valign: 'middle'
-            size_hint: (.5, None)
-            text_size: root.width, None
-            font_size: '25sp'
-            pos: (200, 40)
-            on_release: self.parent.get_text(servername.text, username.text, password.text, callnumber.text)
-        ImageButton:
-            id: producerjoinsess
-            source: '../img/arrow_right.png'
-            halign: 'center'
-            valign: 'middle'
-            size_hint: (.15, .15)
-            text_size: root.width, None
-            font_size: '25sp'
-            pos: (620, 110)
-            on_release: self.parent.get_conn(producer_connection.text)
-        ImageButton:
-            id: main_menu
-            source: '../img/arrow_left.png'
-            text: 'Main Menu'
-            halign: 'center'
-            valign: 'middle'
-            size_hint: (.20, .10)
-            text_size: root.width, None
-            font_size: '25sp'
-            pos: (-25, 510)
-            on_release: app.root.current = 'main'
-    ArtistJoiningScreen:
-        manager: screen_manager
-        app: self.manager.app
-        canvas.before:
-            Color:
-                rgba: 0.95, 0.95, 0.95, 0.95
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        TextInput:
-            id: artconnection
-            size_hint: (.8, .15)
-            text_size: root.width, None
-            font_size: '25sp'
-            multiline: True
-            hint_text: 'Use Saved Values'
-            pos: (80, 280)
-        ImageButton:
-            id: artjoinsess
-            text: 'Join Session'
-            source: '../img/arrow_right.png'
-            halign: 'center'
-            valign: 'middle'
-            size_hint: (.5, None)
-            text_size: root.width, None
-            font_size: '25sp'
-            pos: (200, 100)
-            on_release: self.parent.get_text(artconnection.text)
-        ImageButton:
-            id: main_menu
-            source: '../img/arrow_left.png'
-            text: 'Main Menu'
-            halign: 'center'
-            valign: 'middle'
-            size_hint: (.20, .10)
-            text_size: root.width, None
-            font_size: '25sp'
-            pos: (0, 510)
-            on_release: app.root.current = 'main'
-    ProducerSessionScreen:
-        manager: screen_manager
-        app: self.manager.app
-        canvas.before:
-            Color:
-                rgba: 0.95, 0.95, 0.95, 0.95
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        TextInput:
-            id: chatText
-            size_hint: (.55, .10)
-            text_size: root.width, None
-            font_size: '18sp'
-            hint_text: 'Type to chat'
-            multiline: False
-            on_text_validate: self.parent.send_message(chatText.text)
-            pos: (20, 300)
-    ArtistSessionScreen:
-        manager: screen_manager
-        app: self.manager.app
-        canvas.before:
-            Color:
-                rgba: 0.95, 0.95, 0.95, 0.95
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        TextInput:
-            id: chatText
-            size_hint: (.55, .10)
-            text_size: root.width, None
-            font_size: '18sp'
-            hint_text: 'Type to chat'
-            multiline: False
-            on_text_validate: self.parent.send_message(chatText.text)
-            pos: (20, 300)
-    ListenerSessionScreen:
-        manager: screen_manager
-        app: self.manager.app
-        canvas.before:
-            Color:
-                rgba: 0.95, 0.95, 0.95, 0.95
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        TextInput:
-            id: chatText
-            size_hint: (.55, .10)
-            text_size: root.width, None
-            font_size: '18sp'
-            hint_text: 'Type to chat'
-            multiline: False
-            on_text_validate: self.parent.send_message(chatText.text)
-            pos: (20, 300)
-    SettingsScreen:
-        manager: screen_manager
-        app: self.manager.app
-        canvas.before:
-            Color:
-                rgba: 0.95, 0.95, 0.95, 0.95
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        TextInput:
-            id: setting1
-            size_hint: (.5, .10)
-            text_size: root.width, None
-            font_size: '25sp'
-            multiline: False
-            hint_text: 'Default Values'
-            pos: (250, 430)
-        ImageButton:
-            id: save_settings
-            source: '../img/save_settings.png'
-            halign: 'center'
-            valign: 'middle'
-            size_hint: (.3, .3)
-            pos: (500, 25)
-            on_release: self.parent.save_settings(setting1.text); setting1.text = ''
-    FileTransferScreen:
-        app: self.manager.app
-        manager: screen_manager
-        canvas.before:
-            Color:
-                rgba: 0.95, 0.95, 0.95, 0.95
-            Rectangle:
-                pos: self.pos
-                size: self.size
-    ConnectionStringGenerationScreen:
-        app: self.manager.app
-        manager: screen_manager
-        canvas.before:
-            Color:
-                rgba: 0.95, 0.95, 0.95, 0.95
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        TextInput:
-            id: servername
-            size_hint: (.35, .1)
-            font_size: '24sp'
-            multiline: False
-            hint_text: 'Default Value'
-            pos: (330, 430)
-        TextInput:
-            id: callnumber
-            size_hint: (.35, .1)
-            font_size: '24sp'
-            multiline: False
-            password: False
-            hint_text: 'Default Value'
-            pos: (330, 220)
-        TextInput:
+
             id: username
+
             size_hint: (.35, .1)
+
             font_size: '24sp'
+
             multiline: False
+
             hint_text: 'Default Value'
-            pos: (330, 360)
+
+            pos: (330, 320)
+
         TextInput:
+
             id: password
+
             size_hint: (.35, .1)
+
             font_size: '24sp'
+
             multiline: False
+
             password: True
+
             hint_text: 'Default Value'
-            pos: (330, 290)
+
+            pos: (330, 250)
+
+        TextInput:
+
+            id: producer_connection
+
+            size_hint: (.35, .2)
+
+            font_size: '24sp'
+
+            multiline: True
+
+            password: True
+
+            hint_text: 'OR\nEnter your connection string'
+
+            pos: (330, 110)
+
         ImageButton:
-            source: '../img/generate_strings.png'
-            size_hint: (.2, .2)
-            pos: (450, 50)
-            on_release: self.parent.generate_string(servername.text, username.text, password.text, callnumber.text)
+
+            id: producerjoinsess
+
+            source: '../img/arrow_right.png'
+
+            halign: 'center'
+
+            valign: 'middle'
+
+            size_hint: (.15, .15)
+
+            text_size: root.width, None
+
+            font_size: '25sp'
+
+            pos: (620, 250)
+
+            on_release: self.parent.get_text(servername.text, username.text, password.text, callnumber.text)
+
+        ImageButton:
+
+            id: producerjoinsess
+
+            source: '../img/arrow_right.png'
+
+            halign: 'center'
+
+            valign: 'middle'
+
+            size_hint: (.15, .15)
+
+            text_size: root.width, None
+
+            font_size: '25sp'
+
+            pos: (620, 110)
+
+            on_release: self.parent.get_conn(producer_connection.text)
+
+        ImageButton:
+
+            id: main_menu
+
+            source: '../img/arrow_left.png'
+
+            text: 'Main Menu'
+
+            halign: 'center'
+
+            valign: 'middle'
+
+            size_hint: (.20, .10)
+
+            text_size: root.width, None
+
+            font_size: '25sp'
+
+            pos: (-25, 510)
+
+            on_release: app.root.current = 'main'
+
+    ArtistJoiningScreen:
+
+        manager: screen_manager
+
+        app: self.manager.app
+
+        canvas.before:
+
+            Color:
+
+                rgba: 0.95, 0.95, 0.95, 0.95
+
+            Rectangle:
+
+                pos: self.pos
+
+                size: self.size
+
+        TextInput:
+
+            id: artconnection
+
+            size_hint: (.8, .15)
+
+            text_size: root.width, None
+
+            font_size: '25sp'
+
+            multiline: True
+
+            hint_text: 'Use Saved Values'
+
+            pos: (80, 280)
+
+        ImageButton:
+
+            id: artjoinsess
+
+            text: 'Join Session'
+
+            source: '../img/arrow_right.png'
+
+            halign: 'center'
+
+            valign: 'middle'
+
+            size_hint: (.5, None)
+
+            text_size: root.width, None
+
+            font_size: '25sp'
+
+            pos: (200, 100)
+
+            on_release: self.parent.get_text(artconnection.text)
+
+        ImageButton:
+
+            id: main_menu
+
+            source: '../img/arrow_left.png'
+
+            text: 'Main Menu'
+
+            halign: 'center'
+
+            valign: 'middle'
+
+            size_hint: (.20, .10)
+
+            text_size: root.width, None
+
+            font_size: '25sp'
+
+            pos: (0, 510)
+
+            on_release: app.root.current = 'main'
+
+    ProducerSessionScreen:
+
+        manager: screen_manager
+
+        app: self.manager.app
+
+        canvas.before:
+
+            Color:
+
+                rgba: 0.95, 0.95, 0.95, 0.95
+
+            Rectangle:
+
+                pos: self.pos
+
+                size: self.size
+
+        TextInput:
+
+            id: chatText
+
+            size_hint: (.55, .10)
+
+            text_size: root.width, None
+
+            font_size: '18sp'
+
+            hint_text: 'Type to chat'
+
+            multiline: False
+
+            on_text_validate: self.parent.send_message(chatText.text)
+
+            pos: (20, 300)
+
+    ArtistSessionScreen:
+
+        manager: screen_manager
+
+        app: self.manager.app
+
+        canvas.before:
+
+            Color:
+
+                rgba: 0.95, 0.95, 0.95, 0.95
+
+            Rectangle:
+
+                pos: self.pos
+
+                size: self.size
+
+        TextInput:
+
+            id: chatText
+
+            size_hint: (.55, .10)
+
+            text_size: root.width, None
+
+            font_size: '18sp'
+
+            hint_text: 'Type to chat'
+
+            multiline: False
+
+            on_text_validate: self.parent.send_message(chatText.text)
+
+            pos: (20, 300)
+
+    ListenerSessionScreen:
+
+        manager: screen_manager
+
+        app: self.manager.app
+
+        canvas.before:
+
+            Color:
+
+                rgba: 0.95, 0.95, 0.95, 0.95
+
+            Rectangle:
+
+                pos: self.pos
+
+                size: self.size
+
+        TextInput:
+
+            id: chatText
+
+            size_hint: (.55, .10)
+
+            text_size: root.width, None
+
+            font_size: '18sp'
+
+            hint_text: 'Type to chat'
+
+            multiline: False
+
+            on_text_validate: self.parent.send_message(chatText.text)
+
+            pos: (20, 300)
+
+    SettingsScreen:
+
+        manager: screen_manager
+
+        app: self.manager.app
+
+        canvas.before:
+
+            Color:
+
+                rgba: 0.95, 0.95, 0.95, 0.95
+
+            Rectangle:
+
+                pos: self.pos
+
+                size: self.size
+
+        TextInput:
+
+            id: setting1
+
+            size_hint: (.5, .10)
+
+            text_size: root.width, None
+
+            font_size: '25sp'
+
+            multiline: False
+
+            hint_text: 'Default Values'
+
+            pos: (250, 430)
+
+        TextInput:
+
+            id: setting2
+
+            size_hint: (.5, .10)
+
+            text_size: root.width, None
+
+            font_size: '25sp'
+
+            multiline: False
+
+            hint_text: 'Default Values'
+
+            pos: (250, 365)
+
+        TextInput:
+
+            id: setting3
+
+            size_hint: (.5, .10)
+
+            text_size: root.width, None
+
+            font_size: '25sp'
+
+            multiline: False
+
+            hint_text: 'Default Values'
+
+            password: True
+
+            pos: (250, 300)
+
+        ImageButton:
+
+            id: save_settings
+
+            source: '../img/save_settings.png'
+
+            halign: 'center'
+
+            valign: 'middle'
+
+            size_hint: (.3, .3)
+
+            pos: (270, 25)
+
+            on_press: app.root.current = 'main'
+
+            on_release: self.parent.save_settings(setting1.text, setting2.text, setting3.text)
+
+    FileTransferScreen:
+
+        app: self.manager.app
+
+        manager: screen_manager
+
+        canvas.before:
+
+            Color:
+
+                rgba: 0.95, 0.95, 0.95, 0.95
+
+            Rectangle:
+
+                pos: self.pos
+
+                size: self.size
+
+    ConnectionStringGenerationScreen:
+
+        manager: screen_manager
+
+        app: self.manager.app
+
+        canvas.before:
+
+            Color:
+
+                rgba: 0.95, 0.95, 0.95, 0.95
+
+            Rectangle:
+
+                pos: self.pos
+
+                size: self.size
+
+        TextInput:
+
+            id: servername
+
+            size_hint: (.5, .1)
+
+            font_size: '24sp'
+
+            multiline: False
+
+            hint_text: 'servername'
+
+            pos: (330, 430)
+
+        TextInput:
+
+            id: callnumber
+
+            size_hint: (.5, .1)
+
+            font_size: '24sp'
+
+            multiline: False
+
+            password: True
+
+            hint_text: 'e.g. 1004'
+
+            pos: (330, 360)
+
+        TextInput:
+
+            id: username
+
+            size_hint: (.5, .1)
+
+            font_size: '24sp'
+
+            multiline: False
+
+            hint_text: 'your_username'
+
+            pos: (330, 290)
+
+        TextInput:
+
+            id: password
+
+            size_hint: (.5, .1)
+
+            font_size: '24sp'
+
+            multiline: False
+
+            password: True
+
+            hint_text: '********'
+
+            pos: (330, 220)
+
+        ImageButton:
+
+            id: producerjoinsess
+
+            source: '../img/enter_string.png'
+
+            halign: 'center'
+
+            valign: 'middle'
+
+            size_hint: (.25, .25)
+
+            text_size: root.width, None
+
+            font_size: '25sp'
+
+            pos: (275, 30)
+
+            on_release: self.parent.get_text(servername.text, username.text, password.text, callnumber.text)
+
+        ImageButton:
+
+            id: main_menu
+
+            source: '../img/arrow_left.png'
+
+            text: 'Main Menu'
+
+            halign: 'center'
+
+            valign: 'middle'
+
+            size_hint: (.20, .10)
+
+            text_size: root.width, None
+
+            font_size: '25sp'
+
+            pos: (-25, 510)
+
+            on_release: app.root.current = 'settings'
 
 <MainScreen>:
+
     name: "main"
+
     Image:
+
         source: '../img/hqc_logo_words.png'
+
         size_hint: (1, 1)
+
         pos: (85, 5)
+
     BoxLayout:
+
         pos: (350, 520)
+
         spacing: '50'
+
         ImageButton:
+
             source: '../img/settings_dark.png'
+
             size_hint: .1, .1
+
             on_release: app.root.current = 'settings'
+
     ImageButton:
+
         id: producer
+
         source: '../img/producer.png'
+
         on_release: app.root.current = "producersessionjoining"
+
         size_hint: (.23, .23)
+
         pos: (50, 400)
+
     ImageButton:
+
         id: artist
+
         source: '../img/artist.png'
+
         on_release: app.root.current = "artistsessionjoining"
+
         size_hint: (.23, .23)
+
         pos: (50, 235)
+
     ImageButton:
+
         id: listener
+
         source: '../img/listener.png'
+
         on_release: app.root.current = "artistsessionjoining"
+
         size_hint: (.23, .23)
+
         pos: (50, 70)
+
 <ProducerJoiningScreen>
+
     name: "producersessionjoining"
+
     Image:
+
         source: '../img/server_address.png'
+
         size_hint: (0.28, 0.28)
+
         pos: (70, 410)
+
     Image:
+
         source: '../img/username.png'
+
         size_hint: (0.195, 0.195)
+
         pos: (145, 360)
+
     Image:
+
         source: '../img/password.png'
+
         size_hint: (0.16, 0.16)
+
         pos: (160, 305)
+
     Image:
+
         source: '../img/call_number.png'
+
         size_hint: (0.2, 0.2)
+
         pos: (130, 220)
+
     Image:
+
         source: '../img/line_break.png'
+
         size_hint: (0.9, 0.9)
+
         pos: (30, -28)
+
     Image:
+
         source: '../img/connection_string.png'
+
         size_hint: (0.31, 0.31)
-        pos: (45, 110)
+
+        pos: (45, 70)
+
 <ArtistJoiningScreen>
+
     name: "artistsessionjoining"
+
     Image:
+
         source: '../img/connection_string.png'
+
         size_hint: (0.40, 0.40)
+
         pos: (60, 295)
+
 <ProducerSessionScreen>:
+
     name: "producer_session"
+
     ActionBar:
+
         ActionView:
+
             ActionPrevious:
+
                 title: 'HQC: Session Name'
+
                 with_previous: False
+
                 app_icon: '../img/orion_just_stars.png'
+
             ActionOverflow:
+
             ActionImageButton:
+
                 id: mute_button
+
                 source: root.muted_mic_image
+
                 group: 'volume'
+
                 on_press: root.toggle_mute()
+
             ActionGroup:
+
                 ActionImageButton:
+
                     source: '../img/sign_out_option.png'
+
                     text: 'Leave Session'
+
                     on_release: app.root.current = 'filetransfer'
+
     ProgressBar:
+
         id: progress_bar
+
         size_hint: (0.6, 0.25)
+
         pos: (0, 5)
+
         value: 0
+
         max: 30
+
     TabbedPanel:
+
         size_hint: (.4, .9)
+
         pos_hint: {'center_x': .8, 'center_y': .55}
+
         do_default_tab: False
+
         TabbedPanelItem:
+
             tab_width: 300
+
             text: 'Select Clips'
+
             ScrollView:
+
                 size_hint: (None, None)
+
                 size: (310, 460)
+
                 pos_hint: {'center_x': .5, 'center_y': .5}
+
                 do_scroll_x: False
+
                 GridLayout:
+
                     id: audioSidebar
+
                     cols: 3
+
                     padding: 10
+
                     spacing: 5
+
                     size_hint: (None, None)
+
                     width: 310
+
     BoxLayout:
+
         ScrollView:
+
             size_hint: (None, None)
+
             size: (400, 200)
+
             pos_hint: {'center_x':.3, 'center_y':.78}
+
             scroll_y: 0
+
             Label:
+
                 text: root.chat_messages
+
                 markup: True
+
                 text_size: self.width, None
+
                 size_hint_y: None
+
                 height: self.texture_size[1]
+
                 halign: 'left'
+
                 valign: 'top'
+
 <ArtistSessionScreen>:
+
     name: "artist_session"
+
     ActionBar:
+
         ActionView:
+
             ActionPrevious:
+
                 title: 'HQC: High Quality Chat'
+
                 font_size: '44sp'
+
                 with_previous: False
+
                 app_icon: '../img/orion_just_stars.png'
+
             ActionOverflow:
+
             ActionImageButton:
+
                 id: mute_button
+
                 source: root.muted_mic_image
+
                 group: 'volume'
+
                 on_press: root.toggle_mute()
+
             ActionGroup:
+
                 ActionImageButton:
+
                     source: '../img/sign_out_option.png'
+
                     text: 'Leave Session'
+
                     on_release: app.root.current = 'filetransfer'
+
     ProgressBar:
+
         id: progress_bar
+
         size_hint: (0.6, 0.25)
+
         pos: (0, 5)
+
         value: 0
+
         max: 30
+
     ImageButton:
+
         id: record_button
+
         source: '../img/record_theme2.png'
+
         font_size: '25sp'
+
         size_hint: (.25, .25)
+
         pos: (135, 115)
+
         on_press: root.record_button()
+
     TabbedPanel:
+
         size_hint: (.4, .9)
+
         pos_hint: {'center_x': .8, 'center_y': .55}
+
         do_default_tab: False
+
         TabbedPanelItem:
+
             tab_width: 300
+
             text: 'Select Clips'
+
             ScrollView:
+
                 size_hint: (None, None)
+
                 size: (310, 460)
+
                 pos_hint: {'center_x': .5, 'center_y': .5}
+
                 do_scroll_x: False
+
                 GridLayout:
+
                     id: audioSidebar
+
                     cols: 3
+
                     padding: 10
+
                     spacing: 5
+
                     size_hint: (None, None)
+
                     width: 310
+
     BoxLayout:
+
         ScrollView:
+
             size_hint: (None, None)
+
             size: (400, 200)
+
             pos_hint: {'center_x':.3, 'center_y':.78}
+
             scroll_y: 0
+
             Label:
+
                 text: root.chat_messages
+
                 markup: True
+
                 text_size: self.width, None
+
                 size_hint_y: None
+
                 height: self.texture_size[1]
+
                 halign: 'left'
+
                 valign: 'top'
-                color: 0,0,0,1
+
 <ListenerSessionScreen>:
+
     name: "listener_session"
+
     ActionBar:
+
         ActionView:
+
             ActionPrevious:
+
                 title: 'HQC: Session Name'
+
                 with_previous: False
+
                 app_icon: '../img/orion_just_stars.png'
+
             ActionOverflow:
+
             ActionImageButton:
+
                 id: mute_button
+
                 source: root.muted_mic_image
+
                 group: 'volume'
+
                 on_press: root.toggle_mute()
+
             ActionGroup:
+
                 ActionImageButton:
+
                     source: '../img/sign_out_option.png'
+
                     text: 'Leave Session'
+
                     on_release: app.root.current = 'filetransfer'
+
     ProgressBar:
+
         id: progress_bar
+
         size_hint: (0.6, 0.25)
+
         pos: (0, 5)
+
         value: 0
+
         max: 30
+
     TabbedPanel:
+
         size_hint: (.4, .9)
+
         pos_hint: {'center_x': .8, 'center_y': .55}
+
         do_default_tab: False
+
         TabbedPanelItem:
+
             tab_width: 300
+
             text: 'Select Clips'
+
             ScrollView:
+
                 size_hint: (None, None)
+
                 size: (310, 460)
+
                 pos_hint: {'center_x': .5, 'center_y': .5}
+
                 do_scroll_x: False
+
                 GridLayout:
+
                     id: audioSidebar
+
                     cols: 3
+
                     padding: 10
+
                     spacing: 5
+
                     size_hint: (None, None)
+
                     width: 310
+
     BoxLayout:
+
         ScrollView:
+
             size_hint: (None, None)
+
             size: (400, 200)
+
             pos_hint: {'center_x':.3, 'center_y':.78}
+
             scroll_y: 0
+
             Label:
+
                 text: root.chat_messages
+
                 markup: True
+
                 text_size: self.width, None
+
                 size_hint_y: None
+
                 height: self.texture_size[1]
+
                 halign: 'left'
+
                 valign: 'top'
+
 <SettingsScreen>
+
     name: "settings"
+
     ImageButton:
+
         id: main_menu
+
         source: '../img/arrow_left.png'
+
         text: 'Main Menu'
+
         halign: 'center'
+
         valign: 'middle'
+
         size_hint: (.20, .10)
+
         text_size: root.width, None
+
         font_size: '25sp'
+
         pos: (-25, 510)
+
         on_release: app.root.current = 'main'
+
     ImageButton:
+
         source: '../img/generate_strings.png'
+
         size_hint: (.2, .2)
-        pos: (150, 50)
+
+        pos: (650, 470)
+
         on_release: app.root.current = 'connection_string_generation_screen'
+
     Image:
+
         source: '../img/username.png'
+
         size_hint: (0.20, 0.20)
-        pos: (121, 400)
+
+        pos: (68, 400)
+
     Image:
+
         source: '../img/microphone_text.png'
-        size_hint: (0.201, 0.236)
-        pos: (115, 319)
+
+        size_hint: (0.20, 0.20)
+
+        pos: (60, 335)
+
     Image:
+
         source: '../img/codec.png'
-        size_hint: (0.12, 0.069)
-        pos: (179, 217)
-    Image:
-        source: '../img/speakers.png'
-        size_hint: (0.17, 0.12)
-        pos: (139, 273)
+
+        size_hint: (0.11, 0.11)
+
+        pos: (140, 280)
+
     BoxLayout:
+
         id: devices
-        orientation: 'vertical'
-        padding: [300, 0, 0, 200]
-        spacing: (200, 200)
+
+        orientation: 'horizontal'
+
+        padding: [25, 0, 0, 225]
+
 <FileTransferScreen>
+
     name: "filetransfer"
+
     BoxLayout:
+
         id: filelayout
+
         orientation: 'vertical'
+
         padding: [0, 0, 0, 150]
+
     Button:
+
         id: leave_file
+
         text: 'Exit Application'
+
         halign: 'center'
+
         valign: 'middle'
+
         size_hint: (.4, .10)
+
         text_size: root.width, None
+
         font_size: '25sp'
+
         pos: (250, 50)
+
         on_release: root.leave_session()
+
 <ConnectionStringGenerationScreen>
-    name: 'connection_string_generation_screen'
+
+    name: "connection_string_generation_screen"
+
     Image:
+
         source: '../img/please_enter.png'
+
         size_hint: (0.35, 0.35)
+
         pos: (270, 440)
+
     Image:
+
         source: '../img/server_address.png'
+
         size_hint: (0.28, 0.28)
+
         pos: (70, 380)
+
     Image:
+
         source: '../img/username.png'
+
         size_hint: (0.195, 0.195)
+
         pos: (145, 330)
+
     Image:
+
         source: '../img/password.png'
+
         size_hint: (0.16, 0.16)
+
         pos: (160, 275)
+
     Image:
+
         source: '../img/call_number.png'
+
         size_hint: (0.2, 0.2)
+
         pos: (130, 190)
-    ImageButton:
-        id: main_menu
-        source: '../img/arrow_left.png'
-        text: 'Main Menu'
-        halign: 'center'
-        valign: 'middle'
-        size_hint: (.20, .10)
-        text_size: root.width, None
-        font_size: '25sp'
-        pos: (200, 75)
-        on_release: app.root.current = 'main'

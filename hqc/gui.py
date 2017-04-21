@@ -204,7 +204,7 @@ class SessionScreen(Screen):
         """
         Plays the selected file.
         :param obj: ToggleButton object
-        :return: 
+        :return:
         """
         # TODO: This plays LQ files, not HQ files.  Call get_audio_from_filename and also give it a length
         # Get filename of the high quality clip associated with this play button
@@ -241,8 +241,8 @@ class SessionScreen(Screen):
 
     def record_button(self):
         """
-        Records high quality audio files on the artist side. 
-        :return: 
+        Records high quality audio files on the artist side.
+        :return:
         """
         # Toggle recording
         rec_state = self.app.get_own_state()['recording']
@@ -339,13 +339,25 @@ class SessionScreen(Screen):
     def on_leave(self, *args):
         """
         Makes sure the SessionScreen is left properly
-        :param args: 
-        :return: 
+        :param args:
+        :return:
         """
         # If leaving the SessionScreen, make sure to stop recording
         if self.app.get_own_state()['recording']:
             self.record_button()
 
+class ProducerSessionScreen(SessionScreen):
+    pass
+
+class ArtistSessionScreen(SessionScreen):
+    def add_clip(self):
+        super(ArtistSessionScreen, self).add_clip()
+        btn2 = Button(text="Request", size=(100, 50),
+                      size_hint=(0.32, None))
+        self.ids.audioSidebar.add_widget(btn2)
+
+class ListenerSessionScreen(SessionScreen):
+    pass
 
 class ProducerJoiningScreen(Screen):
     app = ObjectProperty(None)
@@ -355,6 +367,22 @@ class ProducerJoiningScreen(Screen):
 
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
+    def get_conn(self, producer_connection):
+        def is_valid(value):
+            if value != '' and len(value) != 0:
+                return True
+            else:
+                return False
+
+        connection_details = self.app.config.get_section('ConnectionDetails')
+
+        self.parent.current = 'producer_session'
+
+        file_name = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
+        self.app.phone.make_call(connection_details['call_no'], connection_details['server'], file_name)
+        self.app.lq_audio = self.app.phone.recording_start
+        print "passing lq_audio to gui: " + self.app.lq_audio
+
     def get_text(self, servername, username, password, callnumber):
         def is_valid(value):
             if value != '' and len(value) != 0:
@@ -413,6 +441,7 @@ class ArtistJoiningScreen(Screen):
 
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
+
     def get_text(self, conn_string):
         if conn_string is not None and len(conn_string) != 0:  # Use the provided connection string
             connection_details = self.app.config.parse_conn_string()
@@ -454,7 +483,10 @@ class ArtistJoiningScreen(Screen):
                               size_hint=(None, None), size=(400, 400))
                 popup.open()
 
-        self.parent.current = 'session'
+        if self.app.config.get('ChatSettings', 'role') == "ARTIST":
+            self.parent.current = 'artist_session'
+        else:
+            self.parent.current = 'listener_session'
 
         filename = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
         self.app.phone.make_call(connection_details['call_no'], connection_details['server'], filename)
@@ -600,9 +632,8 @@ class FileTransferScreen(Screen):
         self.app.phone.hangup()
         App.get_running_app().stop()
 
-
-# class ConnectionStringGenerationScreen(Screen):
-
+class ConnectionStringGenerationScreen(Screen):
+    pass
 
 # popup = Popup(title='Test popup',
 #              content=Label(text='Hello world'),
