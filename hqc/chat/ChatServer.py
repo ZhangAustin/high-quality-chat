@@ -55,14 +55,6 @@ class HQCWebSocket(EchoWebSocket):
             app.current_clients[username] = {}
             app.current_clients[username]['role'] = role
 
-            chat_message = role + " " + username + " has joined the session."
-            # Send a message upon new user
-            payload = {"username": "Server",
-                       "type": constants.CHAT,
-                       'message': chat_message}
-            packed_payload = json.dumps(payload, False)
-            self.handle_chat_message(packed_payload)
-
         if message_type == constants.CHAT:
             self.handle_chat_message(received_message)
         elif message_type == constants.FILE:

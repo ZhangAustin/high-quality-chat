@@ -138,6 +138,11 @@ def get_audio_from_filename(filename, length, lowquals):
 
 
 def playback(filename, start, end=None, playback_time=None):
+    print "Trying to play back {}".format(filename)
+    Thread(target=_playback, args=(filename, start, end, playback_time))
+
+
+def _playback(filename, start, end=None, playback_time=None):
     """
     Plays back a wav file from the start point (in seconds) to the end point (in seconds)
     :param filename: filename to playback
