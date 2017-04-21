@@ -230,19 +230,27 @@ class SessionScreen(Screen):
         :param obj: ToggleButton object
         :return:
         """
-        # TODO: This plays LQ files, not HQ files.  Call get_audio_from_filename and also give it a length
-        # Get filename of the high quality clip associated with this play button
-        filename = self.app.get_own_state()['audio_files'][obj.clip_no]
-        _, tail = os.path.split(filename)
-        # Get base name
-        # root, _ = os.path.splitext(tail)
+        role = self.app.config.get('ChatSettings', 'role')
+        if role == 'ARTIST':
+            # TODO: This plays LQ files, not HQ files.  Call get_audio_from_filename and also give it a length
+            # Get filename of the high quality clip associated with this play button
+            filename = self.app.get_own_state()['audio_files'][obj.clip_no]
+            _, tail = os.path.split(filename)
+            # Get base name
+            # root, _ = os.path.splitext(tail)
 
-        # Get filename of the session high quality audio stream
-        hq_audio = self.app.config.get_file_name(self.app.session_name, tail)
+            # Get filename of the session high quality audio stream
+            hq_audio = self.app.config.get_file_name(self.app.session_name, tail)
 
-        # Play audio for 5 seconds
-        print "playing " + str(hq_audio)
-        audio.playback(hq_audio, 0, None, 5)
+            # Play audio for 5 seconds
+            print "playing " + str(hq_audio)
+
+            audio.playback(hq_audio, 0)
+        else:
+            filename = obj.filename
+            time = obj.length
+            lq_audio = audio.get_audio_from_filename(filename,time,self.app.phone.recording_locations)
+            audio.playback(lq_audio['filename'],lq_audio['start_time'],lq_audio['end_time'])
 
     def request_file(self, obj):
         """
