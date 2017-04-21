@@ -93,8 +93,11 @@ class HQCWSClient(WebSocketClient):
         print "Connection opened"
         payload = self.new_payload()
         payload['type'] = constants.ROLE_VERIFICATION
-
+        # Send role verification
         self.send(str(json.dumps(payload)), False)
+
+        # Send a joining message
+        self.chat(str(self.role) + " joined the chat.")
 
     def finish(self):
         """
