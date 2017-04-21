@@ -97,7 +97,7 @@ class HQCWSClient(WebSocketClient):
         self.send(str(json.dumps(payload)), False)
 
         # Send a joining message
-        self.chat("Joined the chat.")
+        self.chat(str(self.role) + " joined the chat.")
 
     def finish(self):
         """
