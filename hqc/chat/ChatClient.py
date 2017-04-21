@@ -143,9 +143,21 @@ class HQCWSClient(WebSocketClient):
             # Retrieve the message dictionary
             parsed_json = json.loads(str(message))
             username = parsed_json['username']
+
             # Add user to states on receive
             if username not in self.states:
-                self.states[username] = {}
+                self.states[username] = {'mic_muted': True,
+                                         'recording': False,
+                                         'downloading': False,
+                                         'uploading': False,
+                                         # List of (filename, length) tuples
+                                         "audio_files": [],
+                                         # List of file names that are requested by the producers
+                                         'requested_files': [],
+                                         # List of(filename, length) tuples that have been downloaded.
+                                         'downloaded files': []}
+
+
             # Get the message type
             message_type = parsed_json['type']
             if message_type == constants.FILE:
