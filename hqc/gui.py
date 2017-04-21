@@ -80,6 +80,8 @@ class HQC(App):
 
     def update_chat(self, username, message):
         self.root.screens[3].update_chat(username, message)
+        self.root.screens[4].update_chat(username, message)
+        self.root.screens[5].update_chat(username, message)
 
     def update_role(self, role):
         self.config.update_setting("ChatSettings", "role", role)
