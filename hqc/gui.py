@@ -137,7 +137,7 @@ class SessionScreen(Screen):
         # to contain all the childs. (otherwise, we'll child outside the
         # bounding box of the childs)
         self.ids.audioSidebar.bind(minimum_height=self.ids.audioSidebar.setter('height'))
-        progress_bar = ProgressBar( value=0, size_hint= (0.5, None))
+        progress_bar = ProgressBar( id='downloadbar', value=0, size_hint= (0.5, None))
         label = Label(text = 'Waiting', size_hint= (0.32, None))
         label2 = Label(text='N/A%', size_hint= (0.18, None))
         self.ids.audioSidebar.add_widget(label2)
@@ -216,6 +216,9 @@ class SessionScreen(Screen):
         :param message: string of files requested
         :return: None
         """
+        # Start the progress effect
+        # download_thread = threading.Thread(target=self.download_progress)
+        # download_thread.start()
         if message in self.audio_files:
             self.app.chat_client.send_file(message)
 
@@ -329,10 +332,15 @@ class SessionScreen(Screen):
                                            filename=tail,
                                            length=audio.get_length(available_filename))
 
+    #make the progress bar loop while recording
     def record_progress(self):
         while self.app.get_own_state()['recording']:
             time.sleep(0.05)
             self.ids.progress_bar.value = (self.ids.progress_bar.value + 1) % 31  # datetime.now().second % 6.0
+
+    def download_progress(self):
+        time.sleep(0.05)
+        self.ids.downloadbar.value = (self.ids.downloadbar.value + 1) % 31
 
     def toggle_mute(self):
         # Toggles the linphone mic
@@ -678,7 +686,7 @@ class ConnectionStringGenerationScreen(Screen):
         connection_string = self.app.config.make_conn_string(username, password, servername, callno)
         box = BoxLayout(orientation='vertical')
         connection_text = TextInput(text=connection_string, size_hint=(1,.75))
-        dismissbtn = Button(text="Dismiss Pop-up", size_hint=(1,.25))
+        dismissbtn = Button(text="Got it!", size_hint=(1,.25))
         box.add_widget(connection_text)
         box.add_widget(dismissbtn)
         popup = Popup(title = 'Connection String', content=box, auto_dismiss=False,
