@@ -118,7 +118,9 @@ class SessionScreen(Screen):
     un_muted_mic_image = '../img/microphone.png'
     muted_mic_image = '../img/muted.png'
 
+    stop_black = '../img/stop_black.png'
     stop_theme = '../img/stop_theme.png'
+    record_black = '../img/record_black.png'
     record_red = '../img/record_theme2.png'
 
     # Store a large string of all chat messages
@@ -161,7 +163,6 @@ class SessionScreen(Screen):
         label = Label(text=os.path.basename(audio_files[-1])[0:9], halign='left', size_hint=(.5, 0.2))
 
         # add request button
-
         btn2 = Button(text="Request", size=(100, 50),
                       size_hint=(0.32, None))
         # Same clip number as play button
@@ -170,6 +171,7 @@ class SessionScreen(Screen):
 
         self.ids.audioSidebar.add_widget(btn)
         self.ids.audioSidebar.add_widget(label)
+        self.ids.audioSidebar.add_widget(btn2)
 
     def add_file(self, file):
         # Called when artist receives a sync request file
@@ -342,18 +344,6 @@ class SessionScreen(Screen):
         if self.app.get_own_state()['recording']:
             self.record_button()
 
-class ProducerSessionScreen(SessionScreen):
-    pass
-
-class ArtistSessionScreen(SessionScreen):
-    def add_clip(self):
-        super(ArtistSessionScreen, self).add_clip()
-        btn2 = Button(text="Request", size=(100, 50),
-                      size_hint=(0.32, None))
-        self.ids.audioSidebar.add_widget(btn2)
-
-class ListenerSessionScreen(SessionScreen):
-    pass
 
 class ProducerJoiningScreen(Screen):
     app = ObjectProperty(None)
@@ -363,23 +353,6 @@ class ProducerJoiningScreen(Screen):
 
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists
-    def get_conn(self, producer_connection):
-        def is_valid(value):
-            if value != '' and len(value) != 0:
-                return True
-            else:
-                return False
-
-        self.parent.current = 'producer_session'
-
-        connection_details = self.app.config.get_section('ConnectionDetails')
-
-        file_name = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
-        self.app.phone.make_call(connection_details['call_no'], connection_details['server'], file_name)
-        self.app.lq_audio = self.app.phone.recording_start
-        print "passing lq_audio to gui: " + self.app.lq_audio
-
-
     def get_text(self, servername, username, password, callnumber):
         def is_valid(value):
             if value != '' and len(value) != 0:
@@ -422,13 +395,7 @@ class ProducerJoiningScreen(Screen):
         # # Open the popup
         # popup.open()
 
-
-        self.app.session_name = datetime.now().strftime(constants.DATETIME_SESSION)
-        self.app.storage_dir = self.app.config.get('AudioSettings', 'recording_location')
-        os.makedirs(os.path.join(self.app.storage_dir, self.app.session_name))
-
-        self.parent.current = 'producer_session'
-
+        self.parent.current = 'session'
 
         file_name = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
         self.app.phone.make_call(connection_details['call_no'], connection_details['server'], file_name)
@@ -485,15 +452,7 @@ class ArtistJoiningScreen(Screen):
                               size_hint=(None, None), size=(400, 400))
                 popup.open()
 
-        # TODO: Put all recordings into session name.
-        self.app.session_name = datetime.now().strftime(constants.DATETIME_SESSION)
-        self.app.storage_dir = self.app.config.get('AudioSettings', 'recording_location')
-        os.makedirs(os.path.join(self.app.storage_dir, self.app.session_name))
-
-        if self.app.config.get('ChatSettings', 'role') == "ARTIST":
-            self.parent.current = 'artist_session'
-        else:
-            self.parent.current = 'listener_session'
+        self.parent.current = 'session'
 
         filename = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
         self.app.phone.make_call(connection_details['call_no'], connection_details['server'], filename)
