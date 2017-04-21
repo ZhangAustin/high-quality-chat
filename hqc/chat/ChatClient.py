@@ -203,6 +203,14 @@ class HQCWSClient(WebSocketClient):
             recording_message = "{} stopped recording.".format(username)
             # Update GUI with message
             self.app.update_chat(self.server_name, recording_message)
+        elif status_code == constants.SYNC_MIC_ON:
+            self.states[username]['mic_muted'] = False
+            mic_status = "{} is now un-muted".format(username)
+            self.app.update_chat(self.server_name, mic_status)
+        elif status_code == constants.SYNC_MIC_OFF:
+            self.states[username]['mic_muted'] = True
+            mic_status = "{} is now muted".format(username)
+            self.app.update_chat(self.server_name, mic_status)
         elif status_code == constants.SYNC_SPEAKER_ON:
             print "{} turned speakers on".format(username)
             # Do something in GUI
@@ -260,6 +268,18 @@ class HQCWSClient(WebSocketClient):
 
         elif sync_code == constants.SYNC_STOP_RECORDING:
             self.states[self.username]['recording'] = False
+            # Make an empty message
+            payload['message'] = {}
+            self.send(json.dumps(payload), False)
+
+        elif sync_code == constants.SYNC_MIC_ON:
+            self.states[self.username]['mic_muted'] = False
+            # Make an empty message
+            payload['message'] = {}
+            self.send(json.dumps(payload), False)
+
+        elif sync_code == constants.SYNC_MIC_OFF:
+            self.states[self.username]['mic_muted'] = True
             # Make an empty message
             payload['message'] = {}
             self.send(json.dumps(payload), False)
