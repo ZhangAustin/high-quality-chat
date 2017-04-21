@@ -65,6 +65,9 @@ class HQCWSClient(WebSocketClient):
                                        # List of(filename, length) tuples that have been downloaded.
                                        'downloaded files': []}}
 
+        # Used for server update messages
+        self.server_name = "Server"
+
     def send(self, payload, binary):
         """
         Override the default send to keep it from crashing kivy when there is no connected chat server
@@ -76,6 +79,11 @@ class HQCWSClient(WebSocketClient):
             print "Message not sent due to socket error"
             print "Message contents: "
             print payload
+        except AttributeError as e:
+            print "Message was parsed incorrectly"
+            print "Payload was {}".format(payload)
+            print "Binary flag was {}".format(binary)
+            print e
 
     def opened(self):
         """
@@ -134,6 +142,22 @@ class HQCWSClient(WebSocketClient):
         if self.app is not None:
             # Retrieve the message dictionary
             parsed_json = json.loads(str(message))
+            username = parsed_json['username']
+
+            # Add user to states on receive
+            if username not in self.states:
+                self.states[username] = {'mic_muted': True,
+                                         'recording': False,
+                                         'downloading': False,
+                                         'uploading': False,
+                                         # List of (filename, length) tuples
+                                         "audio_files": [],
+                                         # List of file names that are requested by the producers
+                                         'requested_files': [],
+                                         # List of(filename, length) tuples that have been downloaded.
+                                         'downloaded files': []}
+
+
             # Get the message type
             message_type = parsed_json['type']
             if message_type == constants.FILE:
@@ -188,12 +212,22 @@ class HQCWSClient(WebSocketClient):
             print "Received a test sync message from {}".format(username)
         elif status_code == constants.SYNC_START_RECORDING:
             self.states[username]['recording'] = True
-            print "{} started recording.".format(username)
-            # Do something in GUI
-            pass
+            recording_message = "{} started recording.".format(username)
+            # Update GUI with message
+            self.app.update_chat(self.server_name, recording_message)
         elif status_code == constants.SYNC_STOP_RECORDING:
             self.states[username]['recording'] = False
-            print "{} stopped recording.".format(username)
+            recording_message = "{} stopped recording.".format(username)
+            # Update GUI with message
+            self.app.update_chat(self.server_name, recording_message)
+        elif status_code == constants.SYNC_MIC_ON:
+            self.states[username]['mic_muted'] = False
+            mic_status = "{} is now un-muted".format(username)
+            self.app.update_chat(self.server_name, mic_status)
+        elif status_code == constants.SYNC_MIC_OFF:
+            self.states[username]['mic_muted'] = True
+            mic_status = "{} is now muted".format(username)
+            self.app.update_chat(self.server_name, mic_status)
         elif status_code == constants.SYNC_SPEAKER_ON:
             print "{} turned speakers on".format(username)
             # Do something in GUI
@@ -225,7 +259,7 @@ class HQCWSClient(WebSocketClient):
             file_tuple = (filename, length)
             self.states[username]['audio_files'].append(file_tuple)
 
-            if self.app:
+            if self.app and self.role == constants.PRODUCER:
                 self.app.update_available_files(username, filename, length)
             else:
                 print "App not connected"
@@ -251,6 +285,18 @@ class HQCWSClient(WebSocketClient):
 
         elif sync_code == constants.SYNC_STOP_RECORDING:
             self.states[self.username]['recording'] = False
+            # Make an empty message
+            payload['message'] = {}
+            self.send(json.dumps(payload), False)
+
+        elif sync_code == constants.SYNC_MIC_ON:
+            self.states[self.username]['mic_muted'] = False
+            # Make an empty message
+            payload['message'] = {}
+            self.send(json.dumps(payload), False)
+
+        elif sync_code == constants.SYNC_MIC_OFF:
+            self.states[self.username]['mic_muted'] = True
             # Make an empty message
             payload['message'] = {}
             self.send(json.dumps(payload), False)

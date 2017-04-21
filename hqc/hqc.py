@@ -69,7 +69,7 @@ class HQCPhone(object):
             """
             #  Choose the appropriate logging handle
             debug_method = getattr(logging, level)
-            debug_method(msg)
+            # debug_method(msg)
 
         linphone.set_log_handler(log_handler)
         self.core.video_capture_enabled = False  # remove both of these if we get video implemented
@@ -77,6 +77,19 @@ class HQCPhone(object):
 
     def make_call(self, number, server, lq_file):
         """Pop a thread open that targets _make_call"""
+
+        codec = self.config.get('LQRecordingSettings', 'codec')
+        if codec != 'Default':
+            # Extract details out of string
+            mark1 = codec.find(',')
+            mark2 = codec.rfind(',')
+
+            name = codec[:mark1]
+            bitrate = codec[mark1 + 2:mark2 - 3]
+            channels = codec[mark2 + 2:mark2 + 3]
+
+            codec = [name, bitrate, channels]
+            self.force_codec_type(codec)
 
         self.recording_folder = os.path.dirname(lq_file)
         self.core.capture_device = self.config.get('AudioSettings', 'mic')
@@ -141,7 +154,7 @@ class HQCPhone(object):
         new_name = generate_name(self.recording_current)
         try:
             os.rename(self.recording_start, new_name)
-        except WindowsError:
+        except OSError:
             print str(self.recording_start) + " file not found."
         self.recording_locations.append(new_name)
 
@@ -258,8 +271,8 @@ class HQCPhone(object):
         selected_codec = -1
         for payload in self.core.audio_codecs:
             if payload.mime_type == codec[0]:
-                if payload.normal_bitrate == codec[1]:
-                    if payload.channels == codec[2]:
+                if str(payload.normal_bitrate) == str(codec[1]):
+                    if str(payload.channels) == str(codec[2]):
                         selected_codec = payload
 
         # We double iterate audio_codecs because if we can't find a matching codec we don't want to disable everything

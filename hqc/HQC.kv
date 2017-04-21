@@ -34,7 +34,7 @@ ScreenManager:
             size_hint: (.35, .1)
             font_size: '24sp'
             multiline: False
-            password: True
+            password: False
             hint_text: 'Default Value'
             pos: (330, 390)
         TextInput:
@@ -201,32 +201,14 @@ ScreenManager:
             multiline: False
             hint_text: 'Default Values'
             pos: (250, 430)
-        TextInput:
-            id: setting2
-            size_hint: (.5, .10)
-            text_size: root.width, None
-            font_size: '25sp'
-            multiline: False
-            hint_text: 'Default Values'
-            pos: (250, 365)
-        TextInput:
-            id: setting3
-            size_hint: (.5, .10)
-            text_size: root.width, None
-            font_size: '25sp'
-            multiline: False
-            hint_text: 'Default Values'
-            password: True
-            pos: (250, 300)
         ImageButton:
             id: save_settings
             source: '../img/save_settings.png'
             halign: 'center'
             valign: 'middle'
             size_hint: (.3, .3)
-            pos: (270, 25)
-            on_press: app.root.current = 'main'
-            on_release: self.parent.save_settings(setting1.text, setting2.text, setting3.text)
+            pos: (500, 25)
+            on_release: self.parent.save_settings(setting1.text); setting1.text = ''
     FileTransferScreen:
         app: self.manager.app
         manager: screen_manager
@@ -236,66 +218,6 @@ ScreenManager:
             Rectangle:
                 pos: self.pos
                 size: self.size
-    ConnectionStringGenerationScreen:
-        manager: screen_manager
-        app: self.manager.app
-        canvas.before:
-            Color:
-                rgba: 0.95, 0.95, 0.95, 0.95
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        TextInput:
-            id: servername
-            size_hint: (.5, .1)
-            font_size: '24sp'
-            multiline: False
-            hint_text: 'servername'
-            pos: (330, 430)
-        TextInput:
-            id: callnumber
-            size_hint: (.5, .1)
-            font_size: '24sp'
-            multiline: False
-            password: True
-            hint_text: 'e.g. 1004'
-            pos: (330, 360)
-        TextInput:
-            id: username
-            size_hint: (.5, .1)
-            font_size: '24sp'
-            multiline: False
-            hint_text: 'your_username'
-            pos: (330, 290)
-        TextInput:
-            id: password
-            size_hint: (.5, .1)
-            font_size: '24sp'
-            multiline: False
-            password: True
-            hint_text: '********'
-            pos: (330, 220)
-        ImageButton:
-            id: producerjoinsess
-            source: '../img/enter_string.png'
-            halign: 'center'
-            valign: 'middle'
-            size_hint: (.25, .25)
-            text_size: root.width, None
-            font_size: '25sp'
-            pos: (275, 30)
-            on_release: self.parent.get_text(servername.text, username.text, password.text, callnumber.text)
-        ImageButton:
-            id: main_menu
-            source: '../img/arrow_left.png'
-            text: 'Main Menu'
-            halign: 'center'
-            valign: 'middle'
-            size_hint: (.20, .10)
-            text_size: root.width, None
-            font_size: '25sp'
-            pos: (-25, 510)
-            on_release: app.root.current = 'settings'
 <MainScreen>:
     name: "main"
     Image:
@@ -541,6 +463,7 @@ ScreenManager:
                 height: self.texture_size[1]
                 halign: 'left'
                 valign: 'top'
+                color: 0,0,0,1
 <SettingsScreen>
     name: "settings"
     ImageButton:

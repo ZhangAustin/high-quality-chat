@@ -54,9 +54,15 @@ class HQCWebSocket(EchoWebSocket):
         if username not in app.current_clients:
             app.current_clients[username] = {}
             app.current_clients[username]['role'] = role
-            # TODO: Make this message display on all gui clients
-            print role + " " + username + " has joined the session."
-            print "Current session members: " + str(app.current_clients)
+
+            chat_message = role + " " + username + " has joined the session."
+            # Send a message upon new user
+            payload = {"username": "Server",
+                       "type": constants.CHAT,
+                       'message': chat_message}
+            packed_payload = json.dumps(payload, False)
+            self.handle_chat_message(packed_payload)
+
         if message_type == constants.CHAT:
             self.handle_chat_message(received_message)
         elif message_type == constants.FILE:
@@ -100,8 +106,8 @@ class HQCWebSocket(EchoWebSocket):
     def handle_role_verification(self, received_message):
         parsed_json = json.loads(str(received_message))
         # These are almost definitely not going to be instance attribs
-        username = parsed_json['username']
-        role = parsed_json['role']
+        self.username = parsed_json['username']
+        self.role = parsed_json['role']
 
     def handle_sync(self, message):
         """
@@ -110,10 +116,27 @@ class HQCWebSocket(EchoWebSocket):
         :param message: Sync message to forward
         :return: None
         """
-        # TODO: send to everybody but the sender
         app = self.environ['ws4py.app']
-        for client in app.clients:
-            client.send(message, False)
+
+        # Retrieve the message dictionary
+        parsed_json = json.loads(str(message))
+        # Get the message type
+        message_type = parsed_json['type']
+
+        producer_messages = [constants.SYNC_FILE_AVAILABLE]
+        artist_messages = []
+        if message_type in producer_messages:
+            for client in app.clients:
+                if client.role == constants.PRODUCER:
+                    client.send(message, False)
+        elif message_type in artist_messages:
+            for client in app.clients:
+                if client.role == constants.ARTIST:
+                    client.send(message, False)
+        # Send to everyone
+        else:
+            for client in app.clients:
+                client.send(message, False)
 
     def closed(self, code, reason="A client left the room without a proper explanation."):
         """

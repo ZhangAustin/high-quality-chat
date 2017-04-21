@@ -194,6 +194,7 @@ class SessionScreen(Screen):
     def update_available_files(self, username, filename, length):
         _, tail = os.path.split(filename)
         print "{} has {}: {} bytes".format(username, tail, length)
+        self.add_clip()
 
     def play_clip(self, obj):
         """
@@ -294,8 +295,10 @@ class SessionScreen(Screen):
 
         # Update the mic image
         if self.app.phone.core.mic_enabled:
+            self.app.chat_client.send_sync(constants.SYNC_MIC_ON)
             self.ids.mute_button.source = SessionScreen.un_muted_mic_image
         else:
+            self.app.chat_client.send_sync(constants.SYNC_MIC_OFF)
             self.ids.mute_button.source = SessionScreen.muted_mic_image
 
     def update_chat(self, username, message):
@@ -499,33 +502,27 @@ class ArtistJoiningScreen(Screen):
 class SettingsScreen(Screen):
     app = ObjectProperty(None)
     initialize = True
-    recording_devices_main = Button(text='Recording Devices', size = (250, 75), size_hint = (None, None),
+    recording_devices_main = Button(text='Default', size = (250, 75), size_hint = (None, None),
                                     halign="center", valign="middle")
-    audio_devices_main = Button(text='Audio Devices', size = (250, 75), size_hint = (None, None),
+    audio_devices_main = Button(text='Default', size = (250, 75), size_hint = (None, None),
                                 halign="center", valign="middle")
-    codec_main = Button(id='codec', text='Codec', size = (250, 75), size_hint=(None, None),
+    codec_main = Button(id='codec', text='Default', size = (250, 75), size_hint=(None, None),
                         halign="center", valign="middle")
     dropdown1 = DropDown(id='dropdown1')
     dropdown2 = DropDown(id='dropdown2')
     dropdown3 = DropDown(id='dropdown3')
 
-
-    def update_username(self, text_input):
-        self.app.chat_client.username = text_input
-        self.app.config.update_setting("ChatSettings", "username", text_input)
-        self.parent.ids.username_setting.text = ""
-
-    def save_settings(self, setting1, setting2, setting3):
+    def save_settings(self, setting1):
         children = self.ids.devices.children[:]
         index = 0
         while children:
             child = children.pop()
-            if index == 0 and child.text != 'Recording Devices':
+            if index == 0:
                 self.app.config.update_setting("AudioSettings", "mic", child.text)
-            if index == 1 and child.text != 'Audio Devices':
+            if index == 1:
                 self.app.config.update_setting("AudioSettings", "speakers", child.text)
             if index == 2 and child.text == "Default":
-                self.app.config.update_setting("ConnectionDetails", "user", "Default")
+                self.app.config.update_setting("LQRecordingSettings", "codec", "Default")
             if index == 2 and child.text != "Codec":
                 codec = child.text
                 newcodec = [codec[0:codec.find(',')]]
@@ -534,14 +531,18 @@ class SettingsScreen(Screen):
                 self.app.config.update_setting("LQRecordingSettings", "codec", codec)
             index += 1
         if setting1 != '':
-            self.app.config.update_setting("ConnectionDetails", "user", setting1)
+            self.app.config.update_setting("ChatSettings", "username", setting1)
         print self.app.config.get_section("AudioSettings")
         print self.app.config.get_section("LQRecordingSettings")
 
     def on_enter(self):
         if self.initialize:
+            default1 = Button(text='Default', size_hint_y=None, height=60, halign="center", valign="middle")
+            default2 = Button(text='Default', size_hint_y=None, height=60, halign="center", valign="middle")
+            default3 = Button(text='Default', size_hint_y=None, height=60, halign="center", valign="middle")
             recording_devices = self.app.phone.get_recording_devices()
-            recording_btns = []
+            recording_btns = [default1]
+
             for i in range(len(recording_devices)):
                 btn1 = Button(text=recording_devices[i], size_hint_y=None, height = 60, halign="center", valign="middle")
                 recording_btns = recording_btns + [btn1]
@@ -554,7 +555,7 @@ class SettingsScreen(Screen):
             self.recording_devices_main.bind(size=self.recording_devices_main.setter('text_size'))
             self.ids.devices.add_widget(self.recording_devices_main)
             audio_devices = self.app.phone.get_playback_devices()
-            audio_btns = []
+            audio_btns = [default2]
             for i in range(len(audio_devices)):
                 btn2 = Button(text=audio_devices[i],  size_hint_y=None, height = 60, halign="center", valign="middle")
                 audio_btns = audio_btns + [btn2]
@@ -567,9 +568,7 @@ class SettingsScreen(Screen):
             self.audio_devices_main.bind(size=self.audio_devices_main.setter('text_size'))
             self.ids.devices.add_widget(self.audio_devices_main)
             codec = self.app.phone.get_codecs()
-            codecbtns = []
-            default = Button(text='Default', size_hint_y=None, height=60, halign="center", valign="middle")
-            codecbtns = codecbtns + [default]
+            codecbtns = [default3]
             for i in range(len(codec)):
                 codec_text = str(codec[i][0]) + ", " + str(codec[i][1]) + "bps, " + str(codec[i][2]) + " channels"
                 btn3 = Button(text=codec_text, size_hint_y=None, height = 60, halign="center", valign="middle")
@@ -601,6 +600,8 @@ class SettingsScreen(Screen):
             self.audio_devices_main.text = 'Audio Devices'
         if self.codec_main != 'Codec':
             self.codec_main.text = 'Codec'
+
+
 class FileTransferScreen(Screen):
     app = ObjectProperty(None)
 
@@ -623,11 +624,100 @@ class FileTransferScreen(Screen):
         self.app.phone.hangup()
         App.get_running_app().stop()
 
-class ConnectionStringGenerationScreen(Screen):
-    popup = Popup(title='Test popup',
-                  content=Label(text='Hello world'),
-                  size_hint=(None, None), size=(400, 400))
-    popup.open()
+
+# class ConnectionStringGenerationScreen(Screen):
+
+
+# popup = Popup(title='Test popup',
+#              content=Label(text='Hello world'),
+#              size_hint=(None, None), size=(400, 400))
+# popup.open()
+
+# <ConnectionStringGenerationScreen>
+#     name: "connection_string_generation_screen"
+#     Image:
+#         source: '../img/please_enter.png'
+#         size_hint: (0.35, 0.35)
+#         pos: (270, 440)
+#     Image:
+#         source: '../img/server_address.png'
+#         size_hint: (0.28, 0.28)
+#         pos: (70, 380)
+#     Image:
+#         source: '../img/username.png'
+#         size_hint: (0.195, 0.195)
+#         pos: (145, 330)
+#     Image:
+#         source: '../img/password.png'
+#         size_hint: (0.16, 0.16)
+#         pos: (160, 275)
+#     Image:
+#         source: '../img/call_number.png'
+#         size_hint: (0.2, 0.2)
+#         pos: (130, 190)
+
+# ---
+
+# ConnectionStringGenerationScreen:
+#         manager: screen_manager
+#         app: self.manager.app
+#         canvas.before:
+#             Color:
+#                 rgba: 0.95, 0.95, 0.95, 0.95
+#             Rectangle:
+#                 pos: self.pos
+#                 size: self.size
+#         TextInput:
+#             id: servername
+#             size_hint: (.5, .1)
+#             font_size: '24sp'
+#             multiline: False
+#             hint_text: 'servername'
+#             pos: (330, 430)
+#         TextInput:
+#             id: callnumber
+#             size_hint: (.5, .1)
+#             font_size: '24sp'
+#             multiline: False
+#             password: False
+#             hint_text: 'e.g. 1004'
+#             pos: (330, 360)
+#         TextInput:
+#             id: username
+#             size_hint: (.5, .1)
+#             font_size: '24sp'
+#             multiline: False
+#             hint_text: 'your_username'
+#             pos: (330, 290)
+#         TextInput:
+#             id: password
+#             size_hint: (.5, .1)
+#             font_size: '24sp'
+#             multiline: False
+#             password: True
+#             hint_text: '********'
+#             pos: (330, 220)
+#         ImageButton:
+#             id: producerjoinsess
+#             source: '../img/enter_string.png'
+#             halign: 'center'
+#             valign: 'middle'
+#             size_hint: (.25, .25)
+#             text_size: root.width, None
+#             font_size: '25sp'
+#             pos: (275, 30)
+#             on_release: self.parent.get_text(servername.text, username.text, password.text, callnumber.text)
+#         ImageButton:
+#             id: main_menu
+#             source: '../img/arrow_left.png'
+#             text: 'Main Menu'
+#             halign: 'center'
+#             valign: 'middle'
+#             size_hint: (.20, .10)
+#             text_size: root.width, None
+#             font_size: '25sp'
+#             pos: (-25, 510)
+#             on_release: app.root.current = 'settings'
 
 class ImageButton(ButtonBehavior, Image):
     pass
