@@ -354,9 +354,8 @@ class SessionScreen(Screen):
             self.app.chat_client.chat(message)
         else:
             print "Chat client not connected"
-        # Reset text input
-        self.parent.ids.chatText.text = ''
-        # Keep cursor in text chat
+
+            # Keep cursor in text chat
         # Clock.schedule_once(self.refocus_input)
 
     def refocus_input(self):

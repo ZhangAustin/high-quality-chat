@@ -140,13 +140,13 @@ ScreenManager:
                 pos: self.pos
                 size: self.size
         TextInput:
-            id: chatText
+            id: producer_chatText
             size_hint: (.55, .10)
             text_size: root.width, None
             font_size: '18sp'
             hint_text: 'Type to chat'
             multiline: False
-            on_text_validate: self.parent.send_message(chatText.text)
+            on_text_validate: self.parent.send_message(producer_chatText.text); producer_chatText.text = ''
             pos: (20, 300)
     ArtistSessionScreen:
         manager: screen_manager
@@ -158,13 +158,13 @@ ScreenManager:
                 pos: self.pos
                 size: self.size
         TextInput:
-            id: chatText
+            id: artist_chatText
             size_hint: (.55, .10)
             text_size: root.width, None
             font_size: '18sp'
             hint_text: 'Type to chat'
             multiline: False
-            on_text_validate: self.parent.send_message(chatText.text)
+            on_text_validate: self.parent.send_message(artist_chatText.text); artist_chatText.text = ''
             pos: (20, 300)
     ListenerSessionScreen:
         manager: screen_manager
@@ -176,13 +176,13 @@ ScreenManager:
                 pos: self.pos
                 size: self.size
         TextInput:
-            id: chatText
+            id: listener_chatText
             size_hint: (.55, .10)
             text_size: root.width, None
             font_size: '18sp'
             hint_text: 'Type to chat'
             multiline: False
-            on_text_validate: self.parent.send_message(chatText.text)
+            on_text_validate: self.parent.send_message(listener_chatText.text); listener_chatText.text = ''
             pos: (20, 300)
     SettingsScreen:
         manager: screen_manager
