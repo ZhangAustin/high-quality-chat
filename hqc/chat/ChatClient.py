@@ -142,6 +142,10 @@ class HQCWSClient(WebSocketClient):
         if self.app is not None:
             # Retrieve the message dictionary
             parsed_json = json.loads(str(message))
+            username = parsed_json['username']
+            # Add user to states on receive
+            if username not in self.states:
+                self.states[username] = {}
             # Get the message type
             message_type = parsed_json['type']
             if message_type == constants.FILE:
