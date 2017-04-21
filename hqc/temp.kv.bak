@@ -52,7 +52,7 @@ ScreenManager:
             password: True
             hint_text: 'Default Value'
             pos: (330, 250)
-		TextInput:
+        TextInput:
             id: producer_connection
             size_hint: (.35, .2)
             font_size: '24sp'
@@ -65,12 +65,13 @@ ScreenManager:
             source: '../img/arrow_right.png'
             halign: 'center'
             valign: 'middle'
-            size_hint: (.15, 15)
+            size_hint: (.15, .15)
             text_size: root.width, None
             font_size: '25sp'
             pos: (620, 250)
             on_release: self.parent.get_text(servername.text, username.text, password.text, callnumber.text)
         ImageButton:
+            id: producerjoinsess
             source: '../img/arrow_right.png'
             halign: 'center'
             valign: 'middle'
@@ -164,7 +165,7 @@ ScreenManager:
             multiline: False
             hint_text: 'Default Values'
             pos: (250, 430)
-		TextInput:
+        TextInput:
             id: setting2
             size_hint: (.5, .10)
             text_size: root.width, None
@@ -188,8 +189,8 @@ ScreenManager:
             valign: 'middle'
             size_hint: (.3, .3)
             pos: (270, 25)
-			on_release: app.root.current = 'main'
-            on_press: self.parent.save_settings(setting1.text); setting1.text = ''
+            on_press: app.root.current = 'main'
+            on_release: self.parent.save_settings(setting1.text, setting2.text, setting3.text)
     FileTransferScreen:
         app: self.manager.app
         manager: screen_manager
@@ -388,7 +389,6 @@ ScreenManager:
                 height: self.texture_size[1]
                 halign: 'left'
                 valign: 'top'
-                color: 0,0,0,1
 <SettingsScreen>
     name: "settings"
     ImageButton:
