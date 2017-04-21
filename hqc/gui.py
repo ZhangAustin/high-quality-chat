@@ -560,6 +560,7 @@ class SettingsScreen(Screen):
         if self.codec_main != 'Codec':
             self.codec_main.text = 'Codec'
 
+
 class FileTransferScreen(Screen):
     app = ObjectProperty(None)
 

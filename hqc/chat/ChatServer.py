@@ -100,8 +100,8 @@ class HQCWebSocket(EchoWebSocket):
     def handle_role_verification(self, received_message):
         parsed_json = json.loads(str(received_message))
         # These are almost definitely not going to be instance attribs
-        username = parsed_json['username']
-        role = parsed_json['role']
+        self.username = parsed_json['username']
+        self.role = parsed_json['role']
 
     def handle_sync(self, message):
         """
