@@ -76,6 +76,10 @@ class HQCWSClient(WebSocketClient):
             print "Message not sent due to socket error"
             print "Message contents: "
             print payload
+        except AttributeError:
+            print "Message was parsed incorrectly"
+            print "Payload was {}".format(payload)
+            print "Binary flag was {}".format(binary)
 
     def opened(self):
         """
