@@ -150,30 +150,53 @@ class SessionScreen(Screen):
         # root.add_widget(audioClipLayout)
         # self.ids.audioSidebar.add_widget(root)
 
-    def add_clip(self):
-        # Generate the index number of the clip for referencing in filenames
-        SessionScreen.clip_no += 1
+    def add_clip(self, filename=None):
+        role = self.app.config.get('ChatSettings', 'role')
+        if role == 'ARTIST':
 
-        # add play button and filename index # for later playback
-        btn = ToggleButton(background_normal='../img/play.png',
-                           size_hint=(.18, 1), group='play', allow_stretch=False)
-        btn.apply_property(clip_no=NumericProperty(SessionScreen.clip_no))
-        btn.bind(on_press=self.play_clip)
+            # Generate the index number of the clip for referencing in filenames
+            SessionScreen.clip_no += 1
 
-        # add filename label
-        audio_files = self.app.get_own_state()['audio_files']
-        label = Label(text=os.path.basename(audio_files[-1])[0:9], halign='left', size_hint=(.5, 0.2))
+            # add play button and filename index # for later playback
+            btn = ToggleButton(background_normal='../img/play.png',
+                               size_hint=(.18, 1), group='play', allow_stretch=False)
+            btn.apply_property(clip_no=NumericProperty(SessionScreen.clip_no))
+            btn.bind(on_press=self.play_clip)
 
-        # add request button
-        btn2 = Button(text="Request", size=(100, 50),
-                      size_hint=(0.32, None))
-        # Same clip number as play button
-        btn2.apply_property(clip_no=NumericProperty(SessionScreen.clip_no))
-        btn2.bind(on_press=self.request_file)
+            # add filename label
+            audio_files = self.app.get_own_state()['audio_files']
+            label = Label(text=os.path.basename(audio_files[-1])[0:9], halign='left', size_hint=(.5, 0.2))
 
-        self.ids.audioSidebar.add_widget(btn)
-        self.ids.audioSidebar.add_widget(label)
-        self.ids.audioSidebar.add_widget(btn2)
+            # add request button
+            btn2 = Button(text="Request", size=(100, 50),
+                          size_hint=(0.32, None))
+            # Same clip number as play button
+            btn2.apply_property(clip_no=NumericProperty(SessionScreen.clip_no))
+            btn2.bind(on_press=self.request_file)
+
+            self.ids.audioSidebar.add_widget(btn)
+            self.ids.audioSidebar.add_widget(label)
+            self.ids.audioSidebar.add_widget(btn2)
+
+        elif role == 'PRODUCER':
+            btn = ToggleButton(background_normal='../img/play.png',
+                               size_hint=(.18, 1), group='play', allow_stretch=False)
+            # btn.apply_property(clip_no=None)
+            # btn.bind(on_press=self.play_clip)
+
+            # add filename label
+            label = Label(text=filename, halign='left', size_hint=(.5, 0.2))
+
+            # add request button
+            btn2 = Button(text="Request", size=(100, 50),
+                          size_hint=(0.32, None))
+            # Same clip number as play button
+            btn2.apply_property(filename=StringProperty(filename))
+            btn2.bind(on_press=self.request_file)
+
+            self.ids.audioSidebar.add_widget(btn)
+            self.ids.audioSidebar.add_widget(label)
+            self.ids.audioSidebar.add_widget(btn2)
 
     def add_file(self, file):
         # Called when artist receives a sync request file
@@ -197,8 +220,9 @@ class SessionScreen(Screen):
     # TODO: GUI update - here is where the sidebar needs to be appended to
     def update_available_files(self, username, filename, length):
         _, tail = os.path.split(filename)
-        print "{} has {}: {} bytes".format(username, tail, length)
-        self.add_clip()
+        print "{} has {}: {} seconds".format(username, tail, length)
+        self.add_clip(filename)
+        # This takes some args? How does it getthe values
 
     def play_clip(self, obj):
         """
@@ -226,18 +250,23 @@ class SessionScreen(Screen):
         :param obj: ToggleButton object
         :return: None
         """
-        # Get filename of the high quality clip associated with this play button
-        filename = self.app.get_own_state()['audio_files'][obj.clip_no]
-        _, tail = os.path.split(filename)
-        # Get base name
-        # root, _ = os.path.splitext(tail)
+        role = self.app.config.get('ChatSettings', 'role')
+        if role == 'ARTIST':
+            # Get filename of the high quality clip associated with this play button
+            filename = self.app.get_own_state()['audio_files'][obj.clip_no]
+            _, tail = os.path.split(filename)
+            # Get base name
+            # root, _ = os.path.splitext(tail)
 
-        # Get filename of the session high quality audio stream
-        hq_audio = self.app.config.get_file_name(self.app.session_name, tail)
-        print "Requesting {}".format(tail)
-        # Send a sync message to request a file.
-        self.app.chat_client.send_sync(constants.SYNC_REQUEST_FILE,
-                                       filename=tail)
+            # Get filename of the session high quality audio stream
+            hq_audio = self.app.config.get_file_name(self.app.session_name, tail)
+            print "Requesting {}".format(tail)
+            # Send a sync message to request a file.
+            self.app.chat_client.send_sync(constants.SYNC_REQUEST_FILE,
+                                           filename=tail)
+
+        elif role == 'PRODUCER':
+            self.app.chat_client.send_sync(constants.SYNC_REQUEST_FILE, filename=obj.filename)
 
     def record_button(self):
         """
@@ -284,8 +313,9 @@ class SessionScreen(Screen):
 
             # Send a sync message for when a clip is available
             available_filename = self.app.get_latest_audio_file()
+            _, tail = os.path.split(available_filename)
             self.app.chat_client.send_sync(constants.SYNC_FILE_AVAILABLE,
-                                           filename=available_filename,
+                                           filename=tail,
                                            length=audio.get_length(available_filename))
 
     def record_progress(self):
@@ -425,7 +455,7 @@ class ProducerJoiningScreen(Screen):
         # # Open the popup
         # popup.open()
 
-        self.parent.current = 'session'
+        self.parent.current = 'producer_session'
 
         file_name = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
         self.app.phone.make_call(connection_details['call_no'], connection_details['server'], file_name)
@@ -621,10 +651,12 @@ class FileTransferScreen(Screen):
                 self.ids.filelayout.add_widget(label)
         elif self.app.config.get('ChatSettings', 'role') == "ARTIST":
             files = self.app.get_own_state()['requested_files']
+            header_label = Label(text="Files being sent", size_hint=(1 / len(files), None), color=[0, 0, 0, 1])
+            self.ids.filelayout.add_widget(header_label)
             for file in files:
                 full_path = self.app.config.get_file_name(self.app.session_name, file)
                 self.app.chat_client.send_file(full_path)
-                label = Label(text=file, size_hint=(1 / len(files), None))
+                label = Label(text=file, size_hint=(1 / len(files), None), color=[0, 0, 0, 1])
                 self.ids.filelayout.add_widget(label)
 
     def leave_session(self):
