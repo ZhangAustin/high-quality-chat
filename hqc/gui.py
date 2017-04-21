@@ -146,6 +146,8 @@ class SessionScreen(Screen):
         self.app.chat_client = HQCWSClient(self.app.config)
         self.app.chat_client.app = self.app
         self.app.chat_client.config = self.app.config
+        # self.app.chat_client.send_sync(constants.SYN)
+
         # create a scroll view, with a size < size of the grid
         # root = ScrollView(size_hint=(None, None), size=(310, 460),
         #                   pos_hint={'center_x': .5, 'center_y': .5}, do_scroll_x=False)
