@@ -136,7 +136,8 @@ class HQCWebSocket(EchoWebSocket):
         # Send to everyone
         else:
             for client in app.clients:
-                client.send(message, False)
+                if client.role == constants.ARTIST:
+                    client.send(message, False)
 
     def closed(self, code, reason="A client left the room without a proper explanation."):
         """
