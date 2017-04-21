@@ -106,7 +106,12 @@ class HQC(App):
 
 class MainScreen(Screen):
     app = ObjectProperty(None)
-    pass
+    def join_listener(self):
+        self.app.update_role(constants.LISTENER)
+        self.parent.current = 'artistsessionjoining'
+    def join_artist(self):
+        self.app.update_role(constants.ARTIST)
+        self.parent.current = 'artistsessionjoining'
 
 
 class ScreenManager(ScreenManager):
@@ -460,9 +465,6 @@ class ProducerJoiningScreen(Screen):
 
 class ArtistJoiningScreen(Screen):
     app = ObjectProperty(None)
-
-    def on_enter(self):
-        self.app.update_role(constants.ARTIST)
 
     # TODO: Have GUI fill in pre-entered values
     #       Currently a blank field means use existing values, even if none exists

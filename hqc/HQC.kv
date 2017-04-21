@@ -285,13 +285,13 @@ ScreenManager:
     ImageButton:
         id: artist
         source: '../img/artist.png'
-        on_release: app.root.current = "artistsessionjoining"
+        on_release: root.join_artist()
         size_hint: (.23, .23)
         pos: (50, 235)
     ImageButton:
         id: listener
         source: '../img/listener.png'
-        on_release: app.root.current = "artistsessionjoining"
+        on_release: root.join_listener()
         size_hint: (.23, .23)
         pos: (50, 70)
 <ProducerJoiningScreen>
