@@ -651,13 +651,16 @@ class FileTransferScreen(Screen):
                 self.ids.filelayout.add_widget(label)
         elif self.app.config.get('ChatSettings', 'role') == "ARTIST":
             files = self.app.get_own_state()['requested_files']
-            header_label = Label(text="Files being sent", size_hint=(1 / len(files), None), color=[0, 0, 0, 1])
-            self.ids.filelayout.add_widget(header_label)
-            for file in files:
-                full_path = self.app.config.get_file_name(self.app.session_name, file)
-                self.app.chat_client.send_file(full_path)
-                label = Label(text=file, size_hint=(1 / len(files), None), color=[0, 0, 0, 1])
-                self.ids.filelayout.add_widget(label)
+            if files:
+                header_label = Label(text="Files being sent", size_hint=(1 / len(files), None), color=[0, 0, 0, 1])
+                self.ids.filelayout.add_widget(header_label)
+                for file in files:
+                    full_path = self.app.config.get_file_name(self.app.session_name, file)
+                    self.app.chat_client.send_file(full_path)
+                    label = Label(text=file, size_hint=(1 / len(files), None), color=[0, 0, 0, 1])
+                    self.ids.filelayout.add_widget(label)
+            else:
+                pass
 
     def leave_session(self):
         self.app.chat_client.finish()
