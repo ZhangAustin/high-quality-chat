@@ -24,14 +24,14 @@ ScreenManager:
                 size: self.size
         TextInput:
             id: servername
-            size_hint: (.5, .1)
+            size_hint: (.35, .1)
             font_size: '24sp'
             multiline: False
             hint_text: 'Default Value'
             pos: (330, 460)
         TextInput:
             id: callnumber
-            size_hint: (.5, .1)
+            size_hint: (.35, .1)
             font_size: '24sp'
             multiline: False
             password: False
@@ -39,14 +39,14 @@ ScreenManager:
             pos: (330, 250)
         TextInput:
             id: username
-            size_hint: (.5, .1)
+            size_hint: (.35, .1)
             font_size: '24sp'
             multiline: False
             hint_text: 'Default Value'
             pos: (330, 390)
         TextInput:
             id: password
-            size_hint: (.5, .1)
+            size_hint: (.35, .1)
             font_size: '24sp'
             multiline: False
             password: True
@@ -65,10 +65,10 @@ ScreenManager:
             source: '../img/arrow_right.png'
             halign: 'center'
             valign: 'middle'
-            size_hint: (.5, None)
+            size_hint: (.15, .15)
             text_size: root.width, None
             font_size: '25sp'
-            pos: (200, 40)
+            pos: (620, 250)
             on_release: self.parent.get_text(servername.text, username.text, password.text, callnumber.text)
         ImageButton:
             id: producerjoinsess
@@ -319,7 +319,7 @@ ScreenManager:
     Image:
         source: '../img/connection_string.png'
         size_hint: (0.31, 0.31)
-        pos: (45, 110)
+        pos: (45, 70)
 <ArtistJoiningScreen>
     name: "artistsessionjoining"
     Image:

@@ -425,7 +425,7 @@ class ProducerJoiningScreen(Screen):
         # # Open the popup
         # popup.open()
 
-        self.parent.current = 'session'
+        self.parent.current = 'producer_session'
 
         file_name = self.app.config.get_file_name(self.app.session_name, datetime.now().strftime(constants.DATETIME_LQ))
         self.app.phone.make_call(connection_details['call_no'], connection_details['server'], file_name)
