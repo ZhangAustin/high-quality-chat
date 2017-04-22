@@ -28,7 +28,7 @@ ScreenManager:
             font_size: '24sp'
             multiline: False
             hint_text: 'Default Value'
-            pos: (330, 460)
+            pos: (330, 445)
         TextInput:
             id: callnumber
             size_hint: (.35, .1)
@@ -36,14 +36,14 @@ ScreenManager:
             multiline: False
             password: False
             hint_text: 'Default Value'
-            pos: (330, 250)
+            pos: (330, 235)
         TextInput:
             id: username
             size_hint: (.35, .1)
             font_size: '24sp'
             multiline: False
             hint_text: 'Default Value'
-            pos: (330, 390)
+            pos: (330, 375)
         TextInput:
             id: password
             size_hint: (.35, .1)
@@ -51,7 +51,7 @@ ScreenManager:
             multiline: False
             password: True
             hint_text: 'Default Value'
-            pos: (330, 320)
+            pos: (330, 305)
         TextInput:
             id: producer_connection
             size_hint: (.35, .2)
@@ -59,7 +59,7 @@ ScreenManager:
             multiline: True
             password: True
             hint_text: 'OR\nEnter your connection string'
-            pos: (330, 110)
+            pos: (330, 95)
         ImageButton:
             id: producerjoinsess
             source: '../img/arrow_right.png'
@@ -68,7 +68,7 @@ ScreenManager:
             size_hint: (.15, .15)
             text_size: root.width, None
             font_size: '25sp'
-            pos: (620, 250)
+            pos: (620, 240)
             on_release: self.parent.get_text(servername.text, username.text, password.text, callnumber.text)
         ImageButton:
             id: producerjoinsess
@@ -78,7 +78,7 @@ ScreenManager:
             size_hint: (.15, .15)
             text_size: root.width, None
             font_size: '25sp'
-            pos: (620, 110)
+            pos: (620, 100)
             on_release: self.parent.get_conn(producer_connection.text)
         ImageButton:
             id: main_menu
@@ -206,8 +206,8 @@ ScreenManager:
             source: '../img/save_settings.png'
             halign: 'center'
             valign: 'middle'
-            size_hint: (.3, .3)
-            pos: (500, 25)
+            size_hint: (.26, .26)
+            pos: (290, 25)
             on_release: self.parent.save_settings(setting1.text); setting1.text = ''
     FileTransferScreen:
         app: self.manager.app
@@ -258,9 +258,9 @@ ScreenManager:
             hint_text: 'Default Value'
             pos: (330, 290)
         ImageButton:
-            source: '../img/generate_strings.png'
-            size_hint: (.2, .2)
-            pos: (450, 50)
+            source: '../img/enter_string.png'
+            size_hint: (.26, .26)
+            pos: (290, 50)
             on_release: self.parent.generate_string(servername.text, username.text, password.text, callnumber.text)
 
 <MainScreen>:
@@ -299,27 +299,27 @@ ScreenManager:
     Image:
         source: '../img/server_address.png'
         size_hint: (0.28, 0.28)
-        pos: (70, 410)
+        pos: (70, 390)
     Image:
         source: '../img/username.png'
         size_hint: (0.195, 0.195)
-        pos: (145, 360)
+        pos: (145, 340)
     Image:
         source: '../img/password.png'
         size_hint: (0.16, 0.16)
-        pos: (160, 305)
+        pos: (160, 285)
     Image:
         source: '../img/call_number.png'
         size_hint: (0.2, 0.2)
-        pos: (130, 220)
+        pos: (130, 200)
     Image:
         source: '../img/line_break.png'
         size_hint: (0.9, 0.9)
-        pos: (30, -28)
+        pos: (30, -43)
     Image:
         source: '../img/connection_string.png'
         size_hint: (0.31, 0.31)
-        pos: (45, 70)
+        pos: (45, 55)
 <ArtistJoiningScreen>
     name: "artistsessionjoining"
     Image:
@@ -527,7 +527,7 @@ ScreenManager:
     ImageButton:
         source: '../img/generate_strings.png'
         size_hint: (.2, .2)
-        pos: (150, 50)
+        pos: (50, 50)
         on_release: app.root.current = 'connection_string_generation_screen'
     Image:
         source: '../img/username.png'
@@ -575,19 +575,19 @@ ScreenManager:
     Image:
         source: '../img/server_address.png'
         size_hint: (0.28, 0.28)
-        pos: (70, 380)
+        pos: (70, 365)
     Image:
         source: '../img/username.png'
         size_hint: (0.195, 0.195)
-        pos: (145, 330)
+        pos: (145, 315)
     Image:
         source: '../img/password.png'
         size_hint: (0.16, 0.16)
-        pos: (160, 275)
+        pos: (160, 260)
     Image:
         source: '../img/call_number.png'
         size_hint: (0.2, 0.2)
-        pos: (130, 190)
+        pos: (130, 175)
     ImageButton:
         id: main_menu
         source: '../img/arrow_left.png'
@@ -597,5 +597,5 @@ ScreenManager:
         size_hint: (.20, .10)
         text_size: root.width, None
         font_size: '25sp'
-        pos: (200, 75)
+        pos: (-25, 510)
         on_release: app.root.current = 'settings'
