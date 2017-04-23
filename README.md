@@ -46,6 +46,19 @@ PyDub and PyAudio
 	* `pip install pyaudio`
   * `pip install pydub`
   
+### Server Setup
+
+Ensure a properly running SIP server has been configured on your network.  Clients can hook into any existing SIP architecture as long as they are provided a conference number to dial into.
+
+All testing was done with FreePBX/Asterisk 13.  Setup instructions can be found here: https://wiki.freepbx.org/display/FOP/Installing+FreePBX+with+the+Official+Distro
+
+Create SIP extensions (or allow anonymous inbound calls) for each user.  These should have unique call numbers and passwords.  The producer can then take these credentials and generate connection strings for each user.  Role is determined and synchronized by the chat client and servers, so any SIP credentails will work for any type of user.  They can be reused, but only one client can connect to the voice channels from one set of credentials at any time.
+
+Some caveats:
+Installation behind NAT can be a bit trickey.  If you only properly forward SIP ports you will be able to place phone calls but not actually connect to the voice channel.  In order for this to occur, about 10,000 RTP ports will also need to be forwarded.  Specific values will be noted in your server configuration.  While there are some technologies to avoid having to forward all of these ports, they were not explored and may not be compatible without modifications to the clients (ICE/STUN).
+
+If a client improperly exits, they will not be able to rejoin the session until a manual hangup is called on the server side or timeout has been reached.  These timeouts are configurable on the server side and default to 30 munites under Asterisk 13.
+  
 ### Project Configuration
 
 After cloning the application, any desired configurations should be filled out in `hqc/conn.conf`:
