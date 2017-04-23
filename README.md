@@ -20,17 +20,20 @@ It should work with all SIP servers, though it was built and tested with FreePBX
 
 ### Dependencies
 
-Python 2.7, precompiled binaries coming later.
+[Python 2.7](https://www.python.org/downloads/)
 
-liblinphone
+Precompiled binaries coming later.
+
+linphone
 * [Windows] `pip install linphone`
-* [OS X] `pip install `[linphone.whl](https://www.linphone.org/snapshots/linphone-python/macosx/linphone-3.10.2_379_g85ffd1e-cp27-none-macosx_10_7_x86_64.whl)
+* [OS X] `pip install `
+    * Download  [linphone.whl](https://www.linphone.org/snapshots/linphone-python/macosx/linphone-3.10.2_379_g85ffd1e-cp27-none-macosx_10_7_x86_64.whl)
+    * `pip install linphone.whl`
     * We could not get a newer version to install on 10.10.
 
 Kivy
 * [Windows] https://kivy.org/docs/installation/installation-windows.html
 * [OS X] https://kivy.org/docs/installation/installation-osx.html#using-homebrew-with-pip
-	* `pip install pygame`
 
 PyDub and PyAudio
 * Requires ffmpeg or libav (we are using ffmpeg)
@@ -40,4 +43,18 @@ PyDub and PyAudio
 * OSX
 	* `brew install ffmpeg`
 	* `brew install portaudio`
-	* `pip install pyaudio pydub`
+	* `pip install pyaudio`
+  * `pip install pydub`
+
+### Running the Application
+Clone the Application
+* Make sure [git](https://git-scm.com/) is properly installed and included in your path
+* `git clone https://github.com/b6938236/high-quality-chat.git`
+* Install dependencies from section above
+
+Running the Chat Server
+* Follow instructions up until the `server` section on the [chat README](https://github.com/b6938236/high-quality-chat/blob/master/hqc/chat/README.md)
+
+Starting the Graphical Client
+* Naviagte to project folder `cd high-quality-chat`
+* And then run hqc/gui.py with `python gui.py`
