@@ -48,7 +48,7 @@ PyDub and PyAudio
   
 ### Project Configuration
 
-Any desired configurations should be filled out in `hqc/conn.conf` before starting the application:
+After cloning the application, any desired configurations should be filled out in `hqc/conn.conf`:
 - [ConnectionDetails]
     - user: username for the voice chat server
     - password: password for the voice chat server
