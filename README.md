@@ -45,6 +45,30 @@ PyDub and PyAudio
 	* `brew install portaudio`
 	* `pip install pyaudio`
   * `pip install pydub`
+  
+### Project Configuration
+
+Any desired configurations should be filled out in `hqc/conn.conf` before starting the application:
+- [ConnectionDetails]
+    - user: username for the voice chat server
+    - password: password for the voice chat server
+    - server: voice chat server IP address
+    - call_no: voice conference call number
+- [AudioSettings]
+    - mic: preferred audio recording device
+    - speakers: preferred playback device 
+    - recording_location: This field should be a directory path where audio files from the recording sessions are saved.
+- [ChatSettings]
+    - ip_address: IP address of chat server
+    - port: port address of chat server
+    - username: desired username for the chat
+    - role: role of user during session (set upon joining a session)
+- [HQRecordingSettings]
+    - width: TODO
+    - channels: number of audio channels for high quality recording
+    - rate: bit rate for high quality recording
+- [LQRecordingSettings]
+    - codec - desired audio compression
 
 ### Running the Application
 Clone the Application
