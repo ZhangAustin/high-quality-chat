@@ -2,6 +2,8 @@
 # high-quality-chat
 Capstone Project for Georgia Tech
 
+[Releases](https://github.com/b6938236/high-quality-chat/releases)
+
 Implements liblinphone to create a SIP endpoint that does some pretty specific things.
 
 It is meant to combine the low bandwidth of a voice codec for collaboration on projects that require "studio quality" outputs.  The "studio quality" is 320kpbs MP3, though this could easily be altered with little issue.
